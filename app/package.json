@@ -1,6 +1,0 @@
-{
-   "devDependencies": { "electron": "21.4.4" },
-   "main": "main.js",
-   "name": "outertale",
-   "version": "4.1.1"
-}

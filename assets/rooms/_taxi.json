@@ -1,6 +1,0 @@
-{
-   "$schema": "./room.schema.json",
-   "preload": [ "iooTaxi", "iooTaxiOverlay", "ionRiverboi" ],
-   "neighbors": [ "w_wonder", "s_taxi", "a_lookout", "f_taxi" ],
-   "region": [ { "x": 160, "y": 120 }, { "x": 160, "y": 120 } ]
-}
