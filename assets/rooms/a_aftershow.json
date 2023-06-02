@@ -1,0 +1,133 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "metadata": { "dark03": true, "restoreMuzak": "mall" },
+   "preload": [
+      "amMall",
+      "amYouscreweduppal",
+      "imAerialisBDark",
+      "amThriftShop",
+      "isgBackground",
+      "isgArm1",
+      "isgArm2",
+      "isgKeeper1",
+      "isgKeeper2",
+      "avSans",
+      "idcSans",
+      "iocSans"
+   ],
+   "layers": {
+      "below": [
+         {
+            "triggers": [
+               {
+                  "position": { "x": 5, "y": 120 },
+                  "size": { "x": -20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "a_auditorium", "left", "460", "180" ]
+               },
+               {
+                  "position": { "x": 315, "y": 120 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "a_hub1", "right", "20", "400" ]
+               },
+               {
+                  "position": { "x": 137, "y": 120 },
+                  "anchor": { "x": -1, "y": -1 },
+                  "size": { "x": 46, "y": -20 },
+                  "name": "shop",
+                  "args": [ "gossip", "down", "160", "130" ]
+               }
+            ],
+            "position": { "x": 0, "y": 0 },
+            "barriers": [
+               { "position": { "x": 0, "y": 120 }, "size": { "x": 137, "y": -20 } },
+               { "position": { "x": 183, "y": 120 }, "size": { "x": 137, "y": -20 } },
+               { "position": { "x": 0, "y": 200 }, "size": { "x": 320, "y": 20 } }
+            ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iooAReccolumn",
+                  "auto": true,
+                  "anchor": { "x": 0, "y": -1 },
+                  "position": { "x": 30, "y": 40 }
+               },
+               {
+                  "type": "animation",
+                  "resources": "iooAReccolumn",
+                  "auto": true,
+                  "anchor": { "x": 0, "y": -1 },
+                  "position": { "x": 290, "y": 40 }
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "tags": [ "dimbox", "darkable" ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iooDimbox",
+                  "position": { "x": 0, "y": 0 },
+                  "anchor": { "x": 0, "y": 1 }
+               }
+            ],
+            "position": { "x": 106, "y": 130 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": 1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -20, "y": 9 } }
+            ],
+            "interacts": [
+               { "anchor": { "x": 0, "y": 1 }, "size": { "x": -20, "y": 9 }, "name": "starton", "args": [ "dimbox" ] }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 0 },
+                  "resources": "iooSavePoint",
+                  "position": { "y": -10, "x": 0 }
+               }
+            ],
+            "interacts": [ { "name": "save", "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "barriers": [ { "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "position": { "x": 80, "y": 129 },
+            "tags": [ "darkable" ]
+         },
+         {
+            "tags": [ "darkable" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooAWishflower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 272, "y": 128 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -22, "y": -8 } } ]
+         },
+         {
+            "tags": [ "darkable" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooAWishflower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 48, "y": 128 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -22, "y": -8 } } ]
+         },
+         {
+            "attachments": [ { "type": "animation", "resources": "iocSansDown", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 240, "y": 129 },
+            "tags": [ "datesans" ],
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -22, "y": -7 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -22, "y": -7 },
+                  "name": "aerialis",
+                  "args": [ "sansdate" ]
+               }
+            ]
+         }
+      ]
+   },
+   "region": [ { "x": 160, "y": 120 }, { "x": 160, "y": 120 } ],
+   "score": { "music": "mall", "gain": 0.8 },
+   "neighbors": [ "a_hub1", "a_auditorium" ],
+   "spawn": { "x": 80, "y": 160 }
+}

@@ -1,0 +1,38 @@
+{
+   "dependencies": {
+      "@types/pathfinding": "0.0.6",
+      "file-dialog": "0.0.8",
+      "object-inspect": "1.12.3",
+      "pathfinding": "0.4.18",
+      "pixi-filters": "5.2.1",
+      "pixi.js": "7.2.4"
+   },
+   "devDependencies": {
+      "@types/node": "^16.0.0",
+      "@types/object-inspect": "1.8.1",
+      "dependency-cruiser": "12.12.1",
+      "electron": "21.4.4",
+      "electron-builder": "23.6.0",
+      "typescript": "5.0.4",
+      "vite": "4.3.5"
+   },
+   "private": true,
+   "scripts": {
+      "build": "yarn build.prepare && yarn build.vite && yarn build.electron && yarn build.dist && yarn build.cleanup",
+      "build.cleanup": "rm -rf ./app/assets",
+      "build.dist": "yarn build.dist.src && yarn build.dist.unx && yarn build.dist.web && yarn build.dist.win",
+      "build.dist.src": "git archive --format zip --output ./dist/src.zip master",
+      "build.dist.unx": "cd ./app/dist/linux-unpacked && zip -r ./../../../dist/unx.zip *",
+      "build.dist.web": "cd ./app/assets && zip -r ./../../dist/web.zip *",
+      "build.dist.win": "cd ./app/dist/win-unpacked && zip -r ./../../../dist/win.zip *",
+      "build.electron": "electron-builder build --linux --win --dir --x64 --project app",
+      "build.prepare": "rm -rf ./dist && mkdir ./dist",
+      "build.vite": "vite build",
+      "cruise": "depcruise --config .dependency-cruiser.js --output-type dot code/index.ts | dot -T svg | depcruise-wrap-stream-in-html > cruise.html",
+      "quick": "yarn build.vite && yarn test && yarn build.cleanup",
+      "serve": "vite --host 127.0.0.1 --strictPort true --port",
+      "serve-public": "vite --host 0.0.0.0 --strictPort true --port",
+      "test": "cd app && electron main.js",
+      "tsc": "tsc --watch"
+   }
+}

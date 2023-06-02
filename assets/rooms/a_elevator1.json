@@ -1,0 +1,75 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amAerialis", "iooAPrimespire", "amAerialisEmpty" ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 0, "y": 400 }, "size": { "x": 80, "y": -260 } },
+               { "position": { "x": 0, "y": 480 }, "size": { "x": 160, "y": 20 } },
+               { "position": { "x": 160, "y": 480 }, "size": { "x": 80, "y": -260 } },
+               { "position": { "x": 80, "y": 140 }, "size": { "x": 100, "y": -20 } },
+               { "position": { "x": 220, "y": 140 }, "size": { "x": 20, "y": -20 } },
+               { "position": { "x": 240, "y": 140 }, "size": { "x": 20, "y": 80 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 180, "y": 140 },
+                  "size": { "x": 40, "y": -20 },
+                  "name": "teleport",
+                  "args": [ "a_lift", "up", "160", "230" ]
+               },
+               {
+                  "position": { "x": -15, "y": 400 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "a_mettaton1", "left", "980", "210" ]
+               },
+               {
+                  "position": { "x": 80, "y": 280 },
+                  "size": { "x": 80, "y": 20 },
+                  "name": "aerialis",
+                  "args": [ "notifier", "alphys7" ]
+               }
+            ]
+         }
+      ],
+      "above": [],
+      "main": [
+         {
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 0 },
+                  "resources": "iooSavePoint",
+                  "position": { "y": -10, "x": 0 }
+               }
+            ],
+            "interacts": [ { "name": "save", "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "barriers": [ { "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "position": { "x": 60, "y": 400 }
+         },
+         {
+            "attachments": [ { "type": "animation", "resources": "ionABusinessdude", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 200, "y": 225 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -40, "y": -15 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -40, "y": -15 },
+                  "name": "aerialis",
+                  "args": [ "npc", "a_businessdude" ]
+               }
+            ],
+            "tags": [ "a_businessdude" ]
+         }
+      ]
+   },
+   "mixins": { "above": "aerialis-a-overlay" },
+   "neighbors": [ "a_mettaton1", "a_lift" ],
+   "region": [ { "x": 160, "y": 140 }, { "x": 160, "y": 440 } ],
+   "score": { "music": "aerialis", "gain": 0.8 },
+   "spawn": { "x": 60, "y": 410 }
+}

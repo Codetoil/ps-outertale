@@ -1,0 +1,105 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amStarton", "amStartonEmpty", "ionSGreatdog", "ieBiodome" ],
+   "layers": {
+      "below": [
+         {
+            "triggers": [
+               {
+                  "position": { "x": 435, "y": 140 },
+                  "size": { "x": 20, "y": 100 },
+                  "name": "teleport",
+                  "args": [ "s_bridge", "right", "20", "50" ]
+               },
+               {
+                  "position": { "x": 5, "y": 20 },
+                  "size": { "x": -20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "s_puzzle3", "left", "360", "60" ]
+               }
+            ],
+            "barriers": [
+               { "position": { "x": 0, "y": 35 }, "size": { "x": 30, "y": -20 } },
+               { "position": { "x": 30, "y": 15 }, "size": { "x": 100, "y": -20 } },
+               { "position": { "x": 131, "y": 15 }, "size": { "x": 150, "y": 25 } },
+               { "position": { "x": 280, "y": 40 }, "size": { "x": 30, "y": 115 } },
+               { "position": { "x": 130, "y": 80 }, "size": { "x": 110, "y": 75 } },
+               { "position": { "x": 190, "y": 155 }, "size": { "x": 20, "y": 70 } },
+               { "position": { "x": 130, "y": 105 }, "size": { "x": -100, "y": 20 } },
+               { "position": { "x": 0, "y": 85 }, "size": { "x": 30, "y": 20 } },
+               { "position": { "x": 310, "y": 135 }, "size": { "x": 120, "y": -20 } },
+               { "position": { "x": 210, "y": 225 }, "size": { "x": 100, "y": 20 } },
+               { "position": { "x": 310, "y": 245 }, "size": { "x": 120, "y": 20 } },
+               { "position": { "x": 430, "y": 135 }, "size": { "x": 10, "y": 20 } },
+               { "position": { "x": 430, "y": 225 }, "size": { "x": 10, "y": 20 } }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 114, "y": 24 }
+         },
+         {
+            "attachments": [ { "type": "animation", "resources": "ionSFaun", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 47, "y": 24 },
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -18, "y": 8 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": 18, "y": -9 },
+                  "name": "starton",
+                  "args": [ "npc", "s_faun" ]
+               }
+            ],
+            "tags": [ "s_faun" ]
+         },
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooSSentry4" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 80, "y": 27 },
+            "barriers": [ { "size": { "x": -34, "y": -18 }, "anchor": { "x": 0, "y": -1 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -30, "y": -18 },
+                  "name": "trivia",
+                  "args": [ "s_doghouse" ]
+               }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooSTree" ],
+                  "position": { "x": 0, "y": 0 },
+                  "anchor": { "x": 0, "y": 1 }
+               }
+            ],
+            "position": { "x": 370, "y": 150 },
+            "barriers": [
+               { "size": { "x": -60, "y": -16 }, "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": -4 } },
+               { "position": { "x": 0, "y": -4 }, "anchor": { "x": 0, "y": -1 }, "size": { "x": -55, "y": 7 } },
+               { "position": { "x": 0, "y": 3 }, "anchor": { "x": 0, "y": -1 }, "size": { "x": -20, "y": 3 } }
+            ],
+            "interacts": [
+               { "size": { "x": -60, "y": -20 }, "anchor": { "x": 0, "y": -1 }, "name": "trivia", "args": [ "s_tree" ] }
+            ]
+         }
+      ]
+   },
+   "neighbors": [ "s_puzzle3", "s_bridge" ],
+   "region": [ { "x": 160, "y": 60 }, { "x": 280, "y": 160 } ],
+   "score": { "music": "starton", "gain": 0.8 }
+}

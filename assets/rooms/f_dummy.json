@@ -1,0 +1,117 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [
+      "amGenerator",
+      "ionODummyDark",
+      "ionODummyMadDark",
+      "ionODummyMad",
+      "ionODummyRage",
+      "asShatter",
+      "ionODummy",
+      "asBoom",
+      "asDununnn",
+      "amPredummy",
+      "ionODummyGlad",
+      "ionODummyBlush",
+      "avNapstablook",
+      "iocNapstablook"
+   ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 200, "y": 320 }, "size": { "x": -80, "y": 180 } },
+               { "position": { "x": 240, "y": 500 }, "size": { "x": 20, "y": -280 } },
+               { "position": { "x": 80, "y": 360 }, "size": { "x": -80, "y": -140 } },
+               { "position": { "x": 60, "y": 140 }, "size": { "x": -20, "y": 80 } },
+               { "position": { "x": 260, "y": 220 }, "size": { "x": 20, "y": -80 } },
+               { "position": { "x": 60, "y": 140 }, "size": { "x": 20, "y": -40 } },
+               { "position": { "x": 80, "y": 100 }, "size": { "x": 20, "y": -20 } },
+               { "position": { "x": 100, "y": 80 }, "size": { "x": 40, "y": -20 } },
+               { "position": { "x": 180, "y": 80 }, "size": { "x": 40, "y": -20 } },
+               { "position": { "x": 220, "y": 80 }, "size": { "x": 20, "y": 20 } },
+               { "position": { "x": 240, "y": 100 }, "size": { "x": 20, "y": 40 } },
+               { "position": { "x": 80, "y": 240 }, "size": { "x": 65, "y": -60 } },
+               { "position": { "x": 240, "y": 240 }, "size": { "x": -65, "y": -60 } },
+               { "position": { "x": 120, "y": 500 }, "size": { "x": -120, "y": 20 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 140, "y": 80 },
+                  "size": { "x": 40, "y": -20 },
+                  "name": "teleport",
+                  "args": [ "f_tunnel", "up", "160", "490" ]
+               },
+               {
+                  "position": { "x": 200, "y": 495 },
+                  "size": { "x": 40, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "f_hub", "down", "40", "130" ]
+               },
+               {
+                  "position": { "x": 80, "y": 360 },
+                  "size": { "x": 40, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "f_village", "down", "40", "10" ]
+               },
+               {
+                  "position": { "x": 150, "y": 180 },
+                  "size": { "x": 20, "y": 60 },
+                  "name": "foundry",
+                  "args": [ "ladder" ]
+               }
+            ]
+         }
+      ],
+      "above": [],
+      "main": [
+         {
+            "position": { "x": -77, "y": 54 },
+            "attachments": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "sprite",
+                  "frames": [ "iooSCrosswordDark" ],
+                  "position": { "x": 158, "y": 104 }
+               }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "position": { "x": 158, "y": 104 },
+                  "size": { "x": 13, "y": 15 },
+                  "name": "trivia",
+                  "args": [ "f_trash3" ]
+               }
+            ]
+         },
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooFCooler" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 200, "y": 170 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -30, "y": -11 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "name": "foundry",
+                  "args": [ "astrofood" ],
+                  "size": { "x": -30, "y": -11 }
+               }
+            ]
+         },
+         {
+            "attachments": [ { "type": "animation", "resources": "ionF86", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 96, "y": 110 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -17, "y": -6 } } ],
+            "interacts": [
+               { "size": { "x": -17, "y": -6 }, "anchor": { "x": 0, "y": -1 }, "name": "foundry", "args": [ "npc86" ] }
+            ],
+            "tags": [ "f_npc86" ]
+         }
+      ]
+   },
+   "mixins": { "above": "foundry-overlay" },
+   "region": [ { "x": 160, "y": 120 }, { "x": 160, "y": 380 } ],
+   "score": { "music": "generator", "gain": 0.8 },
+   "neighbors": [ "f_hub", "f_tunnel", "f_village" ]
+}

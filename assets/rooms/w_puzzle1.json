@@ -1,0 +1,319 @@
+{
+   "$schema": "./room.schema.json",
+   "preload": [ "amOutlands", "asRetract", "iooOPylon", "asPhase", "asDephase", "iooOIndicatorButton", "iooOSwitch" ],
+   "background": "below",
+   "layers": {
+      "below": [
+         {
+            "position": { "x": 20 },
+            "barriers": [
+               { "position": { "x": 20, "y": 100 }, "size": { "x": 20, "y": 40 } },
+               { "position": { "x": 260, "y": 100 }, "size": { "x": 20, "y": 40 } },
+               { "position": { "x": 20, "y": 180 }, "size": { "x": 20, "y": 40 } },
+               { "position": { "x": 260, "y": 180 }, "size": { "x": 20, "y": 40 } },
+               { "position": { "x": 40, "y": 80 }, "size": { "x": 220, "y": 20 } },
+               { "position": { "x": 40, "y": 220 }, "size": { "x": 220, "y": 20 } }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "interacts": [
+               {
+                  "name": "trivia",
+                  "position": { "x": 100, "y": 80 },
+                  "size": { "x": 140, "y": 20 },
+                  "args": [ "w_puzzle1_view" ]
+               }
+            ]
+         },
+         {
+            "position": { "x": 40 },
+            "interacts": [
+               {
+                  "name": "outlands",
+                  "position": { "x": 25, "y": 80 },
+                  "size": { "x": 20, "y": 20 },
+                  "args": [ "puzzle1", "switch" ]
+               }
+            ],
+            "triggers": [
+               {
+                  "name": "teleport",
+                  "position": { "x": -15, "y": 140 },
+                  "size": { "x": 20, "y": 40 },
+                  "args": [ "w_froggit", "left", "260", "140" ]
+               },
+               {
+                  "name": "teleport",
+                  "position": { "x": 255, "y": 140 },
+                  "size": { "x": 20, "y": 40 },
+                  "args": [ "w_puzzle2", "right", "100", "120" ]
+               },
+               {
+                  "name": "outlands",
+                  "position": { "x": -40, "y": 0 },
+                  "size": { "x": 1000, "y": 1000 },
+                  "args": [ "puzzle1" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "w_puzzle1_switch" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOSwitch",
+                  "position": { "x": 75, "y": 80 }
+               }
+            ]
+         },
+         {
+            "tags": [ "0x0", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 110, "y": 130 }
+               }
+            ],
+            "position": { "x": 0, "y": 0 }
+         },
+         {
+            "tags": [ "0x1", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 110, "y": 150 }
+               }
+            ]
+         },
+         {
+            "tags": [ "0x2", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 110, "y": 170 }
+               }
+            ]
+         },
+         {
+            "tags": [ "0x3", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 110, "y": 190 }
+               }
+            ]
+         },
+         {
+            "tags": [ "1x0", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 150, "y": 130 }
+               }
+            ]
+         },
+         {
+            "tags": [ "1x1", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 150, "y": 150 }
+               }
+            ]
+         },
+         {
+            "tags": [ "1x2", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 150, "y": 170 }
+               }
+            ]
+         },
+         {
+            "tags": [ "1x3", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 150, "y": 190 }
+               }
+            ]
+         },
+         {
+            "tags": [ "2x0", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 190, "y": 130 }
+               }
+            ]
+         },
+         {
+            "tags": [ "2x1", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 190, "y": 150 }
+               }
+            ]
+         },
+         {
+            "tags": [ "2x2", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 190, "y": 170 }
+               }
+            ]
+         },
+         {
+            "tags": [ "2x3", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 190, "y": 190 }
+               }
+            ]
+         },
+         {
+            "tags": [ "3x0", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 230, "y": 130 }
+               }
+            ]
+         },
+         {
+            "tags": [ "3x1", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 230, "y": 150 }
+               }
+            ]
+         },
+         {
+            "tags": [ "3x2", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 230, "y": 170 }
+               }
+            ]
+         },
+         {
+            "tags": [ "3x3", "w_puzzle1_button" ],
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooOIndicatorButton",
+                  "position": { "x": 230, "y": 190 }
+               }
+            ]
+         },
+         {
+            "tags": [ "w_puzzle1_pylon" ],
+            "position": { "x": 284, "y": 148 },
+            "attachments": [
+               { "auto": false, "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "iooOPylon" }
+            ],
+            "barriers": [ { "position": { "x": -2, "y": -6 }, "size": { "x": 4, "y": 6 } } ]
+         },
+         {
+            "tags": [ "w_puzzle1_pylon" ],
+            "position": { "x": 288, "y": 154 },
+            "attachments": [
+               { "auto": false, "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "iooOPylon" }
+            ],
+            "barriers": [ { "position": { "x": -2, "y": -6 }, "size": { "x": 4, "y": 6 } } ]
+         },
+         {
+            "tags": [ "w_puzzle1_pylon" ],
+            "position": { "x": 284, "y": 160 },
+            "attachments": [
+               { "auto": false, "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "iooOPylon" }
+            ],
+            "barriers": [ { "position": { "x": -2, "y": -6 }, "size": { "x": 4, "y": 6 } } ]
+         },
+         {
+            "tags": [ "w_puzzle1_pylon" ],
+            "position": { "x": 288, "y": 166 },
+            "attachments": [
+               { "auto": false, "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "iooOPylon" }
+            ],
+            "barriers": [ { "position": { "x": -2, "y": -6 }, "size": { "x": 4, "y": 6 } } ]
+         },
+         {
+            "tags": [ "w_puzzle1_pylon" ],
+            "position": { "x": 284, "y": 172 },
+            "attachments": [
+               { "auto": false, "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "iooOPylon" }
+            ],
+            "barriers": [ { "position": { "x": -2, "y": -6 }, "size": { "x": 4, "y": 6 } } ]
+         },
+         {
+            "tags": [ "w_puzzle1_pylon" ],
+            "position": { "x": 288, "y": 178 },
+            "attachments": [
+               { "auto": false, "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "iooOPylon" }
+            ],
+            "barriers": [ { "position": { "x": -2, "y": -6 }, "size": { "x": 4, "y": 6 } } ]
+         }
+      ]
+   },
+   "neighbors": [ "w_froggit", "w_puzzle2" ],
+   "region": [ { "x": 170, "y": 120 }, { "x": 170, "y": 140 } ],
+   "score": { "gain": 0.8, "music": "outlands" }
+}

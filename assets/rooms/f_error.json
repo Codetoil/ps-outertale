@@ -1,0 +1,45 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amFactory", "amFactoryEmpty", "iooFErrorTrue", "iooFSteam" ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 140, "y": 0 }, "size": { "x": -60, "y": 180 } },
+               { "position": { "x": 200, "y": 0 }, "size": { "x": 60, "y": 180 } },
+               { "position": { "x": 80, "y": 180 }, "size": { "x": -20, "y": 100 } },
+               { "position": { "x": 260, "y": 180 }, "size": { "x": 20, "y": 100 } },
+               { "position": { "x": 80, "y": 280 }, "size": { "x": 60, "y": 120 } },
+               { "position": { "x": 200, "y": 280 }, "size": { "x": 60, "y": 120 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 140, "y": 395 },
+                  "size": { "x": 60, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "f_telescope", "down", "70", "110" ]
+               },
+               {
+                  "position": { "x": 140, "y": 5 },
+                  "size": { "x": 60, "y": -20 },
+                  "name": "teleport",
+                  "args": [ "f_lobby", "up", "70", "210" ]
+               }
+            ],
+            "interacts": []
+         },
+         {
+            "tags": [ "steamgap" ],
+            "interacts": [
+               { "position": { "x": 120, "y": 200 }, "size": { "x": 100, "y": 60 } },
+               { "position": { "x": 220, "y": 200 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 80, "y": 240 }, "size": { "x": 40, "y": 20 } }
+            ]
+         }
+      ]
+   },
+   "region": [ { "x": 170, "y": 120 }, { "x": 170, "y": 280 } ],
+   "score": { "music": "factory", "gain": 0.8 },
+   "neighbors": [ "f_telescope", "f_lobby" ]
+}

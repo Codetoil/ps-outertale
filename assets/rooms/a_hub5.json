@@ -1,0 +1,90 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amMall", "amYouscreweduppal", "imAerialisBDark", "idcAlphys", "avAlphys" ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": -20, "y": 120 }, "size": { "x": 20, "y": 40 } },
+               { "position": { "x": 40, "y": 220 }, "size": { "x": -20, "y": -20 } },
+               { "position": { "x": 120, "y": 300 }, "size": { "x": 20, "y": 20 } },
+               { "position": { "x": 180, "y": 340 }, "size": { "x": 20, "y": 20 } },
+               { "position": { "x": 220, "y": 360 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 280, "y": 380 }, "size": { "x": 140, "y": 20 } },
+               { "position": { "x": 320, "y": 200 }, "size": { "x": 60, "y": -20 } },
+               { "position": { "x": 380, "y": 200 }, "size": { "x": 40, "y": 100 } },
+               { "position": { "x": 240, "y": 160 }, "size": { "x": 20, "y": -20 } },
+               { "position": { "x": 300, "y": 180 }, "size": { "x": -20, "y": -20 } },
+               { "position": { "x": 20, "y": 100 }, "size": { "x": 20, "y": -20 } },
+               { "position": { "x": 80, "y": 100 }, "size": { "x": 20, "y": -20 } },
+               { "position": { "x": 120, "y": 60 }, "size": { "x": 40, "y": 20 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 40, "y": 80 },
+                  "size": { "x": 40, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "a_citadelevator", "up", "160", "230" ]
+               },
+               {
+                  "position": { "x": 405, "y": 300 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "a_hub4", "right", "30", "400" ]
+               }
+            ],
+            "position": { "x": 40, "y": 60 },
+            "attachments": [
+               {
+                  "type": "animation",
+                  "auto": true,
+                  "resources": "iooAReccolumnLeft",
+                  "position": { "x": 10, "y": 28 },
+                  "anchor": { "x": 0, "y": -1 }
+               }
+            ]
+         },
+         {
+            "tags": [ "cornerbarrier" ],
+            "interacts": [
+               { "position": { "x": 0, "y": 100 }, "size": { "x": 20, "y": 20 } },
+               { "position": { "x": 240, "y": 80 }, "size": { "x": -80, "y": 80 } },
+               { "position": { "x": 280, "y": 160 }, "size": { "x": -20, "y": 20 } },
+               { "position": { "x": 320, "y": 180 }, "size": { "x": -20, "y": 20 } },
+               { "position": { "x": 0, "y": 200 }, "size": { "x": 40, "y": -40 } },
+               { "position": { "x": 40, "y": 300 }, "size": { "x": 80, "y": -80 } },
+               { "position": { "x": 140, "y": 340 }, "size": { "x": 40, "y": -40 } },
+               { "position": { "x": 200, "y": 360 }, "size": { "x": 20, "y": -20 } },
+               { "position": { "x": 260, "y": 380 }, "size": { "x": 20, "y": -20 } },
+               { "position": { "x": 100, "y": 80 }, "size": { "x": 20, "y": 20 } },
+               { "position": { "x": 180, "y": 60 }, "size": { "x": -20, "y": 20 } }
+            ],
+            "position": { "x": 40, "y": 60 }
+         }
+      ],
+      "main": [
+         {
+            "tags": [ "darkable" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooAWishflower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 92, "y": 280 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -22, "y": -8 } } ]
+         },
+         {
+            "tags": [ "darkable" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooAWishflower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 326, "y": 435 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -22, "y": -8 } } ]
+         },
+         {
+            "tags": [ "darkable" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooAWishflower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 224, "y": 396 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -22, "y": -8 } } ]
+         }
+      ]
+   },
+   "score": { "music": "mall", "gain": 0.8 },
+   "region": [ { "x": 180, "y": 160 }, { "x": 290, "y": 340 } ],
+   "neighbors": [ "a_hub4", "a_citadelevator", "a_alley" ]
+}

@@ -1,0 +1,94 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [
+      "amStarton",
+      "amStartonEmpty",
+      "ieBiodome",
+      "iooSWidescreen",
+      "iooSWidescreenReticle",
+      "iooSWidescreenPlayer",
+      "iooSWidescreenBullet",
+      "asLanding",
+      "asBomb",
+      "avAlphys",
+      "asFrypan",
+      "asGunshot"
+   ],
+   "layers": {
+      "below": [
+         {
+            "triggers": [
+               {
+                  "position": { "x": 0, "y": 5 },
+                  "size": { "x": 80, "y": -20 },
+                  "name": "teleport",
+                  "args": [ "s_stand", "up", "120", "330" ]
+               },
+               {
+                  "position": { "x": 240, "y": 235 },
+                  "size": { "x": 80, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "s_bros", "down", "60", "10" ]
+               }
+            ],
+            "barriers": [
+               { "position": { "x": 10, "y": 0 }, "size": { "x": -20, "y": 205 } },
+               { "position": { "x": 10, "y": 205 }, "size": { "x": 240, "y": 35 } },
+               { "position": { "x": 70, "y": 0 }, "size": { "x": 240, "y": 35 } },
+               { "position": { "x": 350, "y": 35 }, "size": { "x": 20, "y": 245 } },
+               { "position": { "x": 310, "y": 35 }, "size": { "x": 20, "y": 205 } },
+               { "position": { "x": 310, "y": 15 }, "size": { "x": 0, "y": 0 } },
+               { "position": { "x": 310, "y": 25 }, "size": { "x": 0, "y": 0 } }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "attachments": [ { "type": "sprite", "anchor": { "x": 0, "y": 1 }, "frames": [ "iooSCtower" ] } ],
+            "position": { "x": 160, "y": 50 },
+            "barriers": [ { "size": { "x": -15, "y": -10 }, "anchor": { "x": 0, "y": -1 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -10 },
+                  "name": "starton",
+                  "args": [ "xtower" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 295, "y": 85 }
+         },
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 25, "y": 160 }
+         },
+         {}
+      ]
+   },
+   "neighbors": [ "s_stand", "s_bros" ],
+   "region": [ { "x": 160, "y": 120 }, { "x": 160, "y": 120 } ],
+   "score": { "music": "starton", "gain": 0.8 }
+}

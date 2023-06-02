@@ -1,0 +1,204 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amAerialis", "iooAPrimespire", "amAerialisEmpty", "asDeeploop2", "avAlphys", "idcAlphys" ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 1020, "y": 280 }, "size": { "x": -140, "y": 140 } },
+               { "position": { "x": 860, "y": 300 }, "size": { "x": 20, "y": 120 } },
+               { "position": { "x": 760, "y": 280 }, "size": { "x": -180, "y": 20 } },
+               { "position": { "x": 560, "y": 300 }, "size": { "x": 220, "y": 120 } },
+               { "position": { "x": 460, "y": 280 }, "size": { "x": -200, "y": 20 } },
+               { "position": { "x": 240, "y": 300 }, "size": { "x": 240, "y": 120 } },
+               { "position": { "x": 240, "y": 380 }, "size": { "x": -80, "y": 20 } },
+               { "position": { "x": 160, "y": 300 }, "size": { "x": -60, "y": 200 } },
+               { "position": { "x": 140, "y": 300 }, "size": { "x": -40, "y": -20 } },
+               { "position": { "x": 140, "y": 200 }, "size": { "x": -120, "y": -20 } },
+               { "position": { "x": 160, "y": 100 }, "size": { "x": -20, "y": 80 } },
+               { "position": { "x": 160, "y": 100 }, "size": { "x": 80, "y": -20 } },
+               { "position": { "x": 240, "y": 60 }, "size": { "x": 240, "y": 120 } },
+               { "position": { "x": 260, "y": 200 }, "size": { "x": 200, "y": -20 } },
+               { "position": { "x": 560, "y": 180 }, "size": { "x": 220, "y": -120 } },
+               { "position": { "x": 580, "y": 200 }, "size": { "x": 180, "y": -20 } },
+               { "position": { "x": 860, "y": 180 }, "size": { "x": 160, "y": -120 } },
+               { "position": { "x": 880, "y": 200 }, "size": { "x": 140, "y": -20 } },
+               { "position": { "x": 0, "y": 500 }, "size": { "x": 20, "y": -300 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 1015, "y": 200 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "a_prepuzzle", "right", "20", "60" ]
+               },
+               {
+                  "position": { "x": 20, "y": 515 },
+                  "size": { "x": 80, "y": -20 },
+                  "name": "teleport",
+                  "args": [ "a_mettaton2", "down", "800", "10" ]
+               },
+               {
+                  "position": { "x": 395, "y": 200 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "aerialis",
+                  "args": [ "p2return" ]
+               },
+               {
+                  "position": { "x": 580, "y": 200 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "aerialis",
+                  "args": [ "notifier", "alphys15" ]
+               },
+               {
+                  "position": { "x": 100, "y": 420 },
+                  "size": { "x": -80, "y": 20 },
+                  "name": "aerialis",
+                  "args": [ "notifier", "alphys13" ]
+               }
+            ],
+            "position": { "x": 0, "y": 0 },
+            "interacts": [
+               {
+                  "position": { "x": 100, "y": 380 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "trivia",
+                  "args": [ "starling" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "cornerbarrier" ],
+            "interacts": [
+               { "position": { "x": 140, "y": 180 }, "size": { "x": 10, "y": 10 } },
+               { "position": { "x": 140, "y": 300 }, "size": { "x": 10, "y": -10 } },
+               { "position": { "x": 260, "y": 180 }, "size": { "x": -10, "y": 10 } },
+               { "position": { "x": 260, "y": 300 }, "size": { "x": -10, "y": -10 } },
+               { "position": { "x": 460, "y": 180 }, "size": { "x": 10, "y": 10 } },
+               { "position": { "x": 580, "y": 180 }, "size": { "x": -10, "y": 10 } },
+               { "position": { "x": 460, "y": 300 }, "size": { "x": 10, "y": -10 } },
+               { "position": { "x": 580, "y": 300 }, "size": { "x": -10, "y": -10 } },
+               { "position": { "x": 760, "y": 180 }, "size": { "x": 10, "y": 10 } },
+               { "position": { "x": 880, "y": 180 }, "size": { "x": -10, "y": 10 } },
+               { "position": { "x": 760, "y": 300 }, "size": { "x": 10, "y": -10 } },
+               { "position": { "x": 880, "y": 300 }, "size": { "x": -10, "y": -10 } }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "tags": [ "pterm" ],
+            "attachments": [ { "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "iooAPterm" } ],
+            "position": { "x": 820, "y": 230 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -40, "y": -8 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -40, "y": -8 },
+                  "name": "aerialis",
+                  "args": [ "puzzle2" ]
+               }
+            ]
+         },
+         {
+            "position": { "x": 820, "y": 470 },
+            "tags": [],
+            "attachments": [ { "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "iooAPterm" } ]
+         },
+         {
+            "attachments": [ { "type": "animation", "resources": "iooAPterm", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 520, "y": 230 }
+         },
+         {
+            "position": { "x": 520, "y": 470 },
+            "attachments": [ { "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "iooAPterm" } ]
+         },
+         {
+            "position": { "x": 107, "y": 399 },
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooStarling" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "starflower" ]
+         },
+         {
+            "position": { "x": 109, "y": 418 },
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooStarling" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "starflower" ]
+         },
+         {
+            "position": { "x": 104, "y": 429 },
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooStarling" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "starflower" ]
+         },
+         {
+            "position": { "x": 111, "y": 448 },
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooStarling" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "starflower" ]
+         },
+         {
+            "attachments": [ { "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "ionAProskater" } ],
+            "position": { "x": 200, "y": 112 },
+            "tags": [ "a_proskater" ],
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -30, "y": -15 } } ],
+            "interacts": [
+               {
+                  "size": { "x": -30, "y": -15 },
+                  "anchor": { "x": 0, "y": -1 },
+                  "name": "aerialis",
+                  "args": [ "npc", "a_proskater" ]
+               }
+            ]
+         },
+         {
+            "attachments": [ { "type": "animation", "resources": "ionAClamguyBack", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 200, "y": 376 },
+            "tags": [ "a_clamguy" ],
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -35, "y": -10 } } ],
+            "interacts": [
+               {
+                  "size": { "x": -35, "y": -10 },
+                  "anchor": { "x": 0, "y": -1 },
+                  "name": "aerialis",
+                  "args": [ "npc", "a_clamguy" ]
+               }
+            ]
+         },
+         {
+            "position": { "x": 1120, "y": 230 },
+            "attachments": [ { "type": "animation", "resources": "iooAPterm", "anchor": { "x": 0, "y": 1 } } ]
+         }
+      ],
+      "above": []
+   },
+   "mixins": { "above": "aerialis-a-overlay" },
+   "region": [ { "x": 160, "y": 120 }, { "x": 240, "y": 380 } ],
+   "score": { "music": "aerialis" },
+   "neighbors": [ "a_prepuzzle", "a_mettaton2" ]
+}

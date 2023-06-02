@@ -1,0 +1,157 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [
+      "amFactoryquiet",
+      "iooFSteam",
+      "istBackground",
+      "istKeeper",
+      "istBody",
+      "amShop",
+      "iocNapstablook",
+      "amFactoryquietEmpty",
+      "ionFClamgirl2",
+      "istArm"
+   ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 0, "y": 120 }, "size": { "x": 20, "y": -20 } },
+               { "position": { "x": 60, "y": 120 }, "size": { "x": 40, "y": -40 } },
+               { "position": { "x": 240, "y": 80 }, "size": { "x": 100, "y": -20 } },
+               { "position": { "x": 440, "y": 80 }, "size": { "x": 60, "y": 20 } },
+               { "position": { "x": 0, "y": 160 }, "size": { "x": 100, "y": 40 } },
+               { "position": { "x": 200, "y": 200 }, "size": { "x": -100, "y": 40 } },
+               { "position": { "x": 240, "y": 200 }, "size": { "x": 100, "y": 40 } },
+               { "position": { "x": 340, "y": 80 }, "size": { "x": 100, "y": 40 } },
+               { "position": { "x": 540, "y": 100 }, "size": { "x": 60, "y": -20 } },
+               { "position": { "x": 340, "y": 160 }, "size": { "x": 260, "y": 40 } },
+               { "position": { "x": 100, "y": 80 }, "size": { "x": 100, "y": -20 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 5, "y": 120 },
+                  "size": { "x": -20, "y": 40 },
+                  "name": "teleport",
+                  "args": [ "f_bird", "left", "1480", "180" ]
+               },
+               {
+                  "position": { "x": 20, "y": 120 },
+                  "size": { "x": 40, "y": -20 },
+                  "name": "teleport",
+                  "args": [ "f_dummy", "up", "220", "490" ]
+               },
+               {
+                  "position": { "x": 200, "y": 60 },
+                  "size": { "x": 40, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "f_undyne", "up", "160", "230" ]
+               },
+               {
+                  "position": { "x": 200, "y": 235 },
+                  "size": { "x": 40, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "f_blooky", "down", "160", "90" ]
+               },
+               {
+                  "position": { "x": 595, "y": 100 },
+                  "size": { "x": 20, "y": 60 },
+                  "name": "teleport",
+                  "args": [ "f_puzzle3", "right", "20", "110" ]
+               },
+               {
+                  "position": { "x": 500, "y": 100 },
+                  "size": { "x": 40, "y": -20 },
+                  "name": "foundry",
+                  "args": [ "shop", "tortoise" ]
+               }
+            ],
+            "interacts": [
+               {
+                  "position": { "x": 450, "y": 100 },
+                  "size": { "x": 40, "y": -20 },
+                  "name": "trivia",
+                  "args": [ "f_gersonshop" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "steamgap" ],
+            "interacts": [
+               { "position": { "x": 140, "y": 120 }, "size": { "x": 160, "y": 40 } },
+               { "position": { "x": 440, "y": 100 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 420, "y": 120 }, "size": { "x": 40, "y": 20 } }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 0 },
+                  "resources": "iooSavePoint",
+                  "position": { "x": 0, "y": -10 }
+               }
+            ],
+            "interacts": [ { "name": "save", "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "barriers": [ { "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "position": { "x": 220, "y": 130 }
+         },
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooFSign" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -20, "y": -5 } } ],
+            "position": { "x": 180, "y": 88 },
+            "interacts": [
+               { "anchor": { "x": 0, "y": 1 }, "size": { "x": 20, "y": 5 }, "name": "trivia", "args": [ "f_hub_sign" ] }
+            ]
+         },
+         { "attachments": [ { "type": "sprite", "frames": [ "iooFWallsign" ], "position": { "x": 450, "y": 50 } } ] },
+         {
+            "tags": [ "dimbox" ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iooDimbox",
+                  "position": { "x": 0, "y": 0 },
+                  "anchor": { "x": 0, "y": 1 }
+               }
+            ],
+            "position": { "x": 420, "y": 130 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": 1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -20, "y": 9 } }
+            ],
+            "interacts": [
+               { "anchor": { "x": 0, "y": 1 }, "size": { "x": -20, "y": 9 }, "name": "starton", "args": [ "dimbox" ] }
+            ]
+         },
+         {
+            "tags": [ "f_clamgirl" ],
+            "attachments": [ { "type": "animation", "resources": "ionFClamgirl1", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 298, "y": 195 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -26, "y": -5 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -26, "y": -5 },
+                  "name": "foundry",
+                  "args": [ "npc", "f_clamgirl" ]
+               }
+            ]
+         }
+      ]
+   },
+   "region": [ { "x": 160, "y": 120 }, { "x": 440, "y": 120 } ],
+   "score": { "music": "factoryquiet", "gain": 0.8 },
+   "spawn": { "x": 220, "y": 180 },
+   "neighbors": [ "f_undyne", "f_bird", "f_dummy", "f_blooky", "f_puzzle3" ]
+}

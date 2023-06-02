@@ -1,0 +1,78 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amAerialis", "iooAPrimespire", "amAerialisEmpty", "avSans", "idcSans", "iooACorndog" ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 0, "y": 40 }, "size": { "x": 320, "y": -40 } },
+               { "position": { "x": 0, "y": 120 }, "size": { "x": 320, "y": 20 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 315, "y": 40 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "a_elevator2", "right", "20", "180" ]
+               },
+               {
+                  "position": { "x": -15, "y": 40 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "a_pacing", "left", "740", "60" ]
+               },
+               {
+                  "position": { "x": 200, "y": 40 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "aerialis",
+                  "args": [ "notifier", "alphys9" ]
+               }
+            ],
+            "position": { "x": 0, "y": 100 }
+         }
+      ],
+      "above": [],
+      "main": [
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooSSentry" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 160, "y": 140 },
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -51, "y": -20 },
+                  "name": "aerialis",
+                  "args": [ "sentrystation" ]
+               }
+            ]
+         },
+         {
+            "attachments": [ { "type": "animation", "resources": "iocSansDown", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 160, "y": 130 },
+            "tags": [ "sentryskeleton" ]
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "ionAHarpy", "anchor": { "x": 0, "y": 1 }, "auto": true }
+            ],
+            "position": { "x": 255, "y": 150 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -35, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -36, "y": -15 },
+                  "name": "aerialis",
+                  "args": [ "npc", "a_harpy" ]
+               }
+            ],
+            "tags": [ "a_harpy" ]
+         }
+      ]
+   },
+   "mixins": { "above": "aerialis-a-overlay" },
+   "region": [ { "x": 160, "y": 160 }, { "x": 160, "y": 160 } ],
+   "neighbors": [ "a_elevator2", "a_pacing" ],
+   "score": { "music": "aerialis", "gain": 0.8 }
+}

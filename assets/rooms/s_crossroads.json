@@ -1,0 +1,152 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amStarton", "amStartonEmpty", "ieBiodome" ],
+   "layers": {
+      "below": [
+         {
+            "triggers": [
+               {
+                  "position": { "x": 5, "y": 0 },
+                  "size": { "x": -20, "y": 120 },
+                  "name": "teleport",
+                  "args": [ "s_sans", "left", "600", "60" ]
+               },
+               {
+                  "position": { "x": 315, "y": 40 },
+                  "size": { "x": 20, "y": 120 },
+                  "name": "teleport",
+                  "args": [ "s_alphys", "right", "20", "80" ]
+               },
+               {
+                  "position": { "x": 0, "y": 235 },
+                  "size": { "x": 140, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "s_human", "down", "60", "10" ]
+               }
+            ],
+            "barriers": [
+               { "position": { "x": 0, "y": 15 }, "size": { "x": 130, "y": -20 } },
+               { "position": { "x": 130, "y": 15 }, "size": { "x": 190, "y": 40 } },
+               { "position": { "x": 0, "y": 105 }, "size": { "x": 10, "y": 135 } },
+               { "position": { "x": 130, "y": 145 }, "size": { "x": 190, "y": 95 } }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 25, "y": 260 }
+         },
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 115, "y": 260 }
+         },
+         {
+            "position": { "x": 236, "y": 66 },
+            "attachments": [
+               { "type": "animation", "auto": true, "resources": "iooSVendingMachine", "anchor": { "y": 1 } }
+            ],
+            "barriers": [ { "size": { "y": -13, "x": 28 } } ],
+            "interacts": [ { "name": "starton", "size": { "y": -13, "x": 28 }, "args": [ "candy" ] } ]
+         },
+         {
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 0 },
+                  "resources": "iooSavePoint",
+                  "position": { "y": -10, "x": 0 }
+               }
+            ],
+            "interacts": [ { "name": "save", "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "barriers": [ { "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "position": { "x": 180, "y": 50 }
+         },
+         {
+            "tags": [ "dimbox" ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iooDimbox",
+                  "position": { "x": 0, "y": 0 },
+                  "anchor": { "x": 0, "y": 1 }
+               }
+            ],
+            "position": { "x": 30, "y": 30 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": 1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -20, "y": 9 } }
+            ],
+            "interacts": [
+               { "anchor": { "x": 0, "y": 1 }, "size": { "x": -20, "y": 9 }, "name": "starton", "args": [ "dimbox" ] }
+            ]
+         },
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 105, "y": 30 }
+         },
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 280, "y": 70 }
+         },
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooSSign" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 54, "y": 28 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -18, "y": -6 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -18, "y": -6 },
+                  "name": "trivia",
+                  "args": [ "s_crossroads_sign" ]
+               }
+            ]
+         }
+      ]
+   },
+   "spawn": { "x": 180, "y": 100 },
+   "neighbors": [ "s_sans", "s_alphys", "s_human" ],
+   "region": [ { "x": 160, "y": 60 }, { "x": 160, "y": 120 } ],
+   "score": { "music": "starton", "gain": 0.8 }
+}

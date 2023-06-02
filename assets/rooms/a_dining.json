@@ -1,0 +1,179 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "metadata": { "dark03": true },
+   "preload": [
+      "amSansdate",
+      "avSoriel",
+      "iocSans",
+      "avSans",
+      "idcSans",
+      "amMall",
+      "amYouscreweduppal",
+      "imAerialisBDark",
+      "iooAHotelfood"
+   ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 0, "y": 80 }, "size": { "x": 320, "y": -20 } },
+               { "position": { "x": 320, "y": 80 }, "size": { "x": 20, "y": 220 } },
+               { "position": { "x": 0, "y": 140 }, "size": { "x": 20, "y": 160 } },
+               { "position": { "x": 20, "y": 300 }, "size": { "x": 300, "y": 20 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 5, "y": 80 },
+                  "size": { "x": -20, "y": 60 },
+                  "name": "teleport",
+                  "args": [ "a_hub1", "left", "300", "230" ]
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "attachments": [ { "type": "animation", "resources": "ionADrakedad", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 240, "y": 88 },
+            "tags": [ "a_drakedad" ],
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -29, "y": -10 } } ],
+            "interacts": [
+               {
+                  "size": { "x": -29, "y": -10 },
+                  "anchor": { "x": 0, "y": -1 },
+                  "name": "aerialis",
+                  "args": [ "npc", "a_drakedad" ]
+               }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "ionAFoodreceptionist",
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": -18 }
+               },
+               { "type": "sprite", "anchor": { "x": 0, "y": 1 }, "frames": [ "iooAFoodcounter" ] }
+            ],
+            "position": { "x": 170, "y": 80 },
+            "barriers": [],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -100, "y": -20 },
+                  "name": "aerialis",
+                  "args": [ "npc", "a_foodreceptionist" ]
+               }
+            ],
+            "tags": [ "a_foodreceptionist", "darkable" ],
+            "filters": []
+         },
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooADinnertable" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 110, "y": 270 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "size": { "x": -60, "y": -50 }, "position": { "x": 0, "y": 0 } }
+            ],
+            "tags": [ "darkable" ]
+         },
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooADinnertable" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 230, "y": 270 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "size": { "x": -60, "y": -50 }, "position": { "x": 0, "y": 0 } }
+            ],
+            "tags": [ "darkable" ]
+         },
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooADinnertable" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 110, "y": 180 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "size": { "x": -60, "y": -50 }, "position": { "x": 0, "y": 0 } }
+            ],
+            "tags": [ "darkable" ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooADinnertable" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 20 }
+               }
+            ],
+            "position": { "x": 230, "y": 160 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "size": { "x": -60, "y": -50 }, "position": { "x": 0, "y": 20 } }
+            ],
+            "tags": [ "darkable" ]
+         },
+         {
+            "tags": [ "darkable" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooAWishflower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 35, "y": 295 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -22, "y": -8 } } ]
+         },
+         {
+            "tags": [ "darkable" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooAWishflower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 275, "y": 95 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -22, "y": -8 } } ]
+         },
+         {
+            "tags": [ "darkable" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooAWishflower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 305, "y": 95 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -22, "y": -8 } } ]
+         },
+         {
+            "tags": [ "darkable" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooAWishflower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 305, "y": 295 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -22, "y": -8 } } ]
+         },
+         {
+            "attachments": [ { "type": "animation", "resources": "ionACharles", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 270, "y": 154 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -17, "y": -5 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -17, "y": -5 },
+                  "name": "aerialis",
+                  "args": [ "npc", "a_charles" ]
+               }
+            ],
+            "tags": [ "a_charles" ]
+         },
+         {
+            "tags": [ "a_oni" ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "ionAOni",
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "position": { "x": 187, "y": 161 },
+            "barriers": [
+               { "position": { "x": 0, "y": 5 }, "size": { "x": -35, "y": -20 }, "anchor": { "x": 0, "y": -1 } }
+            ],
+            "interacts": [
+               {
+                  "position": { "x": 0, "y": 5 },
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -35, "y": -20 },
+                  "name": "aerialis",
+                  "args": [ "npc", "a_oni" ]
+               }
+            ]
+         }
+      ]
+   },
+   "score": { "music": "mall", "gain": 0.8 },
+   "region": [ { "x": 160, "y": 120 }, { "x": 180, "y": 200 } ],
+   "neighbors": [ "a_hub1" ]
+}

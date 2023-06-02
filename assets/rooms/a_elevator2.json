@@ -1,0 +1,88 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amAerialis", "iooAPrimespire", "amAerialisEmpty" ],
+   "layers": {
+      "below": [
+         {
+            "triggers": [
+               {
+                  "position": { "x": 220, "y": 140 },
+                  "size": { "x": 40, "y": -20 },
+                  "name": "teleport",
+                  "args": [ "a_lift", "up", "160", "230" ]
+               },
+               {
+                  "position": { "x": -15, "y": 140 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "a_sans", "left", "300", "180" ]
+               },
+               {
+                  "position": { "x": 200, "y": 140 },
+                  "size": { "x": 80, "y": 20 },
+                  "name": "aerialis",
+                  "args": [ "notifier", "alphys8" ]
+               }
+            ],
+            "barriers": [
+               { "position": { "x": 260, "y": 140 }, "size": { "x": 20, "y": -20 } },
+               { "position": { "x": 280, "y": 140 }, "size": { "x": 20, "y": 80 } },
+               { "position": { "x": 280, "y": 220 }, "size": { "x": -280, "y": 20 } },
+               { "position": { "x": 0, "y": 140 }, "size": { "x": 220, "y": -20 } }
+            ],
+            "interacts": [
+               {
+                  "position": { "x": 20, "y": 220 },
+                  "size": { "x": 80, "y": 20 },
+                  "name": "trivia",
+                  "args": [ "starling2" ]
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "position": { "x": 78, "y": 230 },
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooStarling" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "starflower" ]
+         },
+         {
+            "position": { "x": 45, "y": 230 },
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooStarling" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "starflower" ]
+         },
+         {
+            "position": { "x": 62, "y": 234 },
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooStarling" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "starflower" ]
+         }
+      ],
+      "above": []
+   },
+   "mixins": { "above": "aerialis-a-overlay" },
+   "neighbors": [ "a_lift", "a_sans" ],
+   "region": [ { "x": 160, "y": 140 }, { "x": 160, "y": 180 } ],
+   "score": { "music": "aerialis", "gain": 0.8 }
+}
