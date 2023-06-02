@@ -1,0 +1,59 @@
+{
+   "$schema": "./room.schema.json",
+   "preload": [ "amOutlands" ],
+   "background": "below",
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 70, "y": 200 }, "size": { "x": 20, "y": 120 }, "anchor": { "x": -1, "y": -1 } },
+               { "position": { "x": 150, "y": 200 }, "size": { "x": 20, "y": 120 }, "anchor": { "x": -1, "y": -1 } },
+               { "position": { "x": 50, "y": 180 }, "size": { "x": 20, "y": 20 } },
+               { "position": { "x": 30, "y": 160 }, "size": { "x": 20, "y": 20 } },
+               { "position": { "x": 50, "y": 140 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 150, "y": 140 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 190, "y": 160 }, "size": { "x": 20, "y": 20 } },
+               { "position": { "x": 170, "y": 180 }, "size": { "x": 20, "y": 20 } }
+            ],
+            "position": { "x": 0, "y": 0 },
+            "tags": []
+         },
+         {
+            "triggers": [
+               {
+                  "name": "teleport",
+                  "position": { "x": 90, "y": 315 },
+                  "size": { "x": 60, "y": 20 },
+                  "args": [ "w_twinkly", "down", "120", "10" ]
+               },
+               {
+                  "name": "teleport",
+                  "position": { "x": 90, "y": 140 },
+                  "size": { "x": 60, "y": 20 },
+                  "args": [ "w_lobby", "up", "140", "270" ]
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 0 },
+                  "resources": "iooSavePoint",
+                  "position": { "y": -10, "x": 0 }
+               }
+            ],
+            "interacts": [ { "name": "save", "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "barriers": [ { "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "position": { "x": 80, "y": 170 }
+         }
+      ]
+   },
+   "neighbors": [ "w_twinkly", "w_lobby" ],
+   "region": [ { "x": 120, "y": 120 }, { "x": 200, "y": 200 } ],
+   "spawn": { "x": 80, "y": 175 },
+   "score": { "filter": 0.5, "gain": 1, "music": "outlands", "reverb": 1 }
+}

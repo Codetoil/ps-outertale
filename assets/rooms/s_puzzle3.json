@@ -1,0 +1,380 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amStarton", "amStartonEmpty", "asDepower", "ieBiodome" ],
+   "layers": {
+      "below": [
+         {
+            "triggers": [
+               {
+                  "position": { "x": 25, "y": 180 },
+                  "size": { "x": -20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "s_pacing", "left", "400", "100" ]
+               },
+               {
+                  "position": { "x": 375, "y": 20 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "s_greater", "right", "20", "60" ]
+               }
+            ],
+            "barriers": [
+               { "position": { "x": 20, "y": 265 }, "size": { "x": 290, "y": -20 } },
+               { "position": { "x": 0, "y": 35 }, "size": { "x": 90, "y": 160 } },
+               { "position": { "x": 90, "y": 15 }, "size": { "x": 290, "y": 20 } },
+               { "position": { "x": 310, "y": 245 }, "size": { "x": 70, "y": -160 } }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCrossword" ], "position": { "x": 165, "y": 260 } } ],
+            "position": { "x": 60, "y": -42 },
+            "interacts": [
+               {
+                  "position": { "x": 165, "y": 260 },
+                  "size": { "x": 13, "y": 17 },
+                  "name": "trivia",
+                  "args": [ "s_puzzle3_note" ]
+               }
+            ],
+            "tags": [ "s_spagnote" ]
+         },
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 290, "y": 45 }
+         },
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 110, "y": 45 }
+         },
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 290, "y": 240 }
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 180, "y": 60 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzle3", "c2" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 140, "y": 60 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzle3", "c1" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 260, "y": 60 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzle3", "c4" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 220, "y": 60 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzle3", "c3" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 200, "y": 226 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzle3" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtowerleft" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 105, "y": 85 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -10 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -10 },
+                  "name": "starton",
+                  "args": [ "puzzle3", "r1" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtowerleft" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 105, "y": 119 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -10 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -10 },
+                  "name": "starton",
+                  "args": [ "puzzle3", "r2" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtowerleft" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 105, "y": 187 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -10 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -10 },
+                  "name": "starton",
+                  "args": [ "puzzle3", "r4" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtowerleft" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 105, "y": 153 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -10 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -10 },
+                  "name": "starton",
+                  "args": [ "puzzle3", "r3" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "lasercheckpoint" ],
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooSLasercheckpointOpenSide" ],
+                  "anchor": { "x": -1, "y": 1 },
+                  "position": { "x": 0, "y": 5 }
+               },
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "resources": "iooSLasercheckpointSide",
+                  "anchor": { "x": -1, "y": 1 },
+                  "position": { "x": 0, "y": 5 }
+               }
+            ],
+            "position": { "x": 319, "y": 90 },
+            "barriers": [
+               { "anchor": { "x": -1, "y": -1 }, "position": { "x": 0, "y": -5 }, "size": { "x": 20, "y": -50 } }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooSLasercheckpointOpenSide2" ],
+                  "anchor": { "x": -1, "y": 1 },
+                  "position": { "x": 0, "y": 75 }
+               }
+            ],
+            "position": { "x": 319, "y": 20 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 130, "y": 65 } }
+            ],
+            "tags": [ "puzzle3tile", "r1", "c1" ],
+            "position": { "x": 0, "y": 5 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 130, "y": 95 } }
+            ],
+            "tags": [ "puzzle3tile", "r2", "c1" ],
+            "position": { "x": 0, "y": 9 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 130, "y": 125 } }
+            ],
+            "tags": [ "puzzle3tile", "r3", "c1" ],
+            "position": { "x": 0, "y": 13 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 130, "y": 155 } }
+            ],
+            "tags": [ "puzzle3tile", "r4", "c1" ],
+            "position": { "x": 0, "y": 17 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 170, "y": 65 } }
+            ],
+            "tags": [ "puzzle3tile", "r1", "c2" ],
+            "position": { "x": 0, "y": 5 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 170, "y": 95 } }
+            ],
+            "tags": [ "puzzle3tile", "r2", "c2" ],
+            "position": { "x": 0, "y": 9 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 170, "y": 125 } }
+            ],
+            "tags": [ "puzzle3tile", "r3", "c2" ],
+            "position": { "x": 0, "y": 13 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 170, "y": 155 } }
+            ],
+            "tags": [ "puzzle3tile", "r4", "c2" ],
+            "position": { "x": 0, "y": 17 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 210, "y": 65 } }
+            ],
+            "tags": [ "puzzle3tile", "r1", "c3" ],
+            "position": { "x": 0, "y": 5 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 210, "y": 95 } }
+            ],
+            "tags": [ "puzzle3tile", "r2", "c3" ],
+            "position": { "x": 0, "y": 9 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 210, "y": 125 } }
+            ],
+            "tags": [ "puzzle3tile", "r3", "c3" ],
+            "position": { "x": 0, "y": 13 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 210, "y": 155 } }
+            ],
+            "tags": [ "puzzle3tile", "r4", "c3" ],
+            "position": { "x": 0, "y": 17 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 250, "y": 65 } }
+            ],
+            "tags": [ "puzzle3tile", "r1", "c4" ],
+            "position": { "x": 0, "y": 5 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 250, "y": 95 } }
+            ],
+            "tags": [ "puzzle3tile", "r2", "c4" ],
+            "position": { "x": 0, "y": 9 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 250, "y": 125 } }
+            ],
+            "tags": [ "puzzle3tile", "r3", "c4" ],
+            "position": { "x": 0, "y": 13 }
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooSPuzzle3Tile", "position": { "x": 250, "y": 155 } }
+            ],
+            "tags": [ "puzzle3tile", "r4", "c4" ],
+            "position": { "x": 0, "y": 17 }
+         }
+      ]
+   },
+   "neighbors": [ "s_pacing", "s_greater" ],
+   "region": [ { "x": 180, "y": 140 }, { "x": 220, "y": 140 } ],
+   "score": { "music": "starton", "gain": 0.8 }
+}

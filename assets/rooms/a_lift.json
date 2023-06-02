@@ -1,0 +1,40 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amDrone", "iocAlphys", "idcAlphys", "avAlphys", "asBell", "asPathway", "asElevator" ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 100, "y": 160 }, "size": { "x": 120, "y": -20 } },
+               { "position": { "x": 100, "y": 160 }, "size": { "x": -20, "y": 60 } },
+               { "position": { "x": 100, "y": 220 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 180, "y": 220 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 220, "y": 160 }, "size": { "x": 20, "y": 60 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 140, "y": 235 },
+                  "size": { "x": 40, "y": 20 },
+                  "name": "aerialis",
+                  "args": [ "elevator" ]
+               }
+            ],
+            "interacts": [
+               {
+                  "position": { "x": 140, "y": 140 },
+                  "size": { "x": 40, "y": 20 },
+                  "name": "aerialis",
+                  "args": [ "lift" ]
+               }
+            ],
+            "position": { "x": 0, "y": 0 }
+         }
+      ],
+      "above": []
+   },
+   "mixins": { "above": "aerialis-a-overlay" },
+   "region": [ { "x": 160, "y": 120 }, { "x": 160, "y": 120 } ],
+   "neighbors": [ "a_elevator1", "a_elevator2", "a_elevator3", "a_elevator4", "a_elevator5", "a_start" ],
+   "score": { "music": "drone", "filter": 0 }
+}

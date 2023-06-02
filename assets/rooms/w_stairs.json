@@ -1,0 +1,175 @@
+{
+   "$schema": "./room.schema.json",
+   "preload": [ "amBGBeat" ],
+   "background": "below",
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 20, "y": 80 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 20, "y": 160 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 80, "y": 100 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 80, "y": 180 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 140, "y": 120 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 140, "y": 200 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 200, "y": 140 }, "size": { "x": 40, "y": 20 } },
+               { "position": { "x": 200, "y": 220 }, "size": { "x": 120, "y": 20 } },
+               { "position": { "x": 280, "y": 140 }, "size": { "x": 20, "y": 20 } },
+               { "position": { "x": 300, "y": 160 }, "size": { "x": 20, "y": 20 } }
+            ],
+            "triggers": [
+               {
+                  "name": "outlands",
+                  "position": { "x": 240, "y": 140 },
+                  "size": { "x": 40, "y": 20 },
+                  "args": [ "partydoor" ]
+               }
+            ]
+         },
+         {
+            "position": { "x": 60, "y": 80 },
+            "barriers": [
+               { "position": { "y": 4 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 4, "y": 8 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 8, "y": 12 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 12, "y": 16 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 16, "y": 20 }, "size": { "x": 4, "y": 20 } }
+            ]
+         },
+         {
+            "position": { "x": 120, "y": 100 },
+            "barriers": [
+               { "position": { "y": 4 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 4, "y": 8 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 8, "y": 12 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 12, "y": 16 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 16, "y": 20 }, "size": { "x": 4, "y": 20 } }
+            ]
+         },
+         {
+            "position": { "x": 180, "y": 120 },
+            "barriers": [
+               { "position": { "y": 4 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 4, "y": 8 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 8, "y": 12 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 12, "y": 16 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 16, "y": 20 }, "size": { "x": 4, "y": 20 } }
+            ]
+         },
+         {
+            "position": { "x": 60, "y": 160 },
+            "barriers": [
+               { "position": { "y": 4 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 4, "y": 8 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 8, "y": 12 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 12, "y": 16 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 16, "y": 20 }, "size": { "x": 4, "y": 20 } }
+            ]
+         },
+         {
+            "position": { "x": 120, "y": 180 },
+            "barriers": [
+               { "position": { "y": 4 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 4, "y": 8 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 8, "y": 12 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 12, "y": 16 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 16, "y": 20 }, "size": { "x": 4, "y": 20 } }
+            ]
+         },
+         {
+            "position": { "x": 180, "y": 200 },
+            "barriers": [
+               { "position": { "y": 4 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 4, "y": 8 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 8, "y": 12 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 12, "y": 16 }, "size": { "x": 4, "y": 20 } },
+               { "position": { "x": 16, "y": 20 }, "size": { "x": 4, "y": 20 } }
+            ]
+         },
+         {
+            "triggers": [
+               {
+                  "name": "teleport",
+                  "position": { "x": 5, "y": 100 },
+                  "size": { "x": 20, "y": 60 },
+                  "args": [ "w_blooky", "left", "260", "270" ]
+               },
+               {
+                  "name": "teleport",
+                  "position": { "x": 315, "y": 180 },
+                  "size": { "x": 20, "y": 40 },
+                  "args": [ "w_basement", "right", "20", "160" ]
+               },
+               {
+                  "name": "outlands",
+                  "position": { "x": 60, "y": 100 },
+                  "size": { "x": 20, "y": 80 },
+                  "args": [ "x-elevation", "1", "60", "80" ]
+               },
+               {
+                  "name": "outlands",
+                  "position": { "x": 120, "y": 120 },
+                  "size": { "x": 20, "y": 80 },
+                  "args": [ "x-elevation", "1", "120", "140" ]
+               },
+               {
+                  "name": "outlands",
+                  "position": { "x": 180, "y": 140 },
+                  "size": { "x": 20, "y": 80 },
+                  "args": [ "x-elevation", "1", "180", "200" ]
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "position": { "x": 220, "y": 168 },
+            "tags": [ "w_silencio" ],
+            "attachments": [ { "type": "animation", "resources": "ionOSilencio", "anchor": { "x": 0, "y": 1 } } ],
+            "barriers": [
+               { "position": { "x": 0, "y": 0 }, "size": { "x": -22, "y": -13 }, "anchor": { "x": 0, "y": -1 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -23, "y": -13 },
+                  "name": "outlands",
+                  "args": [ "silencio" ]
+               }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooORing" ],
+                  "anchor": { "x": 0, "y": 0 },
+                  "position": { "x": 246, "y": 169 }
+               }
+            ],
+            "interacts": [
+               {
+                  "position": { "x": 246, "y": 169 },
+                  "size": { "x": -13, "y": -9 },
+                  "anchor": { "x": 0, "y": 0 },
+                  "name": "outlands",
+                  "args": [ "halo" ]
+               }
+            ],
+            "tags": [ "w_halo" ],
+            "position": { "x": 41, "y": 0 }
+         }
+      ],
+      "above": [
+         { "position": { "x": 60, "y": 160 }, "attachments": [ { "frames": [ "iooOStairsOver" ], "type": "sprite" } ] },
+         {
+            "position": { "x": 120, "y": 180 },
+            "attachments": [ { "frames": [ "iooOStairsOver" ], "type": "sprite" } ]
+         },
+         { "position": { "x": 180, "y": 200 }, "attachments": [ { "frames": [ "iooOStairsOver" ], "type": "sprite" } ] }
+      ]
+   },
+   "neighbors": [ "w_blooky", "w_basement", "w_party" ],
+   "region": [ { "x": 170, "y": 120 }, { "x": 170, "y": 140 } ],
+   "score": { "filter": 0.7, "reverb": 0.6, "gain": 0.7, "music": "bgbeat" }
+}

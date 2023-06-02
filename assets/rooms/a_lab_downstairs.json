@@ -1,0 +1,268 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 20, "y": 0 }, "size": { "x": 18, "y": 120 } },
+               { "position": { "x": 0, "y": 120 }, "size": { "x": 20, "y": 60 } },
+               { "position": { "x": 20, "y": 180 }, "size": { "x": 720, "y": 20 } },
+               { "position": { "x": 62, "y": 120 }, "size": { "x": 536, "y": -120 } },
+               { "position": { "x": 640, "y": 120 }, "size": { "x": 58, "y": -120 } },
+               { "position": { "x": 722, "y": 120 }, "size": { "x": 18, "y": -120 } },
+               { "position": { "x": 740, "y": 120 }, "size": { "x": 20, "y": 60 } },
+               { "position": { "x": 544, "y": 120 }, "size": { "x": -97, "y": 16 } },
+               { "position": { "x": 439, "y": 120 }, "size": { "x": -22, "y": 10 } },
+               { "position": { "x": 111, "y": 120 }, "size": { "x": 97, "y": 16 } },
+               { "position": { "x": 275, "y": 120 }, "size": { "x": 63, "y": 11 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 600, "y": 120 },
+                  "size": { "x": 40, "y": -20 },
+                  "name": "teleport",
+                  "args": [ "a_lab_virt", "up", "160", "230" ]
+               },
+               {
+                  "position": { "x": 40, "y": -15 },
+                  "size": { "x": 20, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "a_lab_main", "up", "70", "230" ]
+               },
+               {
+                  "position": { "x": 700, "y": -15 },
+                  "size": { "x": 20, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "a_lab_main", "up", "730", "230" ]
+               },
+               {
+                  "position": { "x": 40, "y": 0 },
+                  "size": { "x": 20, "y": 110 },
+                  "name": "aerialis",
+                  "args": [ "conveyor", "up" ]
+               },
+               {
+                  "position": { "x": 700, "y": 0 },
+                  "size": { "x": 20, "y": 110 },
+                  "name": "aerialis",
+                  "args": [ "conveyor" ]
+               }
+            ],
+            "attachments": [
+               { "type": "animation", "resources": "iooADTTubes", "auto": true, "position": { "x": 174, "y": 79 } }
+            ],
+            "interacts": [
+               {
+                  "position": { "x": 447, "y": 120 },
+                  "size": { "x": 97, "y": 16 },
+                  "name": "trivia",
+                  "args": [ "papertable" ]
+               },
+               {
+                  "position": { "x": 220, "y": 100 },
+                  "size": { "x": 40, "y": 20 },
+                  "name": "aerialis",
+                  "args": [ "terminal", "1" ]
+               },
+               {
+                  "position": { "x": 275, "y": 120 },
+                  "size": { "x": 27, "y": 11 },
+                  "name": "trivia",
+                  "args": [ "vender1" ]
+               },
+               {
+                  "position": { "x": 310, "y": 120 },
+                  "size": { "x": 28, "y": 11 },
+                  "name": "trivia",
+                  "args": [ "vender2" ]
+               },
+               {
+                  "position": { "x": 351, "y": 100 },
+                  "size": { "x": 60, "y": 20 },
+                  "name": "trivia",
+                  "args": [ "toolrack" ]
+               },
+               {
+                  "position": { "x": 417, "y": 120 },
+                  "size": { "x": 22, "y": 10 },
+                  "name": "aerialis",
+                  "args": [ "recycler" ]
+               },
+               {
+                  "position": { "x": 90, "y": 100 },
+                  "size": { "x": 20, "y": 20 },
+                  "anchor": { "x": 0, "y": -1 },
+                  "name": "aerialis",
+                  "args": [ "wallswitch" ]
+               },
+               {
+                  "position": { "x": 570, "y": 100 },
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -20, "y": 20 },
+                  "name": "aerialis",
+                  "args": [ "wallswitch" ]
+               },
+               {
+                  "position": { "x": 670, "y": 100 },
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": 20, "y": 20 },
+                  "name": "trivia",
+                  "args": [ "virtsign" ]
+               },
+               {
+                  "position": { "x": 117, "y": 124 },
+                  "size": { "x": 50, "y": 12 },
+                  "name": "trivia",
+                  "args": [ "starlingtable" ]
+               },
+               {
+                  "position": { "x": 174, "y": 124 },
+                  "size": { "x": 25, "y": 12 },
+                  "name": "trivia",
+                  "args": [ "dttubes" ]
+               }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "animation",
+                  "position": { "x": 40, "y": 100 },
+                  "anchor": { "x": -1, "y": 1 },
+                  "filters": [],
+                  "resources": "iooAConveyor",
+                  "auto": true
+               },
+               {
+                  "type": "animation",
+                  "position": { "x": 40, "y": 80 },
+                  "auto": true,
+                  "anchor": { "x": -1, "y": 1 },
+                  "resources": "iooAConveyor"
+               },
+               {
+                  "type": "animation",
+                  "position": { "x": 40, "y": 60 },
+                  "resources": "iooAConveyor",
+                  "auto": true,
+                  "anchor": { "x": -1, "y": 1 }
+               },
+               {
+                  "type": "animation",
+                  "position": { "x": 40, "y": 40 },
+                  "resources": "iooAConveyor",
+                  "auto": true,
+                  "anchor": { "x": -1, "y": 1 }
+               },
+               {
+                  "type": "animation",
+                  "position": { "x": 40, "y": 20 },
+                  "resources": "iooAConveyor",
+                  "auto": true,
+                  "anchor": { "x": -1, "y": 1 }
+               },
+               {
+                  "type": "animation",
+                  "anchor": { "x": -1, "y": 1 },
+                  "position": { "x": 40, "y": 0 },
+                  "auto": true,
+                  "resources": "iooAConveyor"
+               }
+            ],
+            "position": { "x": 660, "y": 10 }
+         },
+         {
+            "attachments": [
+               {
+                  "type": "animation",
+                  "position": { "x": 40, "y": 100 },
+                  "anchor": { "x": -1, "y": 1 },
+                  "filters": [],
+                  "resources": "iooAConveyor",
+                  "auto": true
+               },
+               {
+                  "type": "animation",
+                  "position": { "x": 40, "y": 80 },
+                  "auto": true,
+                  "anchor": { "x": -1, "y": 1 },
+                  "resources": "iooAConveyor"
+               },
+               {
+                  "type": "animation",
+                  "position": { "x": 40, "y": 60 },
+                  "resources": "iooAConveyor",
+                  "auto": true,
+                  "anchor": { "x": -1, "y": 1 }
+               },
+               {
+                  "type": "animation",
+                  "position": { "x": 40, "y": 40 },
+                  "resources": "iooAConveyor",
+                  "auto": true,
+                  "anchor": { "x": -1, "y": 1 }
+               },
+               {
+                  "type": "animation",
+                  "position": { "x": 40, "y": 20 },
+                  "resources": "iooAConveyor",
+                  "auto": true,
+                  "anchor": { "x": -1, "y": 1 }
+               },
+               {
+                  "type": "animation",
+                  "anchor": { "x": -1, "y": 1 },
+                  "position": { "x": 40, "y": 0 },
+                  "auto": true,
+                  "resources": "iooAConveyor"
+               }
+            ],
+            "tags": [ "rampup" ],
+            "position": { "x": 0, "y": 10 }
+         }
+      ],
+      "main": [
+         {
+            "position": { "x": 124, "y": 102 },
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooStarlingPotted" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "starflower" ]
+         },
+         {
+            "position": { "x": 140, "y": 109 },
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooStarlingPotted" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "starflower" ]
+         },
+         {
+            "position": { "x": 150, "y": 102 },
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooStarlingPotted" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "starflower" ]
+         }
+      ]
+   },
+   "region": [ { "x": 160, "y": 120 }, { "x": 600, "y": 120 } ],
+   "preload": [ "asRustle", "iooAXterm", "amDrone" ],
+   "neighbors": [ "a_lab_main", "a_lab_virt" ],
+   "score": { "music": "drone", "rate": 0.8, "gain": 0.5 }
+}

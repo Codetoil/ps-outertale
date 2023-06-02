@@ -1,0 +1,232 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amStarton", "amStartonEmpty", "asDepower", "iocPapyrus", "iocSans", "idcSans", "avSans", "ieBiodome" ],
+   "layers": {
+      "below": [
+         {
+            "triggers": [
+               {
+                  "position": { "x": 5, "y": 60 },
+                  "size": { "x": -20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "s_puzzle1", "left", "580", "80" ]
+               },
+               {
+                  "position": { "x": 495, "y": 60 },
+                  "size": { "x": 20, "y": 80 },
+                  "name": "teleport",
+                  "args": [ "s_jenga", "right", "20", "80" ]
+               }
+            ],
+            "barriers": [
+               { "position": { "x": 0, "y": 75 }, "size": { "x": 50, "y": -20 } },
+               { "position": { "x": 50, "y": 55 }, "size": { "x": 20, "y": -40 } },
+               { "position": { "x": 70, "y": 15 }, "size": { "x": 320, "y": -20 } },
+               { "position": { "x": 390, "y": 15 }, "size": { "x": 20, "y": 40 } },
+               { "position": { "x": 410, "y": 55 }, "size": { "x": 90, "y": 20 } },
+               { "position": { "x": 500, "y": 125 }, "size": { "x": -90, "y": 20 } },
+               { "position": { "x": 410, "y": 145 }, "size": { "x": -20, "y": 40 } },
+               { "position": { "x": 390, "y": 185 }, "size": { "x": -320, "y": 20 } },
+               { "position": { "x": 50, "y": 145 }, "size": { "x": 20, "y": 40 } },
+               { "position": { "x": 50, "y": 125 }, "size": { "x": -50, "y": 20 } }
+            ],
+            "interacts": [
+               {
+                  "position": { "x": 388, "y": 59 },
+                  "size": { "x": 14, "y": 6 },
+                  "name": "starton",
+                  "args": [ "trickswitch" ]
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 65, "y": 65 }
+         },
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 395, "y": 65 }
+         },
+         {
+            "tags": [ "puzzlechip" ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 0 },
+                  "resources": "iooSPuzzle2",
+                  "position": { "x": 0, "y": 140 }
+               }
+            ],
+            "position": { "x": 230, "y": -40 }
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 90, "y": 75 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzlechip", "1" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 170, "y": 25 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzlechip", "3" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 290, "y": 25 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzlechip", "5" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtower" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 370, "y": 75 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzlechip", "2" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtowerback" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 170, "y": 180 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": 0 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzlechip", "6" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "chipswitch" ],
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCtowerback" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 290, "y": 180 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": 0 }, "position": { "x": 0, "y": 0 }, "size": { "x": -15, "y": -15 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "size": { "x": -15, "y": -15 },
+                  "name": "starton",
+                  "args": [ "puzzlechip", "4" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "lasercheckpoint" ],
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooSLasercheckpointOpenSide" ],
+                  "anchor": { "x": -1, "y": 1 },
+                  "position": { "x": 0, "y": 5 }
+               },
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "resources": "iooSLasercheckpointSide",
+                  "anchor": { "x": -1, "y": 1 },
+                  "position": { "x": 0, "y": 5 }
+               }
+            ],
+            "position": { "x": 419, "y": 130 },
+            "barriers": [
+               { "anchor": { "x": -1, "y": -1 }, "position": { "x": 0, "y": -5 }, "size": { "x": 20, "y": -50 } }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooSLasercheckpointOpenSide2" ],
+                  "anchor": { "x": -1, "y": 1 },
+                  "position": { "x": 0, "y": 135 }
+               }
+            ],
+            "position": { "x": 419, "y": 0 }
+         },
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooSSign" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 115, "y": 20 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": 18, "y": -6 } }, {} ],
+            "interacts": [
+               {
+                  "size": { "x": 18, "y": -6 },
+                  "anchor": { "x": 0, "y": -1 },
+                  "name": "trivia",
+                  "args": [ "s_puzzle2_sign" ]
+               }
+            ]
+         }
+      ]
+   },
+   "neighbors": [ "s_puzzle1", "s_jenga" ],
+   "region": [ { "x": 160, "y": 100 }, { "x": 340, "y": 100 } ],
+   "score": { "music": "starton", "gain": 0.8 }
+}

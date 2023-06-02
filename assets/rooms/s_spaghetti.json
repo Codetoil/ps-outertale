@@ -1,0 +1,132 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amStarton", "amStartonEmpty", "asLanding", "ieBiodome" ],
+   "layers": {
+      "below": [
+         {
+            "triggers": [
+               {
+                  "position": { "x": 0, "y": 5 },
+                  "size": { "x": 80, "y": -20 },
+                  "name": "teleport",
+                  "args": [ "s_bros", "up", "60", "230" ]
+               },
+               {
+                  "position": { "x": 200, "y": 5 },
+                  "size": { "x": 80, "y": -20 },
+                  "name": "teleport",
+                  "args": [ "s_math", "up", "40", "230" ]
+               }
+            ],
+            "barriers": [
+               { "position": { "x": 10, "y": 0 }, "size": { "x": -20, "y": 145 } },
+               { "position": { "x": 10, "y": 145 }, "size": { "x": 260, "y": 20 } },
+               { "position": { "x": 70, "y": 0 }, "size": { "x": 140, "y": 35 } },
+               { "position": { "x": 270, "y": 0 }, "size": { "x": 20, "y": 145 } }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 25, "y": 135 }
+         },
+         {
+            "tags": [ "s_lamp" ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 1 },
+                  "resources": "iooSLamp",
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
+            "position": { "x": 255, "y": 135 }
+         },
+         {
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": { "x": 0, "y": 0 },
+                  "resources": "iooSavePoint",
+                  "position": { "y": -10, "x": 0 }
+               }
+            ],
+            "interacts": [ { "name": "save", "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "barriers": [ { "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
+            "position": { "x": 140, "y": 170 }
+         },
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooSSpaghettitable" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 140, "y": 53 },
+            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -36, "y": 18 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -36, "y": -18 },
+                  "name": "starton",
+                  "args": [ "spagtable" ]
+               }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "anchor": { "x": 0, "y": 1 },
+                  "frames": [ "iooSSpaghetti" ],
+                  "position": { "x": 0, "y": -22 }
+               }
+            ],
+            "position": { "x": 137, "y": 54 },
+            "tags": [ "spagheddy" ]
+         },
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooSMicrowave" ], "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 190, "y": 59 },
+            "barriers": [
+               { "position": { "x": 0, "y": 0 }, "anchor": { "x": 0, "y": -1 }, "size": { "x": -34, "y": -14 } }
+            ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -34, "y": -14 },
+                  "name": "starton",
+                  "args": [ "microwave" ]
+               }
+            ]
+         },
+         {
+            "attachments": [ { "type": "sprite", "frames": [ "iooSCrossword" ], "position": { "x": 79, "y": 76 } } ],
+            "position": { "x": 0, "y": -40 },
+            "interacts": [
+               {
+                  "position": { "x": 79, "y": 76 },
+                  "size": { "x": 13, "y": 15 },
+                  "name": "trivia",
+                  "args": [ "s_spagnote" ]
+               }
+            ],
+            "tags": [ "s_spagnote" ]
+         }
+      ]
+   },
+   "spawn": { "x": 140, "y": 113 },
+   "neighbors": [ "s_bros", "s_math" ],
+   "region": [ { "x": 140, "y": 120 }, { "x": 140, "y": 120 } ],
+   "score": { "music": "starton", "gain": 0.8 }
+}

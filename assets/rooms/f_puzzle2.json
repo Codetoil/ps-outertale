@@ -1,0 +1,138 @@
+{
+   "$schema": "./room.schema.json",
+   "preload": [
+      "amFactory",
+      "amFactoryEmpty",
+      "iooFSteam",
+      "asIndicator",
+      "iooFPuzzlepylonOverlay",
+      "asPathway",
+      "iooFPuzzle2Over"
+   ],
+   "background": "below",
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 0, "y": 220 }, "size": { "x": 200, "y": -140 } },
+               { "position": { "x": 200, "y": 80 }, "size": { "x": 220, "y": -20 } },
+               { "position": { "x": 420, "y": 80 }, "size": { "x": 80, "y": 140 } },
+               { "position": { "x": 500, "y": 260 }, "size": { "x": -500, "y": 120 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 5, "y": 220 },
+                  "size": { "x": -20, "y": 40 },
+                  "name": "teleport",
+                  "args": [ "f_puzzle1", "left", "380", "100" ]
+               },
+               {
+                  "position": { "x": 495, "y": 220 },
+                  "size": { "x": 20, "y": 40 },
+                  "name": "teleport",
+                  "args": [ "f_story1", "right", "20", "460" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "steamgap" ],
+            "interacts": [
+               { "position": { "x": 220, "y": 80 }, "size": { "x": 60, "y": 40 } },
+               { "position": { "x": 280, "y": 100 }, "size": { "x": 20, "y": 60 } },
+               { "position": { "x": 260, "y": 120 }, "size": { "x": 60, "y": 20 } },
+               { "position": { "x": 420, "y": 100 }, "size": { "x": -40, "y": 80 } },
+               { "position": { "x": 380, "y": 140 }, "size": { "x": -80, "y": 40 } },
+               { "position": { "x": 400, "y": 260 }, "size": { "x": -60, "y": -40 } },
+               { "position": { "x": 360, "y": 240 }, "size": { "x": -40, "y": -40 } },
+               { "position": { "x": 340, "y": 180 }, "size": { "x": -120, "y": 40 } },
+               { "position": { "x": 260, "y": 220 }, "size": { "x": -100, "y": 40 } }
+            ]
+         },
+         { "tags": [ "beamwall" ], "triggers": [ { "position": { "x": 361, "y": 260 }, "size": { "x": 8, "y": -3 } } ] }
+      ],
+      "main": [
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooFSign" ],
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 0 }
+               }
+            ],
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -20, "y": -5 } } ],
+            "position": { "x": 240, "y": 90 },
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": 1 },
+                  "size": { "x": 20, "y": 5 },
+                  "name": "trivia",
+                  "args": [ "f_puzzle2_sign" ]
+               }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iooOSwitch",
+                  "anchor": { "x": 0, "y": 1 },
+                  "position": { "x": 0, "y": 120 }
+               }
+            ],
+            "tags": [ "f_puzzle2_switch" ],
+            "position": { "x": 400, "y": -55 },
+            "interacts": [
+               {
+                  "name": "foundry",
+                  "args": [ "puzzle2" ],
+                  "position": { "x": 0, "y": 135 },
+                  "size": { "x": -20, "y": -20 },
+                  "anchor": { "x": 0, "y": -1 }
+               }
+            ]
+         },
+         {
+            "tags": [ "f_puzzlepylon2A", "pylon" ],
+            "attachments": [ { "type": "animation", "resources": "iooFPuzzlepylon", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 310, "y": 130 },
+            "barriers": [
+               { "position": { "x": 0, "y": -10 }, "anchor": { "x": 0, "y": -0.05 }, "size": { "x": 14, "y": 14 } }
+            ],
+            "triggers": []
+         },
+         {
+            "tags": [ "f_puzzlepylon2B", "pylon" ],
+            "attachments": [ { "type": "animation", "resources": "iooFPuzzlepylon", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 250, "y": 200 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -0.05 }, "size": { "x": 14, "y": 14 }, "position": { "x": 0, "y": -10 } }
+            ],
+            "triggers": []
+         },
+         {
+            "tags": [ "f_puzzlepylon2D", "pylon" ],
+            "attachments": [ { "type": "animation", "resources": "iooFPuzzlepylon", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 350, "y": 150 },
+            "barriers": [
+               { "position": { "x": 0, "y": -10 }, "anchor": { "x": 0, "y": -0.05 }, "size": { "x": 14, "y": 14 } }
+            ],
+            "triggers": []
+         },
+         {
+            "tags": [ "f_puzzlepylon2C", "pylon" ],
+            "attachments": [ { "type": "animation", "resources": "iooFPuzzlepylon", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 270, "y": 150 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": -0.05 }, "size": { "x": 14, "y": 14 }, "position": { "x": 0, "y": -10 } }
+            ],
+            "triggers": []
+         }
+      ],
+      "above": []
+   },
+   "mixins": { "above": "foundry-overlay" },
+   "neighbors": [ "f_puzzle1", "f_story1" ],
+   "region": [ { "x": 160, "y": 120 }, { "x": 340, "y": 160 } ],
+   "score": { "music": "factory", "gain": 0.8, "reverb": 0, "filter": 0 }
+}

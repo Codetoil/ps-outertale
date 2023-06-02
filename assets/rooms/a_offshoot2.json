@@ -1,0 +1,57 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [
+      "amAerialis",
+      "iooAPrimespire",
+      "amAerialisEmpty",
+      "avNapstablook",
+      "iocNapstablook",
+      "iocNapstablookAlter",
+      "amDrone",
+      "avAlphys",
+      "avMettaton",
+      "avSans",
+      "iooAXterm",
+      "ionODummy",
+      "ionODummyMad",
+      "asBreak",
+      "amPredummy",
+      "asShatter",
+      "asBoom"
+   ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 0, "y": 140 }, "size": { "x": 20, "y": -20 } },
+               { "position": { "x": 20, "y": 120 }, "size": { "x": 160, "y": -20 } },
+               { "position": { "x": 180, "y": 120 }, "size": { "x": 20, "y": 80 } },
+               { "position": { "x": 0, "y": 180 }, "size": { "x": 20, "y": 20 } },
+               { "position": { "x": 20, "y": 200 }, "size": { "x": 160, "y": 20 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 5, "y": 140 },
+                  "size": { "x": -20, "y": 40 },
+                  "name": "teleport",
+                  "args": [ "a_offshoot1", "left", "820", "180" ]
+               }
+            ],
+            "interacts": [
+               {
+                  "position": { "x": 120, "y": 120 },
+                  "size": { "x": 40, "y": -20 },
+                  "name": "aerialis",
+                  "args": [ "terminal", "5" ]
+               }
+            ]
+         }
+      ],
+      "above": []
+   },
+   "mixins": { "above": "aerialis-a-overlay" },
+   "neighbors": [ "a_offshoot1" ],
+   "score": { "music": "drone", "rate": 0.8, "gain": 0.5 },
+   "region": [ { "x": 160, "y": 160 }, { "x": 160, "y": 120 } ]
+}

@@ -1,0 +1,89 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 200, "y": 120 }, "size": { "x": 100, "y": -20 } },
+               { "position": { "x": 200, "y": 120 }, "size": { "x": -20, "y": 80 } },
+               { "position": { "x": 200, "y": 200 }, "size": { "x": 120, "y": 20 } },
+               { "position": { "x": 300, "y": 120 }, "size": { "x": 20, "y": 40 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 315, "y": 160 },
+                  "size": { "x": 20, "y": 40 },
+                  "name": "teleport",
+                  "args": [ "a_core_left2", "right", "20", "160" ]
+               }
+            ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iooACorecolumn",
+                  "auto": true,
+                  "anchor": { "x": 0, "y": -1 },
+                  "position": { "x": 270, "y": 60 }
+               }
+            ]
+         },
+         {
+            "tags": [ "hexfloor" ],
+            "filters": [ "hexbloom" ],
+            "interacts": [
+               { "position": { "x": 200, "y": 120 }, "size": { "x": 100, "y": 80 } },
+               { "position": { "x": 300, "y": 160 }, "size": { "x": 20, "y": 40 } }
+            ]
+         },
+         {
+            "attachments": [ { "type": "animation", "resources": "iooACoreswitch", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 230, "y": 100 },
+            "tags": [ "exitswitch" ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -15, "y": 20 },
+                  "name": "aerialis",
+                  "args": [ "coreswitch" ]
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [ "iooSCrossword" ],
+                  "position": { "x": 220, "y": 65 },
+                  "anchor": { "x": 0, "y": 0 }
+               }
+            ],
+            "tags": [ "deathnote" ],
+            "interacts": [
+               {
+                  "position": { "x": 220, "y": 65 },
+                  "size": { "x": 20, "y": 20 },
+                  "anchor": { "x": 0, "y": 0 },
+                  "name": "trivia",
+                  "args": [ "corenote3" ]
+               }
+            ],
+            "position": { "x": -6, "y": 120 }
+         }
+      ]
+   },
+   "preload": [
+      "amCore",
+      "amYouscreweduppal",
+      "imAerialisBDark",
+      "avAlphys",
+      "idcAlphys",
+      "iooAFloorsegment",
+      "asShake"
+   ],
+   "score": { "music": "CORE", "gain": 0.8 },
+   "region": [ { "x": 160, "y": 120 }, { "x": 160, "y": 120 } ],
+   "neighbors": [ "a_core_left2" ]
+}

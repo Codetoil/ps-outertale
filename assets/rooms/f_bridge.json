@@ -1,0 +1,37 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amGenerator", "amFactoryEmpty", "iocKiddDarkLeftTrip", "idcKidd", "avKidd", "iocKidd", "iocUndyne" ],
+   "metadata": { "dark01": true },
+   "layers": {
+      "below": [
+         {
+            "position": { "x": 0, "y": 0 },
+            "attachments": [],
+            "barriers": [
+               { "position": { "x": 0, "y": 120 }, "size": { "x": 500, "y": -20 } },
+               { "position": { "x": 0, "y": 160 }, "size": { "x": 500, "y": 20 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 5, "y": 120 },
+                  "size": { "x": -20, "y": 40 },
+                  "name": "teleport",
+                  "args": [ "f_story2", "left", "300", "460" ]
+               },
+               {
+                  "position": { "x": 495, "y": 120 },
+                  "size": { "x": 20, "y": 40 },
+                  "name": "teleport",
+                  "args": [ "f_pacing", "right", "20", "160" ]
+               }
+            ]
+         }
+      ],
+      "above": []
+   },
+   "mixins": { "above": "foundry-overlay" },
+   "region": [ { "x": 160, "y": 120 }, { "x": 340, "y": 120 } ],
+   "score": { "music": "generator", "gain": 1, "reverb": 0.6 },
+   "neighbors": [ "f_pacing", "f_story2" ]
+}

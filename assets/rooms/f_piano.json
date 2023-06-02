@@ -1,0 +1,184 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amGenerator", "iooFPianoOver1", "iooFPianoOver2", "asNote", "asPathway" ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 60, "y": 140 }, "size": { "x": 20, "y": 40 } },
+               { "position": { "x": 80, "y": 140 }, "size": { "x": 160, "y": -20 } },
+               { "position": { "x": 240, "y": 140 }, "size": { "x": 20, "y": 40 } },
+               { "position": { "x": 60, "y": 220 }, "size": { "x": 60, "y": 20 } },
+               { "position": { "x": 200, "y": 220 }, "size": { "x": 60, "y": 20 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 65, "y": 180 },
+                  "size": { "x": -20, "y": 40 },
+                  "name": "teleport",
+                  "args": [ "f_artifact", "left", "300", "180" ]
+               },
+               {
+                  "position": { "x": 120, "y": 235 },
+                  "size": { "x": 80, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "f_shyren", "down", "160", "90" ]
+               },
+               {
+                  "position": { "x": 255, "y": 180 },
+                  "size": { "x": 20, "y": 40 },
+                  "name": "teleport",
+                  "args": [ "f_truth", "right", "20", "180" ]
+               }
+            ],
+            "interacts": []
+         }
+      ],
+      "main": [
+         {
+            "attachments": [ { "type": "sprite", "anchor": { "x": 0, "y": 1 }, "frames": [ "iooFPiano" ] } ],
+            "position": { "x": 160, "y": 165 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -55, "y": -10 } } ],
+            "interacts": [
+               { "anchor": { "x": 0, "y": -1 }, "size": { "x": -55, "y": -10 }, "name": "foundry", "args": [ "piano" ] }
+            ]
+         },
+         {
+            "tags": [ "pianoarrow", "k11", "0" ],
+            "position": { "x": 160, "y": 0 },
+            "attachments": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowDot",
+                  "position": { "x": -40, "y": 89 }
+               }
+            ]
+         },
+         {
+            "tags": [ "pianoarrow", "k01", "3" ],
+            "position": { "x": 160, "y": 0 },
+            "attachments": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowLeft",
+                  "position": { "x": -20, "y": 89 }
+               }
+            ]
+         },
+         {
+            "tags": [ "pianoarrow", "k12", "4" ],
+            "position": { "x": 160, "y": 0 },
+            "attachments": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowDown",
+                  "position": { "x": 0, "y": 89 }
+               }
+            ]
+         },
+         {
+            "tags": [ "pianoarrow", "k21", "5" ],
+            "position": { "x": 160, "y": 0 },
+            "attachments": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowRight",
+                  "position": { "x": 20, "y": 89 }
+               }
+            ]
+         },
+         {
+            "tags": [ "pianoarrow", "k10", "7" ],
+            "position": { "x": 160, "y": 0 },
+            "attachments": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowUp",
+                  "position": { "x": 40, "y": 89 }
+               }
+            ]
+         },
+         {
+            "tags": [ "pianoarrow", "k02", "6" ],
+            "position": { "x": 160, "y": 0 },
+            "attachments": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowLeft",
+                  "position": { "x": -30, "y": 110 }
+               },
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowDown",
+                  "position": { "x": -30, "y": 120 }
+               }
+            ]
+         },
+         {
+            "tags": [ "pianoarrow", "k22", "9" ],
+            "position": { "x": 160, "y": 0 },
+            "attachments": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowRight",
+                  "position": { "x": -10, "y": 110 }
+               },
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowDown",
+                  "position": { "x": -10, "y": 120 }
+               }
+            ]
+         },
+         {
+            "tags": [ "pianoarrow", "k20", "10" ],
+            "position": { "x": 160, "y": 0 },
+            "attachments": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowRight",
+                  "position": { "x": 10, "y": 110 }
+               },
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowUp",
+                  "position": { "x": 10, "y": 120 }
+               }
+            ]
+         },
+         {
+            "tags": [ "pianoarrow", "k00", "12" ],
+            "position": { "x": 160, "y": 0 },
+            "attachments": [
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowLeft",
+                  "position": { "x": 30, "y": 110 }
+               },
+               {
+                  "anchor": { "x": 0, "y": 0 },
+                  "type": "animation",
+                  "resources": "iooFPianoarrowUp",
+                  "position": { "x": 30, "y": 120 }
+               }
+            ]
+         }
+      ]
+   },
+   "region": [ { "x": 160, "y": 120 }, { "x": 160, "y": 120 } ],
+   "score": { "music": "generator", "gain": 0.8 },
+   "neighbors": [ "f_shyren", "f_artifact", "f_truth" ]
+}

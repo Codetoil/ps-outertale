@@ -1,0 +1,144 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amFactory", "amFactoryEmpty", "iooFSteam", "iooFWallsign" ],
+   "layers": {
+      "below": [
+         {
+            "position": { "x": 0, "y": 0 },
+            "barriers": [
+               { "position": { "x": 20, "y": 120 }, "size": { "x": -20, "y": 120 } },
+               { "position": { "x": 20, "y": 120 }, "size": { "x": 240, "y": -40 } },
+               { "position": { "x": 260, "y": 80 }, "size": { "x": 180, "y": -20 } },
+               { "position": { "x": 440, "y": 80 }, "size": { "x": 40, "y": 40 } },
+               { "position": { "x": 80, "y": 180 }, "size": { "x": 400, "y": 60 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 20, "y": 235 },
+                  "size": { "x": 60, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "f_telescope", "down", "350", "110" ]
+               },
+               {
+                  "position": { "x": 475, "y": 120 },
+                  "size": { "x": 20, "y": 60 },
+                  "name": "teleport",
+                  "args": [ "f_abyss", "right", "20", "290" ]
+               }
+            ]
+         },
+         {
+            "position": { "x": 0, "y": 0 },
+            "interacts": [
+               {
+                  "position": { "x": 350, "y": 60 },
+                  "size": { "x": 40, "y": 20 },
+                  "name": "trivia",
+                  "args": [ "f_creamsign" ]
+               }
+            ],
+            "attachments": [
+               { "type": "sprite", "position": { "x": 350, "y": 30 }, "frames": [ "iooFWallsignPainted" ] }
+            ],
+            "tags": [ "21flavors" ]
+         },
+         {
+            "tags": [ "steamgap" ],
+            "interacts": [
+               { "position": { "x": 260, "y": 80 }, "size": { "x": 180, "y": 40 } },
+               { "position": { "x": 300, "y": 120 }, "size": { "x": 100, "y": 20 } }
+            ]
+         },
+         {
+            "tags": [ "xtrabarrier" ],
+            "barriers": [ { "position": { "x": 323, "y": 103 }, "size": { "x": 18, "y": -8 } } ]
+         }
+      ],
+      "main": [
+         {
+            "tags": [ "f_longsy" ],
+            "attachments": [ { "type": "animation", "resources": "ionFLongsy", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 55, "y": 126 },
+            "barriers": [ { "anchor": { "x": 0, "y": -1 }, "size": { "x": -40, "y": -6 } } ],
+            "interacts": [
+               {
+                  "size": { "x": -40, "y": -6 },
+                  "anchor": { "x": 0, "y": -1 },
+                  "name": "foundry",
+                  "args": [ "npc", "f_longsy" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "f_shortsy" ],
+            "attachments": [ { "type": "animation", "resources": "ionFShortsy", "anchor": { "x": 0, "y": 1 } } ],
+            "position": { "x": 220, "y": 126 },
+            "barriers": [
+               { "position": { "x": 0, "y": 0 }, "size": { "x": 20, "y": -6 }, "anchor": { "x": 0, "y": -1 } }
+            ],
+            "interacts": [
+               {
+                  "size": { "x": 20, "y": -6 },
+                  "anchor": { "x": 0, "y": -1 },
+                  "name": "foundry",
+                  "args": [ "npc", "f_shortsy" ]
+               }
+            ]
+         },
+         {
+            "tags": [ "dimbox" ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iooDimbox",
+                  "position": { "x": 0, "y": 0 },
+                  "anchor": { "x": 0, "y": 1 }
+               }
+            ],
+            "position": { "x": 405, "y": 105 },
+            "barriers": [
+               { "anchor": { "x": 0, "y": 1 }, "position": { "x": 0, "y": 0 }, "size": { "x": -20, "y": 9 } }
+            ],
+            "interacts": [
+               { "anchor": { "x": 0, "y": 1 }, "size": { "x": -20, "y": 9 }, "name": "foundry", "args": [ "cardbox" ] }
+            ]
+         },
+         {
+            "tags": [ "s_nicecream" ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "ionSNicecream",
+                  "position": { "x": 0, "y": 3 },
+                  "anchor": { "x": 0, "y": 1 }
+               }
+            ],
+            "interacts": [
+               {
+                  "position": { "x": 0, "y": -16 },
+                  "size": { "x": 36, "y": 14 },
+                  "name": "starton",
+                  "args": [ "nicecream" ]
+               },
+               {
+                  "anchor": { "x": -1, "y": -1 },
+                  "size": { "x": 41, "y": -18 },
+                  "name": "starton",
+                  "args": [ "nicecream", "geno" ],
+                  "position": { "x": -23, "y": 2 }
+               }
+            ],
+            "position": { "x": 305, "y": 105 },
+            "barriers": [
+               { "position": { "x": -23, "y": -2 }, "size": { "x": 41, "y": -10 } },
+               { "position": { "x": -14, "y": -12 }, "size": { "x": 32, "y": -4 } },
+               { "position": { "x": 0, "y": 2 }, "size": { "x": 18, "y": -4 } }
+            ]
+         }
+      ]
+   },
+   "region": [ { "x": 160, "y": 120 }, { "x": 320, "y": 120 } ],
+   "score": { "music": "factory", "gain": 0.8 },
+   "neighbors": [ "f_telescope", "f_abyss" ]
+}

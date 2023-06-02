@@ -1,0 +1,49 @@
+{ "frames": [
+   {
+    "filename": "0",
+    "frame": { "x": 0, "y": 0, "w": 46, "h": 51 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 46, "h": 51 },
+    "sourceSize": { "w": 46, "h": 51 },
+    "duration": 166
+   },
+   {
+    "filename": "1",
+    "frame": { "x": 46, "y": 0, "w": 46, "h": 51 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 46, "h": 51 },
+    "sourceSize": { "w": 46, "h": 51 },
+    "duration": 166
+   },
+   {
+    "filename": "2",
+    "frame": { "x": 92, "y": 0, "w": 46, "h": 51 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 46, "h": 51 },
+    "sourceSize": { "w": 46, "h": 51 },
+    "duration": 166
+   },
+   {
+    "filename": "3",
+    "frame": { "x": 138, "y": 0, "w": 46, "h": 51 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 46, "h": 51 },
+    "sourceSize": { "w": 46, "h": 51 },
+    "duration": 250
+   }
+ ],
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.3-beta6-dev",
+  "image": "ruffle.png",
+  "format": "RGBA8888",
+  "size": { "w": 184, "h": 51 },
+  "scale": "1",
+  "frameTags": [
+  ]
+ }
+}

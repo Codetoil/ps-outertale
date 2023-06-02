@@ -1,0 +1,59 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [ "amAerialis", "iooAPrimespire", "amAerialisEmpty", "avAlphys", "idcAlphys" ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               { "position": { "x": 120, "y": 400 }, "size": { "x": -20, "y": -400 } },
+               { "position": { "x": 200, "y": 400 }, "size": { "x": 20, "y": -400 } }
+            ],
+            "triggers": [
+               {
+                  "position": { "x": 120, "y": -15 },
+                  "size": { "x": 80, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "a_split", "up", "220", "350" ]
+               },
+               {
+                  "position": { "x": 120, "y": 395 },
+                  "size": { "x": 80, "y": 20 },
+                  "name": "teleport",
+                  "args": [ "a_rg2", "down", "200", "10" ]
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooABarricade", "auto": true, "anchor": { "x": 0, "y": 1 } }
+            ],
+            "position": { "x": 160, "y": 255 },
+            "barriers": [ { "size": { "x": -80, "y": -20 }, "anchor": { "x": 0, "y": -1 } } ],
+            "interacts": [
+               {
+                  "anchor": { "x": 0, "y": -1 },
+                  "size": { "x": -80, "y": -20 },
+                  "name": "aerialis",
+                  "args": [ "barricade4" ]
+               }
+            ],
+            "tags": [ "barricade4" ]
+         },
+         {
+            "attachments": [
+               { "type": "animation", "resources": "iooABarricade", "auto": true, "anchor": { "x": 0, "y": 1 } }
+            ],
+            "position": { "x": 160, "y": 95 },
+            "tags": [ "barricade5" ]
+         }
+      ],
+      "above": []
+   },
+   "mixins": { "above": "aerialis-a-overlay" },
+   "neighbors": [ "a_rg2", "a_split" ],
+   "score": { "music": "aerialis", "gain": 0.8 },
+   "region": [ { "x": 160, "y": 120 }, { "x": 160, "y": 280 } ]
+}
