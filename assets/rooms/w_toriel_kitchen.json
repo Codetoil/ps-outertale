@@ -1,1 +1,270 @@
-{"$schema":"./room.schema.json","preload":["amHome","amToriel","asStab"],"background":"below","layers":{"below":[{"barriers":[{"position":{"x":82,"y":218},"size":{"x":27,"y":22}},{"position":{"x":62,"y":137},"size":{"x":20,"y":81}},{"position":{"x":82,"y":117},"size":{"x":157,"y":20}},{"position":{"x":239,"y":137},"size":{"x":20,"y":81}},{"position":{"x":148,"y":218},"size":{"x":91,"y":22}},{"position":{"x":83,"y":140},"size":{"x":156,"y":18}}],"triggers":[],"attachments":[]},{"triggers":[{"name":"teleport","position":{"x":109,"y":235},"size":{"x":39,"y":20},"args":["w_toriel_living","down","66.5","10"]}]},{"position":{"x":82,"y":137},"interacts":[{"size":{"x":35,"y":22},"position":{"x":2,"y":0},"name":"outlands","args":["fridgetrap"]},{"position":{"x":41,"y":0},"size":{"x":25,"y":19},"name":"trivia","args":["w_tk_sink","top"]},{"position":{"x":70,"y":0},"size":{"x":21,"y":20},"name":"trivia","args":["w_tk_counter","top"]},{"position":{"x":96,"y":0},"size":{"x":23,"y":20},"name":"outlands","args":["piecheck"]},{"position":{"x":127,"y":0},"size":{"x":27,"y":20},"name":"trivia","args":["w_tk_stove","top"]},{"position":{"x":144,"y":79},"anchor":{"x":0,"y":-1},"size":{"x":15,"y":-10},"name":"trivia","args":["w_tk_trash","top"]}],"barriers":[{"position":{"x":144,"y":79},"anchor":{"x":0,"y":-1},"size":{"x":-15,"y":-10}}]}],"main":[{"attachments":[{"type":"animation","position":{"x":173,"y":118},"resources":"iooOPan"}],"tags":["w_piepan"]},{"attachments":[{"type":"sprite","frames":["iooOTorielTrash"],"position":{"x":0,"y":0},"anchor":{"x":0,"y":1}}],"position":{"x":226,"y":215}}]},"neighbors":["w_toriel_living"],"region":[{"x":160,"y":120.5},{"x":160,"y":120.5}],"score":{"gain":0.8,"music":"home"}}
+{
+   "$schema": "./room.schema.json",
+   "preload": [
+      "amHome",
+      "amToriel",
+      "asStab"
+   ],
+   "background": "below",
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               {
+                  "position": {
+                     "x": 82,
+                     "y": 218
+                  },
+                  "size": {
+                     "x": 27,
+                     "y": 22
+                  }
+               },
+               {
+                  "position": {
+                     "x": 62,
+                     "y": 137
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 81
+                  }
+               },
+               {
+                  "position": {
+                     "x": 82,
+                     "y": 117
+                  },
+                  "size": {
+                     "x": 157,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 239,
+                     "y": 137
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 81
+                  }
+               },
+               {
+                  "position": {
+                     "x": 148,
+                     "y": 218
+                  },
+                  "size": {
+                     "x": 91,
+                     "y": 22
+                  }
+               },
+               {
+                  "position": {
+                     "x": 83,
+                     "y": 140
+                  },
+                  "size": {
+                     "x": 156,
+                     "y": 18
+                  }
+               }
+            ]
+         },
+         {
+            "triggers": [
+               {
+                  "name": "teleport",
+                  "position": {
+                     "x": 109,
+                     "y": 235
+                  },
+                  "size": {
+                     "x": 39,
+                     "y": 20
+                  },
+                  "args": [
+                     "w_toriel_living",
+                     "down",
+                     "66.5",
+                     "10"
+                  ]
+               }
+            ]
+         },
+         {
+            "position": {
+               "x": 82,
+               "y": 137
+            },
+            "interacts": [
+               {
+                  "size": {
+                     "x": 35,
+                     "y": 22
+                  },
+                  "position": {
+                     "x": 2,
+                     "y": 0
+                  },
+                  "name": "outlands",
+                  "args": [
+                     "fridgetrap"
+                  ]
+               },
+               {
+                  "position": {
+                     "x": 41,
+                     "y": 0
+                  },
+                  "size": {
+                     "x": 25,
+                     "y": 19
+                  },
+                  "name": "trivia",
+                  "args": [
+                     "w_tk_sink",
+                     "top"
+                  ]
+               },
+               {
+                  "position": {
+                     "x": 70,
+                     "y": 0
+                  },
+                  "size": {
+                     "x": 21,
+                     "y": 20
+                  },
+                  "name": "trivia",
+                  "args": [
+                     "w_tk_counter",
+                     "top"
+                  ]
+               },
+               {
+                  "position": {
+                     "x": 96,
+                     "y": 0
+                  },
+                  "size": {
+                     "x": 23,
+                     "y": 20
+                  },
+                  "name": "outlands",
+                  "args": [
+                     "piecheck"
+                  ]
+               },
+               {
+                  "position": {
+                     "x": 127,
+                     "y": 0
+                  },
+                  "size": {
+                     "x": 27,
+                     "y": 20
+                  },
+                  "name": "trivia",
+                  "args": [
+                     "w_tk_stove",
+                     "top"
+                  ]
+               },
+               {
+                  "position": {
+                     "x": 144,
+                     "y": 79
+                  },
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": 15,
+                     "y": -10
+                  },
+                  "name": "trivia",
+                  "args": [
+                     "w_tk_trash",
+                     "top"
+                  ]
+               }
+            ],
+            "barriers": [
+               {
+                  "position": {
+                     "x": 144,
+                     "y": 79
+                  },
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": -15,
+                     "y": -10
+                  }
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "attachments": [
+               {
+                  "type": "animation",
+                  "position": {
+                     "x": 173,
+                     "y": 118
+                  },
+                  "resources": "iooOPan"
+               }
+            ],
+            "tags": [
+               "w_piepan"
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [
+                     "iooOTorielTrash"
+                  ],
+                  "position": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  }
+               }
+            ],
+            "position": {
+               "x": 226,
+               "y": 215
+            }
+         }
+      ]
+   },
+   "neighbors": [
+      "w_toriel_living"
+   ],
+   "region": [
+      {
+         "x": 160,
+         "y": 120.5
+      },
+      {
+         "x": 160,
+         "y": 120.5
+      }
+   ],
+   "score": {
+      "gain": 0.8,
+      "music": "home"
+   }
+}

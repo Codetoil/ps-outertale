@@ -1,6 +1,15 @@
 {
-   "devDependencies": { "electron": "21.4.4" },
-   "main": "main.js",
+   "build": {
+      "files": [
+         "!**/*",
+         "index.js",
+         "package.json"
+      ]
+   },
+   "devDependencies": {
+      "electron": "21.4.4"
+   },
+   "main": "index.js",
    "name": "outertale",
-   "version": "4.1.1"
+   "version": "4.4.2"
 }

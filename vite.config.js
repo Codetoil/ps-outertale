@@ -7,6 +7,6 @@ export default defineConfig({
       assetsInlineLimit: 0,
       chunkSizeWarningLimit: Infinity,
       emptyOutDir: true,
-      outDir: './app/assets'
+      outDir: './app/dist/assets'
    }
 });

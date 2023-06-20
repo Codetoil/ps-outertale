@@ -1,112 +1,334 @@
 {
    "$schema": "./room.schema.json",
    "background": "below",
-   "preload": [ "amStarton", "amStartonEmpty", "iooSScreenon", "asDepower", "ieBiodome", "asDimbox" ],
+   "preload": [
+      "amStarton",
+      "amStartonEmpty",
+      "iooSScreenon",
+      "asDepower",
+      "iooSBiodome",
+      "asDimbox"
+   ],
    "layers": {
       "below": [
          {
             "triggers": [
                {
-                  "position": { "x": 0, "y": 235 },
+                  "position": {
+                     "x": 0,
+                     "y": 225
+                  },
                   "name": "teleport",
-                  "size": { "x": 80, "y": 20 },
-                  "args": [ "s_spaghetti", "down", "240", "10" ]
+                  "size": {
+                     "x": 80,
+                     "y": 20
+                  },
+                  "args": [
+                     "s_greater",
+                     "down",
+                     "80",
+                     "10"
+                  ]
                },
                {
-                  "position": { "x": 220, "y": 5 },
-                  "size": { "x": 80, "y": -20 },
+                  "position": {
+                     "x": 220,
+                     "y": 15
+                  },
+                  "size": {
+                     "x": 80,
+                     "y": -20
+                  },
                   "name": "teleport",
-                  "args": [ "s_puzzle1", "up", "80", "250" ]
+                  "args": [
+                     "s_secret",
+                     "up",
+                     "60",
+                     "110"
+                  ]
                }
             ],
             "barriers": [
-               { "position": { "x": 10, "y": 35 }, "size": { "x": -20, "y": 205 } },
-               { "position": { "x": 10, "y": 35 }, "size": { "x": 220, "y": -35 } },
-               { "position": { "x": 290, "y": 0 }, "size": { "x": 20, "y": 205 } },
-               { "position": { "x": 290, "y": 205 }, "size": { "x": -220, "y": 35 } }
+               {
+                  "position": {
+                     "x": 10,
+                     "y": 55
+                  },
+                  "size": {
+                     "x": -20,
+                     "y": 185
+                  }
+               },
+               {
+                  "position": {
+                     "x": 10,
+                     "y": 55
+                  },
+                  "size": {
+                     "x": 220,
+                     "y": -55
+                  }
+               },
+               {
+                  "position": {
+                     "x": 290,
+                     "y": 0
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 205
+                  }
+               },
+               {
+                  "position": {
+                     "x": 290,
+                     "y": 205
+                  },
+                  "size": {
+                     "x": -220,
+                     "y": 35
+                  }
+               }
             ]
          }
       ],
       "main": [
          {
-            "tags": [ "s_lamp" ],
+            "tags": [
+               "s_lamp"
+            ],
             "attachments": [
                {
                   "auto": true,
                   "type": "animation",
-                  "anchor": { "x": 0, "y": 1 },
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
                   "resources": "iooSLamp",
-                  "position": { "x": 0, "y": 0 }
+                  "position": {
+                     "x": 0,
+                     "y": 0
+                  }
                }
             ],
-            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
-            "position": { "x": 30, "y": 45 }
+            "barriers": [
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
+                  "size": {
+                     "x": -10,
+                     "y": 6
+                  }
+               }
+            ],
+            "position": {
+               "x": 30,
+               "y": 65
+            }
          },
          {
-            "tags": [ "s_lamp" ],
+            "tags": [
+               "s_lamp"
+            ],
             "attachments": [
                {
                   "auto": true,
                   "type": "animation",
-                  "anchor": { "x": 0, "y": 1 },
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
                   "resources": "iooSLamp",
-                  "position": { "x": 0, "y": 0 }
+                  "position": {
+                     "x": 0,
+                     "y": 0
+                  }
                }
             ],
-            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
-            "position": { "x": 275, "y": 200 }
+            "barriers": [
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
+                  "size": {
+                     "x": -10,
+                     "y": 6
+                  }
+               }
+            ],
+            "position": {
+               "x": 275,
+               "y": 200
+            }
          },
          {
-            "attachments": [ { "type": "sprite", "anchor": { "x": 0, "y": 1 }, "frames": [ "iooSCtower" ] } ],
-            "position": { "x": 150, "y": 50 },
-            "barriers": [ { "size": { "x": -15, "y": -10 }, "anchor": { "x": 0, "y": -1 } } ],
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
+                  "frames": [
+                     "iooSCtower"
+                  ]
+               }
+            ],
+            "position": {
+               "x": 150,
+               "y": 70
+            },
+            "barriers": [
+               {
+                  "size": {
+                     "x": -15,
+                     "y": -10
+                  },
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  }
+               }
+            ],
             "interacts": [
                {
-                  "anchor": { "x": 0, "y": -1 },
-                  "size": { "x": -15, "y": -10 },
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": -15,
+                     "y": -10
+                  },
                   "name": "starton",
-                  "args": [ "ctower" ]
+                  "args": [
+                     "ctower"
+                  ]
                }
             ]
          },
          {
-            "tags": [ "lasercheckpoint" ],
+            "tags": [
+               "lasercheckpoint"
+            ],
             "attachments": [
                {
                   "type": "sprite",
-                  "frames": [ "iooSLasercheckpointOpen" ],
-                  "anchor": { "x": 0, "y": 1 },
-                  "position": { "x": 0, "y": 5 }
+                  "frames": [
+                     "iooSLasercheckpointOpen"
+                  ],
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
+                  "position": {
+                     "x": 0,
+                     "y": 5
+                  }
                },
                {
                   "auto": true,
                   "type": "animation",
                   "resources": "iooSLasercheckpoint",
-                  "anchor": { "x": 0, "y": 1 },
-                  "position": { "x": 0, "y": 5 }
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
+                  "position": {
+                     "x": 0,
+                     "y": 5
+                  }
                }
             ],
-            "position": { "x": 260, "y": 25 },
+            "position": {
+               "x": 260,
+               "y": 35
+            },
             "barriers": [
-               { "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": 1 }, "size": { "x": -60, "y": -8 } }
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "position": {
+                     "x": 0,
+                     "y": 1
+                  },
+                  "size": {
+                     "x": -60,
+                     "y": -8
+                  }
+               }
             ]
          },
          {
-            "attachments": [ { "type": "sprite", "frames": [ "iooSSign" ], "anchor": { "x": 0, "y": 1 } } ],
-            "position": { "x": 59, "y": 45 },
-            "barriers": [ { "size": { "x": -18, "y": -6 }, "anchor": { "x": 0, "y": -1 } } ],
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [
+                     "iooSSign"
+                  ],
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  }
+               }
+            ],
+            "position": {
+               "x": 59,
+               "y": 65
+            },
+            "barriers": [
+               {
+                  "size": {
+                     "x": -18,
+                     "y": -6
+                  },
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  }
+               }
+            ],
             "interacts": [
                {
-                  "size": { "x": -18, "y": -6 },
+                  "size": {
+                     "x": -18,
+                     "y": -6
+                  },
                   "name": "trivia",
-                  "anchor": { "x": 0, "y": -1 },
-                  "args": [ "s_math_sign" ]
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "args": [
+                     "s_math_sign"
+                  ]
                }
             ]
          }
       ]
    },
-   "neighbors": [ "s_puzzle1", "s_spaghetti" ],
-   "region": [ { "x": 150, "y": 120 }, { "x": 150, "y": 120 } ],
-   "score": { "music": "starton", "gain": 0.8 }
+   "neighbors": [
+      "s_greater",
+      "s_secret"
+   ],
+   "region": [
+      {
+         "x": 150,
+         "y": 130
+      },
+      {
+         "x": 150,
+         "y": 130
+      }
+   ],
+   "score": {
+      "music": "starton",
+      "gain": 0.8
+   }
 }

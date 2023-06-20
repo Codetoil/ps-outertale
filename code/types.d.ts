@@ -1,3 +1,7 @@
-declare module '*?url' {
-   export default null as string;
+declare module "*?url" {
+   export default '' as string;
+}
+
+interface ImportMeta {
+   hot: any;
 }

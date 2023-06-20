@@ -1,1 +1,380 @@
-{"$schema":"./room.schema.json","background":"below","metadata":{"dark03":true},"preload":["amMall","amYouscreweduppal","imAerialisBDark"],"layers":{"below":[{"attachments":[{"type":"sprite","frames":["iooACheckpointUnder"],"position":{"x":0,"y":0},"anchor":{"x":-1,"y":-1}}],"position":{"x":94,"y":167},"tags":["revchecker","darkable"],"barriers":[{"position":{"x":33,"y":133},"size":{"x":11,"y":-18}},{"position":{"x":49,"y":135},"rotation":-27,"size":{"x":4,"y":-20}},{"position":{"x":20,"y":77},"size":{"x":-7,"y":-24}},{"position":{"x":13,"y":67},"size":{"x":4,"y":-15},"rotation":-26}]},{"barriers":[{"position":{"x":0,"y":220},"size":{"x":240,"y":-120}},{"position":{"x":240,"y":100},"size":{"x":30,"y":-20}},{"position":{"x":0,"y":300},"size":{"x":340,"y":20}},{"position":{"x":340,"y":100},"size":{"x":20,"y":200}},{"position":{"x":310,"y":100},"size":{"x":30,"y":-20}}],"triggers":[{"position":{"x":5,"y":220},"size":{"x":-20,"y":80},"name":"teleport","args":["a_plaza","left","620","160"]},{"position":{"x":270,"y":80},"size":{"x":40,"y":20},"name":"teleport","args":["a_lift","up","160","230"]}],"attachments":[{"type":"animation","resources":"iooAReccolumn","auto":true,"anchor":{"x":0,"y":-1},"position":{"x":70,"y":140}},{"type":"animation","resources":"iooAReccolumn","auto":true,"anchor":{"x":0,"y":-1},"position":{"x":170,"y":140}}]}],"above":[{"attachments":[{"type":"sprite","frames":["iooACheckpointOver"],"position":{"x":0,"y":0}}],"position":{"x":94,"y":167},"tags":["revchecker","darkable"]}],"main":[{"tags":["darkable"],"attachments":[{"type":"sprite","frames":["iooAWishflower"],"anchor":{"x":0,"y":1}}],"position":{"x":325,"y":296},"barriers":[{"anchor":{"x":0,"y":-1},"size":{"x":-22,"y":-8}}]},{"attachments":[{"type":"animation","resources":"ionAReg","anchor":{"x":0,"y":1}}],"position":{"x":312,"y":283},"tags":["a_reg","darkable"],"barriers":[{"anchor":{"x":0,"y":-1},"size":{"x":-18,"y":-8}}],"interacts":[{"anchor":{"x":0,"y":-1},"size":{"x":-18,"y":-8},"name":"aerialis","args":["npc","a_reg"]}]},{"attachments":[{"type":"sprite","frames":["iooARecycler"],"anchor":{"x":0,"y":1}}],"position":{"x":225,"y":229},"tags":["darkable"],"barriers":[{"anchor":{"x":0,"y":-1},"size":{"x":-23,"y":-9}}],"interacts":[{"anchor":{"x":0,"y":-1},"size":{"x":-23,"y":-9},"name":"aerialis","args":["recycler"]}]}]},"score":{"music":"mall","gain":0.8},"neighbors":["a_lift","a_plaza"],"region":[{"x":160,"y":120},{"x":200,"y":200}]}
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "metadata": {
+      "dark03": true
+   },
+   "preload": [
+      "amMall",
+      "amYouscreweduppal",
+      "imAerialisBDark",
+      "asRustle"
+   ],
+   "layers": {
+      "below": [
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [
+                     "iooACheckpointUnder"
+                  ],
+                  "position": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "anchor": {
+                     "x": -1,
+                     "y": -1
+                  }
+               }
+            ],
+            "position": {
+               "x": 94,
+               "y": 167
+            },
+            "tags": [
+               "revchecker",
+               "darkable"
+            ],
+            "barriers": [
+               {
+                  "position": {
+                     "x": 33,
+                     "y": 133
+                  },
+                  "size": {
+                     "x": 11,
+                     "y": -18
+                  }
+               },
+               {
+                  "position": {
+                     "x": 49,
+                     "y": 135
+                  },
+                  "rotation": -27,
+                  "size": {
+                     "x": 4,
+                     "y": -20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 20,
+                     "y": 77
+                  },
+                  "size": {
+                     "x": -7,
+                     "y": -24
+                  }
+               },
+               {
+                  "position": {
+                     "x": 13,
+                     "y": 67
+                  },
+                  "size": {
+                     "x": 4,
+                     "y": -15
+                  },
+                  "rotation": -26
+               }
+            ]
+         },
+         {
+            "barriers": [
+               {
+                  "position": {
+                     "x": 0,
+                     "y": 220
+                  },
+                  "size": {
+                     "x": 240,
+                     "y": -120
+                  }
+               },
+               {
+                  "position": {
+                     "x": 240,
+                     "y": 100
+                  },
+                  "size": {
+                     "x": 30,
+                     "y": -20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 0,
+                     "y": 300
+                  },
+                  "size": {
+                     "x": 340,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 340,
+                     "y": 100
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 200
+                  }
+               },
+               {
+                  "position": {
+                     "x": 310,
+                     "y": 100
+                  },
+                  "size": {
+                     "x": 30,
+                     "y": -20
+                  }
+               }
+            ],
+            "triggers": [
+               {
+                  "position": {
+                     "x": 5,
+                     "y": 220
+                  },
+                  "size": {
+                     "x": -20,
+                     "y": 80
+                  },
+                  "name": "teleport",
+                  "args": [
+                     "a_plaza",
+                     "left",
+                     "620",
+                     "160"
+                  ]
+               },
+               {
+                  "position": {
+                     "x": 270,
+                     "y": 80
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 20
+                  },
+                  "name": "teleport",
+                  "args": [
+                     "a_lift",
+                     "up",
+                     "160",
+                     "230"
+                  ]
+               }
+            ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iooAReccolumn",
+                  "auto": true,
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "position": {
+                     "x": 70,
+                     "y": 140
+                  }
+               },
+               {
+                  "type": "animation",
+                  "resources": "iooAReccolumn",
+                  "auto": true,
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "position": {
+                     "x": 170,
+                     "y": 140
+                  }
+               }
+            ]
+         }
+      ],
+      "above": [
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [
+                     "iooACheckpointOver"
+                  ],
+                  "position": {
+                     "x": 0,
+                     "y": 0
+                  }
+               }
+            ],
+            "position": {
+               "x": 94,
+               "y": 167
+            },
+            "tags": [
+               "revchecker",
+               "darkable"
+            ]
+         }
+      ],
+      "main": [
+         {
+            "tags": [
+               "darkable"
+            ],
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [
+                     "iooAWishflower"
+                  ],
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  }
+               }
+            ],
+            "position": {
+               "x": 325,
+               "y": 296
+            },
+            "barriers": [
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": -22,
+                     "y": -8
+                  }
+               }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "ionAReg",
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  }
+               }
+            ],
+            "position": {
+               "x": 312,
+               "y": 283
+            },
+            "tags": [
+               "a_reg",
+               "darkable"
+            ],
+            "barriers": [
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": -18,
+                     "y": -8
+                  }
+               }
+            ],
+            "interacts": [
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": -18,
+                     "y": -8
+                  },
+                  "name": "aerialis",
+                  "args": [
+                     "npc",
+                     "a_reg"
+                  ]
+               }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [
+                     "iooARecycler"
+                  ],
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  }
+               }
+            ],
+            "position": {
+               "x": 225,
+               "y": 229
+            },
+            "tags": [
+               "darkable"
+            ],
+            "barriers": [
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": -23,
+                     "y": -9
+                  }
+               }
+            ],
+            "interacts": [
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": -23,
+                     "y": -9
+                  },
+                  "name": "aerialis",
+                  "args": [
+                     "recycler"
+                  ]
+               }
+            ]
+         }
+      ]
+   },
+   "score": {
+      "music": "mall",
+      "gain": 0.8
+   },
+   "neighbors": [
+      "a_lift",
+      "a_plaza"
+   ],
+   "region": [
+      {
+         "x": 160,
+         "y": 120
+      },
+      {
+         "x": 200,
+         "y": 200
+      }
+   ]
+}

@@ -19,10 +19,9 @@
                   "name": "teleport",
                   "position": { "x": 80, "y": 95 },
                   "size": { "x": 20, "y": 60 },
-                  "args": [ "w_annex", "down", "180", "105" ]
+                  "args": [ "w_annex", "down", "180", "110" ]
                }
-            ],
-            "tags": []
+            ]
          },
          {
             "attachments": [

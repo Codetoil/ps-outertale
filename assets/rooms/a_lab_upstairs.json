@@ -42,7 +42,6 @@
                   "args": [ "conveyor" ]
                }
             ],
-            "attachments": [],
             "interacts": [
                {
                   "position": { "x": 187, "y": 120 },

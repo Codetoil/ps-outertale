@@ -2,28 +2,20 @@ import { PixelateFilter, RGBSplitFilter, ZoomBlurFilter } from 'pixi-filters';
 import { Rectangle } from 'pixi.js';
 import assets from '../assets';
 import { OutertaleOpponent } from '../classes';
-import { madfish } from '../common';
+import { phish } from '../common';
 import commonOpponents, { kiddFight, kiddHandler, kiddTurn } from '../common/opponents';
 import commonPatterns from '../common/patterns';
 import commonText from '../common/text';
 import content, { inventories } from '../content';
 import { events, game, keys, random, renderer, speech, timer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosDirection,
-   CosmosInventory,
-   CosmosKeyboardInput,
-   CosmosKeyed,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosProvider,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosText,
-   CosmosUtils,
-   CosmosValue
-} from '../engine';
+import { CosmosInventory } from '../engine/core';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosKeyboardInput } from '../engine/input';
+import { CosmosMath, CosmosPoint, CosmosValue } from '../engine/numerics';
+import { CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosText } from '../engine/text';
+import { CosmosDirection, CosmosKeyed, CosmosProvider, CosmosUtils } from '../engine/utils';
 import { battler, heal, oops, sawWaver, sineWaver, world } from '../mantle';
 import save from '../save';
 import patterns from './patterns';
@@ -33,6 +25,7 @@ const fixfactor = 0.8;
 
 const opponents = {
    doge: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_doge,
       assets: new CosmosInventory(
          content.ibcDoge,
          content.ibcDogeHurt,
@@ -102,7 +95,10 @@ const opponents = {
                   case 'flirt':
                      status = false;
                      if (!volatile.sparable) {
-                        save.data.b.flirt_doge = true;
+                        if (!world.genocide) {
+                           save.data.b.flirt_doge = true;
+                           volatile.flirted = true;
+                        }
                         battler.status = text.b_opponent_doge.flirtStatus();
                      }
                      break;
@@ -113,7 +109,7 @@ const opponents = {
                      }
                      break;
                   case 'bathe':
-                     if (world.genocide) {
+                     if (world.genocide || (world.dead_dog && save.data.n.state_starton_lesserdog === 2)) {
                         await battler.human(...text.b_opponent_doge.batheTextGeno);
                      } else if (turn < 2) {
                         await battler.human(...text.b_opponent_doge.batheTextEarly);
@@ -131,7 +127,7 @@ const opponents = {
                      }
                      break;
                   case 'walk':
-                     if (world.genocide) {
+                     if (world.genocide || (world.dead_dog && save.data.n.state_starton_lesserdog === 2)) {
                         await battler.human(...text.b_opponent_doge.walkTextGeno);
                      } else if (turn < 3) {
                         await battler.human(...text.b_opponent_doge.walkTextEarly);
@@ -155,7 +151,7 @@ const opponents = {
                      }
                      break;
                   case 'pet':
-                     if (world.genocide) {
+                     if (world.genocide || (world.dead_dog && save.data.n.state_starton_lesserdog === 2)) {
                         await battler.human(...text.b_opponent_doge.petTextGeno);
                      } else if (turn < 7) {
                         await battler.human(...text.b_opponent_doge.petTextEarly);
@@ -213,7 +209,7 @@ const opponents = {
             status = false;
             battler.status = text.b_opponent_doge.hurtStatus();
          }
-         if (!world.genocide) {
+         if (!(world.genocide || (world.dead_dog && save.data.n.state_starton_lesserdog === 2))) {
             if (turn === 9) {
                battler.g += 40;
                volatile.sparable = true;
@@ -258,7 +254,7 @@ const opponents = {
          if (battler.alive.length > 0) {
             await battler.resume(async () => {
                await battler.box.size.modulate(timer, 300, { x: 100, y: 65 });
-               Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+               battler.SOUL.position.set(160);
                battler.SOUL.alpha.value = 1;
                await (attack && (world.genocide || turn < 9)
                   ? patterns.doge(turn < 2 ? 1 : turn < 4 ? 2 : 3, 6 * volatile.vars.astat)
@@ -301,14 +297,6 @@ const opponents = {
                   this.duration = 15;
                }
             }
-            const belowObj = this.objects[0] as CosmosAnimation;
-            if (belowObj.index % 2 === 0) {
-               this.position.y = 1;
-               belowObj.position.y = -1;
-            } else {
-               this.position.y = 0;
-               belowObj.position.y = 0;
-            }
          }),
       goodbye: () =>
          new CosmosSprite({
@@ -317,6 +305,7 @@ const opponents = {
          })
    }),
    muffet: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_muffet,
       assets: new CosmosInventory(
          content.ibcMuffetArm1,
          content.ibcMuffetArm2a,
@@ -451,8 +440,11 @@ const opponents = {
             state.vars.attack = true;
          },
          act: {
-            flirt () {
-               world.genocide || (save.data.b.flirt_muffet = true);
+            flirt (state) {
+               if (!world.genocide) {
+                  save.data.b.flirt_muffet = true;
+                  state.volatile.flirted = true;
+               }
             },
             counter (state) {
                if (state.vars.turns === 2) {
@@ -469,7 +461,9 @@ const opponents = {
                }
             },
             pay (state) {
-               if (state.vars.turns === 10 && state.vars.appease) {
+               if (state.vars.pay) {
+                  state.talk = text.b_opponent_muffet.payTalkPost;
+               } else if (state.vars.turns === 10 && state.vars.appease) {
                   state.vars.pay = true;
                   state.vars.attack = false;
                }
@@ -541,12 +535,12 @@ const opponents = {
                   battler.box.size.modulate(timer, 300, { x: 120, y: 67.5 })
                ]);
                battler.line.reset();
-               battler.line.position = { x: 160, y: battler.line.offset + 20 };
+               battler.line.pos = { x: 160, y: battler.line.offset + 20 };
                if (state.vars.turns > 0) {
                   battler.line.active = true;
-                  Object.assign(battler.SOUL.position, battler.line.position);
+                  battler.SOUL.position.set(battler.line.pos);
                } else {
-                  Object.assign(battler.SOUL.position, battler.box.position.value());
+                  battler.SOUL.position.set(battler.box);
                }
                battler.SOUL.alpha.value = 1;
                if (state.vars.attack && state.vars.turns < (world.genocide ? 12 : 10)) {
@@ -943,6 +937,7 @@ const opponents = {
       goodbye: () => new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.ibcMuffetHurt ] })
    }),
    shyren: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_shyren,
       assets: new CosmosInventory(
          content.ibcShyrenAgent,
          content.ibcShyrenBack,
@@ -1054,6 +1049,7 @@ const opponents = {
                         } else {
                            idle = false;
                            save.data.b.flirt_shyren = true;
+                           volatile.flirted = true;
                            await battler.human(...text.b_opponent_shyren.flirtText1);
                            flirt = true;
                         }
@@ -1144,7 +1140,7 @@ const opponents = {
                game.movement = true;
                battler.music!.gain.modulate(timer, 600, battler.music!.gain.value / 10);
                await battler.box.size.modulate(timer, 300, { x: 150, y: 95 / 2 });
-               Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+               battler.SOUL.position.set(160);
                battler.SOUL.alpha.value = 1;
                if (turn === 'skip') {
                   await timer.pause(450);
@@ -1255,6 +1251,7 @@ const opponents = {
    }),
    moldsmal: commonOpponents.moldsmal,
    fakemoldsmal: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_moldbygg,
       assets: new CosmosInventory(content.ibcMoldsmal, content.ibbOctagon),
       metadata: { arc: true },
       exp: 3,
@@ -1283,10 +1280,10 @@ const opponents = {
          }
          let bygg = false;
          const statustext = [
-            text.b_opponent_fakemoldsmal.fakeStatus1,
-            text.b_opponent_fakemoldsmal.fakeStatus2,
-            text.b_opponent_fakemoldsmal.fakeStatus3,
-            text.b_opponent_fakemoldsmal.fakeStatus4
+            text.b_opponent_fakemoldsmal.fakeStatus1(),
+            text.b_opponent_fakemoldsmal.fakeStatus2(),
+            text.b_opponent_fakemoldsmal.fakeStatus3(),
+            text.b_opponent_fakemoldsmal.fakeStatus4()
          ];
          const sparing = battler.sparing(choice);
          switch (choice.type) {
@@ -1304,6 +1301,7 @@ const opponents = {
                switch (choice.act) {
                   case 'flirt':
                      bygg = true;
+                     volatile.flirted = true;
                      break;
                   case 'imitate':
                      bygg = true;
@@ -1321,7 +1319,7 @@ const opponents = {
                return;
          }
          const turn =
-            bygg || !world.epicgamer || save.data.n.state_foundry_muffet === 1 ? void 0 : await kiddTurn('moldsmal');
+            bygg || !world.monty || save.data.n.state_foundry_muffet === 1 ? void 0 : await kiddTurn('moldsmal');
          if (turn === 'fight') {
             if (await kiddFight(volatile)) {
                world.kill();
@@ -1335,19 +1333,21 @@ const opponents = {
          if (bygg) {
             volatile.alive = false;
             volatile.container.alpha.value = 0;
-            const index = battler.add(opponents.moldbygg, { x: volatile.container.position.x, y: 180 });
+            const index = battler.add(opponents.moldbygg, { x: volatile.container.x, y: 180 });
+            if (volatile.flirted) {
+               battler.volatile[index].flirted = true;
+            }
             const newcx = battler.volatile[index].container;
             await Promise.all([
                newcx.position.modulate(timer, 1000, { y: 150 }, { y: 130 }, { y: 120 }),
                battler.monster(
                   false,
-                  new CosmosPoint({ x: volatile.container.position.x, y: 120 }).add(28, -64),
+                  new CosmosPoint({ x: volatile.container.x, y: 120 }).add(28, -64),
                   battler.bubbles.dummy,
                   ...text.b_opponent_moldbygg.idleTalk1
                )
             ]);
-            const turn =
-               !world.epicgamer || save.data.n.state_foundry_muffet === 1 ? void 0 : await kiddTurn('moldsmal');
+            const turn = !world.monty || save.data.n.state_foundry_muffet === 1 ? void 0 : await kiddTurn('moldsmal');
             if (turn === 'fight') {
                if (await kiddFight(volatile)) {
                   world.kill();
@@ -1355,7 +1355,7 @@ const opponents = {
                   return;
                }
             }
-            battler.status = text.b_opponent_moldbygg.status1;
+            battler.status = text.b_opponent_moldbygg.status1();
          } else {
             sparing || (await doIdle());
             battler.status = statustext[Math.floor(random.next() * statustext.length)];
@@ -1365,6 +1365,7 @@ const opponents = {
       sprite: () => new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.ibcMoldsmal ] })
    }),
    moldbygg: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_moldbygg,
       assets: new CosmosInventory(),
       metadata: { arc: true },
       bullyable: true,
@@ -1399,8 +1400,9 @@ const opponents = {
                   state.vars.pacified = true;
                }
             },
-            flirt () {
+            flirt (state) {
                save.data.b.flirt_moldbygg = true;
+               state.volatile.flirted = true;
             }
          },
          postchoice (state) {
@@ -1418,11 +1420,11 @@ const opponents = {
             text.b_opponent_moldbygg.idleTalk3,
             text.b_opponent_moldbygg.idleTalk4
          ],
-         defaultStatus: [
-            text.b_opponent_moldbygg.randStatus1,
-            text.b_opponent_moldbygg.randStatus2,
-            text.b_opponent_moldbygg.randStatus3,
-            text.b_opponent_moldbygg.randStatus4
+         defaultStatus: () => [
+            text.b_opponent_moldbygg.randStatus1(),
+            text.b_opponent_moldbygg.randStatus2(),
+            text.b_opponent_moldbygg.randStatus3(),
+            text.b_opponent_moldbygg.randStatus4()
          ]
       }),
       sprite () {
@@ -1446,9 +1448,10 @@ const opponents = {
             this.position.x = sineWaver(time, 2500, -3, 3, phase);
          });
       },
-      goodbye: () => new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.ibcMoldsmal ] })
+      goodbye: () => new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.ibcMoldbyggDefeated ] })
    }),
    woshua: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_woshua,
       assets: new CosmosInventory(
          content.ibcWoshuaBody,
          content.ibcWoshuaDuck,
@@ -1518,6 +1521,7 @@ const opponents = {
             async flirt (state) {
                if (state.vars.clean) {
                   save.data.b.flirt_woshua = true;
+                  state.volatile.flirted = true;
                   state.talk = text.b_opponent_woshua.flirtTalk2;
                } else {
                   state.talk = text.b_opponent_woshua.flirtTalk1;
@@ -1570,7 +1574,7 @@ const opponents = {
             battler.hurt.includes(state.volatile) && (state.status = text.b_opponent_woshua.hurtStatus);
          },
          defaultStatus: () =>
-            world.goatbro
+            world.azzie
                ? text.b_opponent_woshua.status1()
                : [
                     text.b_opponent_woshua.randStatus1,
@@ -1578,7 +1582,7 @@ const opponents = {
                     text.b_opponent_woshua.randStatus3,
                     text.b_opponent_woshua.randStatus4,
                     text.b_opponent_woshua.randStatus5
-                 ][battler.rand(5)]
+                 ][battler.rand(5)]()
       }),
       sprite () {
          const time = timer.value;
@@ -1614,6 +1618,7 @@ const opponents = {
       goodbye: () => new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.ibcWoshuaHurt ] })
    }),
    radtile: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_radtile,
       assets: new CosmosInventory(content.ibcRadtile, content.ibcRadtileHurt, content.ibcRadtileTail, content.ibbHat),
       metadata: { arc: true },
       bullyable: true,
@@ -1633,9 +1638,6 @@ const opponents = {
       handler: battler.opponentHandler({
          kill: () => world.kill(),
          vars: { mood: 0, heckled: false },
-         postfight (state) {
-            state.dead && (save.data.b.killed_radtile = true);
-         },
          act: {
             praise (state) {
                if (state.vars.mood < 0) {
@@ -1644,6 +1646,9 @@ const opponents = {
                      text.b_opponent_radtile.complimentPostInsultTalk2,
                      text.b_opponent_radtile.complimentPostInsultTalk3
                   ];
+                  state.status = world.azzie
+                     ? text.b_opponent_radtile.status1
+                     : text.b_opponent_radtile.complimentPostInsultStatus;
                   state.vars.mood = 0;
                } else if (state.vars.mood < 1) {
                   state.talk = [
@@ -1651,21 +1656,17 @@ const opponents = {
                      text.b_opponent_radtile.complimentTalk2,
                      text.b_opponent_radtile.complimentTalk3
                   ];
-               } else if (state.vars.mood < 2) {
+                  state.status = world.azzie
+                     ? text.b_opponent_radtile.status1
+                     : text.b_opponent_radtile.complimentStatus;
+               } else {
                   state.talk = [
                      text.b_opponent_radtile.realTalk1,
                      text.b_opponent_radtile.realTalk2,
                      text.b_opponent_radtile.realTalk3
                   ];
-                  state.status = text.b_opponent_radtile.realStatus;
+                  state.status = world.azzie ? text.b_opponent_radtile.status1 : text.b_opponent_radtile.realStatus;
                   state.vars.mood = 2;
-               } else {
-                  state.talk = [
-                     text.b_opponent_radtile.realTalkX1,
-                     text.b_opponent_radtile.realTalkX2,
-                     text.b_opponent_radtile.realTalkX3
-                  ];
-                  state.status = text.b_opponent_radtile.realStatusX;
                   state.pacify = true;
                   save.data.b.spared_radtile = true;
                }
@@ -1678,6 +1679,9 @@ const opponents = {
                if (state.vars.mood < 1) {
                   if (state.vars.mood < 0) {
                      state.talk = text.b_opponent_radtile.checkPostInsultTalk;
+                     state.status = world.azzie
+                        ? text.b_opponent_radtile.status1
+                        : text.b_opponent_radtile.checkPostInsultStatus;
                   } else {
                      state.talk = text.b_opponent_radtile.checkTalk;
                   }
@@ -1686,6 +1690,7 @@ const opponents = {
             },
             flirt (state) {
                save.data.b.flirt_radtile = true;
+               state.volatile.flirted = true;
                state.talk = text.b_opponent_radtile.flirtTalk1;
             }
          },
@@ -1715,14 +1720,14 @@ const opponents = {
             if (state.hurt || state.vars.heckled) {
                if (state.vars.mood > 1) {
                   state.talk = text.b_opponent_radtile.shockTalk1;
-                  state.status = text.b_opponent_radtile.shockStatus;
+                  state.status = world.azzie ? text.b_opponent_radtile.status1 : text.b_opponent_radtile.shockStatus;
                } else if (state.vars.mood > -1) {
                   state.talk = [
                      text.b_opponent_radtile.insultTalk1,
                      text.b_opponent_radtile.insultTalk2,
                      text.b_opponent_radtile.insultTalk3
                   ];
-                  state.status = text.b_opponent_radtile.insultStatus;
+                  state.status = world.azzie ? text.b_opponent_radtile.status1 : text.b_opponent_radtile.insultStatus;
                }
                state.vars.mood = -1;
                state.vars.heckled = false;
@@ -1733,20 +1738,15 @@ const opponents = {
             return kiddHandler(state, 'radtile');
          },
          defaultStatus: () =>
-            world.goatbro
+            world.azzie
                ? text.b_opponent_radtile.status1()
                : [
-                    text.b_opponent_radtile.randStatus1,
-                    text.b_opponent_radtile.randStatus2,
-                    text.b_opponent_radtile.randStatus3,
-                    text.b_opponent_radtile.randStatus4
+                    text.b_opponent_radtile.randStatus1(),
+                    text.b_opponent_radtile.randStatus2(),
+                    text.b_opponent_radtile.randStatus3(),
+                    text.b_opponent_radtile.randStatus4()
                  ],
-         bubble: position => [ position.subtract(-25, 73), battler.bubbles.dummy ],
-         flee () {
-            save.data.b.fled_radtile = true;
-            events.fire('escape');
-            return true;
-         }
+         bubble: position => [ position.subtract(-25, 73), battler.bubbles.dummy ]
       }),
       sprite: () =>
          new CosmosAnimation({
@@ -1764,6 +1764,7 @@ const opponents = {
       goodbye: () => new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.ibcRadtileHurt ] })
    }),
    undyne: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_undyne,
       dramatic: true,
       assets: new CosmosInventory(
          content.ibcUndyneHurt,
@@ -2148,6 +2149,7 @@ const opponents = {
                volatile.vars.phase ??= [ 0, 2, 3, 4, 4 ][save.data.n.undyne_phase];
                volatile.vars.turns ??= 0;
                volatile.vars.mercyStreak ??= 0;
+               volatile.vars.neutralFinalHits ??= 0;
                if (choice.type === 'fight') {
                   volatile.vars.attackRunoff += 3;
                   let earlytick = true;
@@ -2155,42 +2157,32 @@ const opponents = {
                   const basepos2 = { x: 0.5, y: 0 };
                   const hploss = battler.calculate(volatile, choice.score) / (volatile.vars.aktdef ?? 1);
                   const gannadie = volatile.hp <= hploss;
-                  if (gannadie) {
-                     if (volatile.vars.phase < 5) {
-                        battler.music?.stop();
-                        speech.emoters.undyne.index = 11;
-                        volatile.container.attach(
-                           new CosmosObject({
-                              position: basepos2,
-                              objects: [
-                                 new CosmosAnimation({
-                                    anchor: { x: 0, y: 1 },
-                                    index: 11,
-                                    resources: content.ibcUndyneHead
-                                 }).on('tick', function () {
-                                    this.index = speech.emoters.undyne.index;
-                                 })
-                              ]
-                           }).on('tick', function () {
-                              if (earlytick) {
-                                 this.position = volatile.container.objects[0].position
-                                    .subtract(basepos1)
-                                    .add(basepos2);
-                              }
-                           })
-                        );
-                     } else {
-                        const kv = volatile.vars.k.value;
-                        volatile.vars.k.modulate(timer, 500, kv, kv * 0.85, kv * 0.85);
-                        const cv = volatile.vars.c.value;
-                        volatile.vars.c.modulate(timer, 1000, cv, cv + 0.3 / 9, cv + 0.3 / 9);
-                     }
+                  if (gannadie && volatile.vars.phase < 5) {
+                     battler.music?.stop();
+                     speech.emoters.undyne.index = 11;
+                     volatile.container.attach(
+                        new CosmosObject({
+                           position: basepos2,
+                           objects: [
+                              new CosmosAnimation({
+                                 anchor: { x: 0, y: 1 },
+                                 index: 11,
+                                 resources: content.ibcUndyneHead
+                              }).on('tick', function () {
+                                 this.index = speech.emoters.undyne.index;
+                              })
+                           ]
+                        }).on('tick', function () {
+                           if (earlytick) {
+                              this.position = volatile.container.objects[0].position.subtract(basepos1).add(basepos2);
+                           }
+                        })
+                     );
                   }
                   const prev = volatile.container.objects[0];
                   await battler.attack(volatile, { operation: 'add', power: -hploss }, true, true);
                   earlytick = false;
                   if (gannadie) {
-                     volatile.vars.neutralFinalHits ??= 0;
                      if (volatile.vars.phase < 5) {
                         const c = volatile.vars.c as CosmosValue;
                         c.modulate(timer, 2000, c.value, 0.1, 0.1);
@@ -2245,6 +2237,7 @@ const opponents = {
                         await battler.box.position.modulate(timer, 150, { y: 160 });
                         await battler.box.size.modulate(timer, 300, { x: 282.5, y: 65 });
                         volatile.vars.phase = 5;
+                        volatile.vars.turns = 0;
                         battler.status = text.b_opponent_undyne.neutralFinalStatus;
                         volatile.alive = true;
                         battler.exp = 0;
@@ -2258,121 +2251,6 @@ const opponents = {
                            oldtime += delta;
                         });
                         opponents.undyne.dramatic = false;
-                        return;
-                     } else if (++volatile.vars.neutralFinalHits === 8) {
-                        await timer.pause(1000);
-                        const e = battler.music!;
-                        battler.music = null;
-                        e.stop();
-                        await volatile.vars.wt(
-                           false,
-                           fishBubblePos,
-                           battler.bubbles.twinkly,
-                           ...text.b_opponent_undyne.death5
-                        );
-                        const c = volatile.vars.c as CosmosValue;
-                        c.modulate(timer, 1000, c.value, 0.5, 0.5);
-                        await timer.pause(450);
-                        await volatile.vars.wt(
-                           false,
-                           fishBubblePos,
-                           battler.bubbles.twinkly,
-                           ...text.b_opponent_undyne.death6
-                        );
-                        c.modulate(timer, 1500, c.value, 0.6, 0.6).then(() => c.modulate(timer, 1500, c.value, 1, 1));
-                        await volatile.vars.wt(
-                           false,
-                           fishBubblePos,
-                           battler.bubbles.twinkly,
-                           ...text.b_opponent_undyne.death7
-                        );
-                        await timer.pause(2000);
-                        const neutralFinal = new CosmosSprite({
-                           anchor: { x: 0, y: 1 },
-                           frames: [ content.ibcUndyneNeutralFinal ]
-                        });
-                        volatile.container.objects = [ neutralFinal ];
-                        c.modulate(timer, 2000, c.value, -0.1);
-                        await volatile.vars.wt(
-                           false,
-                           fishBubblePos,
-                           battler.bubbles.twinkly,
-                           ...text.b_opponent_undyne.death8
-                        );
-                        await timer.pause(500);
-                        const filter1 = new PixelateFilter(1);
-                        const filter2 = new RGBSplitFilter([ 0, 0 ], [ 0, 0 ], [ 0, 0 ]);
-                        const filter3 = new ZoomBlurFilter({
-                           strength: 0,
-                           radius: 500,
-                           innerRadius: 0,
-                           center: [ 320, 120 ]
-                        });
-                        const f1v = new CosmosValue();
-                        const f2v = new CosmosValue();
-                        const f3v = new CosmosValue();
-                        const intensity = new CosmosValue(0.001);
-                        const ramp = new CosmosValue();
-                        const tickahNF = () => {
-                           filter1.size = f1v.value * intensity.value;
-                           filter2.red = [ -f2v.value * intensity.value, 0 ];
-                           filter2.blue = [ f2v.value * intensity.value, 0 ];
-                           filter3.strength = f3v.value;
-                           volatile.container.objects[0].position.set(
-                              new CosmosPoint(
-                                 (Math.random() * 2 - 1) * ramp.value,
-                                 (Math.random() * 2 - 1) * ramp.value
-                              ).add(basepos1)
-                           );
-                        };
-                        let dying = true;
-                        sspiker(450, 1250, 2, 4, async (t, a) => {
-                           await f1v.modulate(timer, t, a * 2 - 1, 1);
-                           return dying;
-                        });
-                        sspiker(450, 1250, 2, 4, async (t, a) => {
-                           await f2v.modulate(timer, t, a * 2 - 1, 1);
-                           return dying;
-                        });
-                        const iv1 = 0.25;
-                        const iv2 = 1;
-                        const iv3 = 2.5;
-                        volatile.container.container.filters = [ filter1, filter2, filter3 ];
-                        volatile.container.on('tick', tickahNF);
-                        ramp.modulate(timer, 400, 1);
-                        await intensity.modulate(timer, 2000, 0, iv1, iv1);
-                        await volatile.vars.wt(
-                           false,
-                           fishBubblePos,
-                           battler.bubbles.twinkly,
-                           ...text.b_opponent_undyne.death8
-                        );
-                        await intensity.modulate(timer, 2000, iv1, iv2, iv2);
-                        await volatile.vars.wt(
-                           false,
-                           fishBubblePos,
-                           battler.bubbles.twinkly,
-                           ...text.b_opponent_undyne.death8
-                        );
-                        await intensity.modulate(timer, 2000, iv2, iv3, iv3);
-                        await volatile.vars.wt(
-                           false,
-                           fishBubblePos,
-                           battler.bubbles.twinkly,
-                           ...text.b_opponent_undyne.death9
-                        );
-                        const trueTime = 3000;
-                        f3v.modulate(timer, trueTime - 300, 0, 0.7, 0.7, 0.7);
-                        intensity.modulate(timer, trueTime, iv3, iv3, 10);
-                        await timer.pause(trueTime - 300);
-                        await volatile.container.alpha.modulate(timer, 300, 1, 0);
-                        await timer.pause(2000);
-                        dying = false;
-                        renderer.detach('menu', volatile.vars.armholder);
-                        events.fire('victory');
-                        save.data.n.plot = 48;
-                        save.flag.n.genocide_milestone = Math.max(2, save.flag.n.genocide_milestone) as 2;
-                        renderer.detach('main', madfish);
                         return;
                      } else {
                         volatile.container.objects[0] = prev;
@@ -2490,7 +2368,7 @@ const opponents = {
                   }
                   return;
                }
-               if ((volatile.vars.phase !== 5 || choice.type === 'fight') && !hardskip) {
+               if (!hardskip) {
                   await volatile.vars.wt(
                      false,
                      fishBubblePos,
@@ -2554,8 +2432,7 @@ const opponents = {
                               text.b_opponent_undyne.determination5,
                               text.b_opponent_undyne.determination6,
                               text.b_opponent_undyne.determination7,
-                              text.b_opponent_undyne.determination8,
-                              text.b_opponent_undyne.determination9
+                              []
                            ]
                         ][volatile.vars.phase][volatile.vars.turns]
                      )
@@ -2600,69 +2477,195 @@ const opponents = {
                      }
                   }
                } else if (volatile.vars.phase === 5) {
-                  choice.type === 'fight' && ++volatile.vars.turns > 8 && (volatile.vars.turns = 8);
+                  ++volatile.vars.turns > 7 && (volatile.vars.turns = 7);
                }
             }
             if (battler.alive.length > 0) {
-               await battler.resume(async () => {
-                  if (world.genocide) {
-                     volatile.vars.lerp ??= 0;
-                     const lerp = ++volatile.vars.lerp as number;
-                     if (battler.SOUL.metadata.color === 'red') {
-                        if (lerp === 2) {
-                           swing = true;
-                           volatile.vars.idealcolor = 'green';
-                           volatile.vars.lerp = 0;
-                        }
-                     } else {
-                        if (lerp > 6 || (lerp > 4 && random.compute() < 0.5)) {
-                           swing = true;
-                           volatile.vars.idealcolor = 'red';
-                           volatile.vars.lerp = 0;
-                        }
+               game.movement = true;
+               if (world.genocide) {
+                  volatile.vars.lerp ??= 0;
+                  const lerp = ++volatile.vars.lerp as number;
+                  if (battler.SOUL.metadata.color === 'red') {
+                     if (lerp === 2) {
+                        swing = true;
+                        volatile.vars.idealcolor = 'green';
+                        volatile.vars.lerp = 0;
+                     }
+                  } else {
+                     if (lerp > 6 || (lerp > 4 && random.compute() < 0.5)) {
+                        swing = true;
+                        volatile.vars.idealcolor = 'red';
+                        volatile.vars.lerp = 0;
                      }
                   }
+               }
+               if (truePhase < 5 || volatile.vars.neutralFinalHits < 7) {
                   await patterns.undyne(truePhase, trueTurns, swing, opponents.undyne.hp);
-                  if (volatile.vars.preswing) {
-                     volatile.vars.preswing = false;
-                  } else if (world.genocide) {
-                     switch (volatile.vars.azzyAssist) {
-                        case 0:
-                        case 1:
-                           volatile.vars.shockTurns ??= 0;
-                           battler.status = CosmosUtils.provide(
-                              [
-                                 text.b_opponent_undyne.genoStatus2,
-                                 text.b_opponent_undyne.genoStatus3,
-                                 text.b_opponent_undyne.genoStatus4,
-                                 text.b_opponent_undyne.genoStatus5
-                              ][Math.min(volatile.vars.shockTurns++, 3)]
-                           );
-                           if (volatile.vars.shockTurns === 3) {
-                              volatile.vars.azzyAssist = 1;
-                           }
-                           break;
-                        case 2:
-                           if (volatile.hp < 1200) {
-                              battler.status = text.b_opponent_undyne.trueGenoStatusLow2;
-                           } else if (volatile.hp < 2400) {
-                              battler.status = text.b_opponent_undyne.trueGenoStatusLow1;
-                           } else {
-                              battler.status = [
-                                 text.b_opponent_undyne.trueGenoStatus1,
-                                 text.b_opponent_undyne.trueGenoStatus2,
-                                 text.b_opponent_undyne.trueGenoStatus3,
-                                 text.b_opponent_undyne.trueGenoStatus4,
-                                 text.b_opponent_undyne.trueGenoStatus5,
-                                 text.b_opponent_undyne.trueGenoStatus6,
-                                 text.b_opponent_undyne.trueGenoStatus7,
-                                 text.b_opponent_undyne.trueGenoStatus8
-                              ][battler.rand(8)];
-                           }
-                           break;
-                     }
+               }
+               if (volatile.vars.preswing) {
+                  volatile.vars.preswing = false;
+               } else if (world.genocide) {
+                  switch (volatile.vars.azzyAssist) {
+                     case 0:
+                     case 1:
+                        volatile.vars.shockTurns ??= 0;
+                        battler.status = CosmosUtils.provide(
+                           [
+                              text.b_opponent_undyne.genoStatus2,
+                              text.b_opponent_undyne.genoStatus3,
+                              text.b_opponent_undyne.genoStatus4,
+                              text.b_opponent_undyne.genoStatus5
+                           ][Math.min(volatile.vars.shockTurns++, 3)]
+                        );
+                        if (volatile.vars.shockTurns === 3) {
+                           volatile.vars.azzyAssist = 1;
+                        }
+                        break;
+                     case 2:
+                        if (volatile.hp < 1200) {
+                           battler.status = text.b_opponent_undyne.trueGenoStatusLow2;
+                        } else if (volatile.hp < 2400) {
+                           battler.status = text.b_opponent_undyne.trueGenoStatusLow1;
+                        } else {
+                           battler.status = [
+                              text.b_opponent_undyne.trueGenoStatus1,
+                              text.b_opponent_undyne.trueGenoStatus2,
+                              text.b_opponent_undyne.trueGenoStatus3,
+                              text.b_opponent_undyne.trueGenoStatus4,
+                              text.b_opponent_undyne.trueGenoStatus5,
+                              text.b_opponent_undyne.trueGenoStatus6,
+                              text.b_opponent_undyne.trueGenoStatus7,
+                              text.b_opponent_undyne.trueGenoStatus8
+                           ][battler.rand(8)];
+                        }
+                        break;
                   }
-               });
+               } else if (volatile.vars.phase === 5) {
+                  const kv = volatile.vars.k.value;
+                  volatile.vars.k.modulate(timer, 500, kv, kv * 0.85, kv * 0.85);
+                  const cv = volatile.vars.c.value;
+                  volatile.vars.c.modulate(timer, 1000, cv, cv + 0.3 / 9, cv + 0.3 / 9);
+                  if (++volatile.vars.neutralFinalHits === 8) {
+                     await timer.pause(1000);
+                     const e = battler.music!;
+                     battler.music = null;
+                     e.stop();
+                     await volatile.vars.wt(
+                        false,
+                        fishBubblePos,
+                        battler.bubbles.twinkly,
+                        ...text.b_opponent_undyne.death5
+                     );
+                     const c = volatile.vars.c as CosmosValue;
+                     c.modulate(timer, 1000, c.value, 0.5, 0.5);
+                     await timer.pause(450);
+                     await volatile.vars.wt(
+                        false,
+                        fishBubblePos,
+                        battler.bubbles.twinkly,
+                        ...text.b_opponent_undyne.death6
+                     );
+                     c.modulate(timer, 1500, c.value, 0.6, 0.6).then(() => c.modulate(timer, 1500, c.value, 1, 1));
+                     await volatile.vars.wt(
+                        false,
+                        fishBubblePos,
+                        battler.bubbles.twinkly,
+                        ...text.b_opponent_undyne.death7
+                     );
+                     await timer.pause(2000);
+                     const neutralFinal = new CosmosSprite({
+                        anchor: { x: 0, y: 1 },
+                        frames: [ content.ibcUndyneNeutralFinal ]
+                     });
+                     volatile.container.objects = [ neutralFinal ];
+                     c.modulate(timer, 2000, c.value, -0.1);
+                     await volatile.vars.wt(
+                        false,
+                        fishBubblePos,
+                        battler.bubbles.twinkly,
+                        ...text.b_opponent_undyne.death8a
+                     );
+                     await timer.pause(500);
+                     const filter1 = new PixelateFilter(1);
+                     const filter2 = new RGBSplitFilter([ 0, 0 ], [ 0, 0 ], [ 0, 0 ]);
+                     const filter3 = new ZoomBlurFilter({
+                        strength: 0,
+                        radius: 500,
+                        innerRadius: 0,
+                        center: [ 320, 120 ]
+                     });
+                     const f1v = new CosmosValue();
+                     const f2v = new CosmosValue();
+                     const f3v = new CosmosValue();
+                     const intensity = new CosmosValue(0.001);
+                     const ramp = new CosmosValue();
+                     const basepos1 = volatile.container.objects[0].position.value();
+                     const tickahNF = () => {
+                        filter1.size = f1v.value * intensity.value;
+                        filter2.red = [ -f2v.value * intensity.value, 0 ];
+                        filter2.blue = [ f2v.value * intensity.value, 0 ];
+                        filter3.strength = f3v.value;
+                        volatile.container.objects[0].position.set(
+                           new CosmosPoint(
+                              (Math.random() * 2 - 1) * ramp.value,
+                              (Math.random() * 2 - 1) * ramp.value
+                           ).add(basepos1)
+                        );
+                     };
+                     let dying = true;
+                     sspiker(450, 1250, 2, 4, async (t, a) => {
+                        await f1v.modulate(timer, t, a * 2 - 1, 1);
+                        return dying;
+                     });
+                     sspiker(450, 1250, 2, 4, async (t, a) => {
+                        await f2v.modulate(timer, t, a * 2 - 1, 1);
+                        return dying;
+                     });
+                     const iv1 = 0.25;
+                     const iv2 = 1;
+                     const iv3 = 2.5;
+                     volatile.container.container.filters = [ filter1, filter2, filter3 ];
+                     volatile.container.on('tick', tickahNF);
+                     ramp.modulate(timer, 400, 1);
+                     await intensity.modulate(timer, 2000, 0, iv1, iv1);
+                     await volatile.vars.wt(
+                        false,
+                        fishBubblePos,
+                        battler.bubbles.twinkly,
+                        ...text.b_opponent_undyne.death8b
+                     );
+                     await intensity.modulate(timer, 2000, iv1, iv2, iv2);
+                     await volatile.vars.wt(
+                        false,
+                        fishBubblePos,
+                        battler.bubbles.twinkly,
+                        ...text.b_opponent_undyne.death8c
+                     );
+                     await intensity.modulate(timer, 2000, iv2, iv3, iv3);
+                     await volatile.vars.wt(
+                        false,
+                        fishBubblePos,
+                        battler.bubbles.twinkly,
+                        ...text.b_opponent_undyne.death9
+                     );
+                     const trueTime = 3000;
+                     f3v.modulate(timer, trueTime - 300, 0, 0.7, 0.7, 0.7);
+                     intensity.modulate(timer, trueTime, iv3, iv3, 10);
+                     await timer.pause(trueTime - 300);
+                     await volatile.container.alpha.modulate(timer, 300, 1, 0);
+                     await timer.pause(2000);
+                     dying = false;
+                     renderer.detach('menu', volatile.vars.armholder);
+                     battler.exp += 500;
+                     events.fire('victory');
+                     save.data.n.plot = 48;
+                     save.flag.n.genocide_milestone = Math.max(2, save.flag.n.genocide_milestone) as 2;
+                     renderer.detach('main', phish);
+                     return;
+                  }
+               }
+               game.movement = false;
+               await battler.resume();
             } else {
                battler.music!.stop();
             }
@@ -2827,6 +2830,7 @@ const opponents = {
               })
    }),
    dateundyne: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_undyne,
       dramatic: true,
       assets: new CosmosInventory(
          content.ibcUndyneHair,
@@ -2969,7 +2973,7 @@ const opponents = {
             }
             await battler.resume(async () => {
                await battler.box.size.modulate(timer, 300, { x: 100, y: 65 });
-               Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+               battler.SOUL.position.set(160);
                battler.SOUL.alpha.value = 1;
                await timer.pause(450);
                await battler.box.size.modulate(timer, 300, { x: 282.5, y: 65 });

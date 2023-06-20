@@ -5,47 +5,42 @@ import assets from '../assets';
 import { OutertaleGroup } from '../classes';
 import content, { inventories } from '../content';
 import { atlas, audio, events, fontLoader, game, init, random, reload, renderer, rooms, timer, typer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosAsset,
-   CosmosCharacter,
-   CosmosDirection,
-   CosmosHitbox,
-   CosmosInventory,
-   CosmosMath,
-   CosmosObject,
-   CosmosPointSimple,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosUtils
-} from '../engine';
+import { CosmosAsset, CosmosInventory } from '../engine/core';
+import { CosmosCharacter } from '../engine/entity';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPointSimple, CosmosValue } from '../engine/numerics';
+import { CosmosHitbox, CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosDirection, CosmosProvider, CosmosUtils } from '../engine/utils';
 import {
    battler,
    dialogue,
    frontEnder,
-   hash,
+   hashes,
    heal,
    instance,
    keepActive,
    player,
    resume,
    saver,
+   sineWaver,
    teleport,
    temporary,
    trivia,
+   validName,
    world
 } from '../mantle';
 import save from '../save';
+import generalText from '../text';
 import groups from './groups';
 import text from './text';
-export { dialoguer, frontEnder, phone, player, portraits, saver, shopper, sidebarrer, world } from '../mantle';
 
 export const backdropLoader = events
    .on('modded')
    .then(() => content.backdrop.load())
    .then(() => new CosmosSprite({ active: true, frames: content.backdrop.assets, scale: 0.5 }));
 
-const blue = new CosmosAnimation({ alpha: 0.02, scale: 0.5, resources: content.ibBlue });
+export const blue = new CosmosAnimation({ alpha: 0.02, scale: 0.5, resources: content.ibBlue });
 
 export const characters = (() => {
    const finalghost = (() => {
@@ -345,13 +340,13 @@ export const characters = (() => {
             down: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocPapyrusDownStarkTalk }),
             left: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocPapyrusLeftStarkTalk }),
             right: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocPapyrusRightStarkTalk }),
-            up: new CosmosSprite()
+            up: new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.iocPapyrusUpTalk ], crop: { right: -25 } })
          },
          walk: {
             down: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocPapyrusDownStark }),
             left: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocPapyrusLeftStark }),
             right: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocPapyrusRightStark }),
-            up: new CosmosSprite()
+            up: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocPapyrusUp })
          }
       },
       sans: {
@@ -493,7 +488,7 @@ export const characters = (() => {
    };
 })();
 
-export const epicgamer = new CosmosCharacter({
+export const monty = new CosmosCharacter({
    preset: characters.kidd,
    key: 'kidd',
    anchor: 0,
@@ -516,7 +511,7 @@ export const friskWater = {
 
 export const galaxy = new CosmosAnimation({ alpha: 0.05, scale: 0.5, resources: content.ibGalaxy });
 
-export const goatbro = new CosmosCharacter({
+export const azzie = new CosmosCharacter({
    preset: characters.asriel,
    key: 'asriel2',
    metadata: {
@@ -540,28 +535,25 @@ export const goatbro = new CosmosCharacter({
    }
 });
 
-const grey = new CosmosAnimation({ scale: 0.5, resources: content.ibGrey }).on('tick', function () {
+export const grey = new CosmosAnimation({ scale: 0.5, resources: content.ibGrey }).on('tick', function () {
    this.alpha.value = 0.96 + Math.random() * 0.04;
 });
 
-export const lazyLoader = events.on('modded').then(() =>
-   Promise.all([
-      // load clipper shaders
-      content.sClipper.load().then(() => {
-         const [ vert, frag ] = content.sClipper.value!.map(value => value.value!);
-         battler.clipFilter.value = new Filter(vert, frag, {
-            minX: 0,
-            medX: 320,
-            maxX: 640,
-            minY: 0,
-            medY: 240,
-            maxY: 480
-         });
-      })
-   ])
-);
+export const lazyLoader = events.on('modded').then(async () => {
+   // load clipper shaders
+   await content.sClipper.load();
+   const [ vert, frag ] = content.sClipper.value!.map(value => value.value!);
+   battler.clipFilter.value = new Filter(vert, frag, {
+      minX: 0,
+      medX: 320,
+      maxX: 640,
+      minY: 0,
+      medY: 240,
+      maxY: 480
+   });
+});
 
-export const madfish = new CosmosCharacter({
+export const phish = new CosmosCharacter({
    preset: characters.undyne,
    key: 'undyne',
    metadata: {
@@ -579,7 +571,7 @@ export const madfish = new CosmosCharacter({
 
 const mercy = battler.buttons[3];
 
-const overrides = [
+export const musicOverrides = [
    [ 'muscle', null ],
    [ 'factory', 'factoryEmpty' ],
    [ 'starton', 'startonEmpty' ],
@@ -603,10 +595,11 @@ export const queue = {
          content.amMenu4,
          rooms.of(save.data.s.room).preload,
          inventories.overworldAssets,
+         inventories.battleAssets,
          ...(save.data.b.genocide && save.data.n.state_wastelands_toriel === 2
             ? [ content.avAsriel2, inventories.iocAsriel, inventories.idcAsriel, content.amShock ]
             : []),
-         ...(world.epicgamer
+         ...(world.monty
             ? [
                  inventories.iocKidd,
                  inventories.iocKiddSad,
@@ -615,7 +608,7 @@ export const queue = {
                  content.avKidd
               ]
             : []),
-         ...(world.madfish ? [ inventories.iocUndyne, content.asStomp, content.amUndynefast ] : [])
+         ...(world.phish ? [ inventories.iocUndyne, content.asStomp, content.amUndynefast ] : [])
       ).load());
    }
 };
@@ -632,8 +625,7 @@ export const menuAssets = new CosmosInventory(
 );
 
 export async function endCall (t: string) {
-   assets.sounds.equip.instance(timer);
-   await dialogue(t, text.c_endcall);
+   await dialogue(t, text.c_call2);
 }
 
 export function genCB () {
@@ -672,11 +664,9 @@ export function genCB () {
 
 export async function quickCall (end: boolean, ...lines: string[]) {
    atlas.switch('dialoguerBottom');
-   assets.sounds.phone.instance(timer);
-   await typer.text(text.c_call, ...lines);
+   await typer.text(text.c_call1, ...lines);
    if (end) {
-      assets.sounds.equip.instance(timer);
-      await typer.text(text.c_endcall);
+      await typer.text(text.c_call2);
    }
    atlas.switch(null);
    atlas.detach(renderer, 'menu', 'sidebar');
@@ -694,15 +684,64 @@ export function runEncounter (populationfactor: number, puzzlefactor: number, ch
    ) {
       return false;
    } else {
-      renderer.on('render').then(() => {
+      return renderer.on('render').then(async () => {
          if (game.movement) {
             save.data.n.steps = 0;
             save.data.n.encounters++;
-            battler.encounter(player, world.population > 0 ? CosmosMath.weigh(chances, random.next())! : groups.nobody);
+            await battler.encounter(
+               player,
+               world.population > 0 ? CosmosMath.weigh(chances, random.next())! : groups.nobody
+            );
          }
       });
-      return true;
    }
+}
+
+export function stalkerSetup (plot: number, check: CosmosProvider<boolean> = true, liveCondition = check) {
+   const inst = instance('below', 'stalker');
+   if (!inst || inst.object.metadata.setup) {
+      return;
+   }
+   if (world.genocide || save.flag.b.confront_twinkly || plot <= save.data.n.plot_stalker) {
+      inst.destroy();
+      return;
+   }
+   inst.object.alpha.value = 0;
+   inst.object.metadata.setup = true;
+   inst.object.priority.value = -1;
+   let time = 0;
+   const starPositionY = new CosmosValue(inst.object.y);
+   inst.object.on('tick', async function () {
+      if (!this.metadata.init) {
+         if (CosmosUtils.provide(check)) {
+            this.alpha.value = 1;
+            this.metadata.init = true;
+            time = timer.value;
+         } else {
+            return;
+         }
+      }
+      if (!CosmosUtils.provide(liveCondition)) {
+         this.alpha.value = 0;
+         this.metadata.done = true;
+         save.data.n.plot_stalker = plot;
+         inst.destroy();
+         return;
+      }
+      this.y = starPositionY.value + sineWaver(time, 2500, 0, 5);
+      if (this.metadata.done) {
+         return;
+      }
+      const proj = renderer.projection(this);
+      if (proj.x < -5 || proj.x > 325 || proj.y < -5 || proj.y > 245) {
+         return;
+      }
+      this.metadata.done = true;
+      save.data.n.plot_stalker = plot;
+      starPositionY.modulate(timer, 800, starPositionY.value, starPositionY.value, 0);
+      await this.alpha.modulate(timer, 800, 1, 1, 0);
+      inst.destroy();
+   });
 }
 
 // intro init script
@@ -732,7 +771,7 @@ events.on('init-between', async function () {
    save.data.s.armor ||= 'spacesuit';
    save.data.n.hp ||= 20;
    save.data.s.weapon ||= 'spanner';
-   typer.variables.name = save.data.s.name || text.x_unknown;
+   typer.variables.name = validName() ? save.data.s.name : generalText.g_mystery2;
    random.value = save.data.n.base1 || save.flag.n.hash;
    renderer.attach('menu', battler.SOUL);
    game.room = save.data.s.room || 'w_start';
@@ -747,9 +786,9 @@ events.on('init-overworld', async function () {
    renderer.attach(
       'main',
       player,
-      ...(world.goatbro ? [ goatbro ] : []),
-      ...(world.epicgamer ? [ epicgamer ] : []),
-      ...(world.madfish ? [ madfish ] : [])
+      ...(world.azzie ? [ azzie ] : []),
+      ...(world.monty ? [ monty ] : []),
+      ...(world.phish ? [ phish ] : [])
    );
    renderer.alpha.modulate(timer, 300, 1);
    world.cutscene() || resume({ gain: world.level, rate: world.ambiance });
@@ -784,13 +823,13 @@ events.on('script', async (name, ...args) => {
          atlas.attach(renderer, 'menu', 'frontEnd');
          await typer.text(
             ...[ text._1, text._2, text._3, text._4, text._5, text._6, text._7, text._8, text._9, text._10 ].map(
-               text => `{*}{#p/story}${CosmosUtils.format(text, 24, true)}`
+               text => `{*}{#p/_}${CosmosUtils.format(text, 24, true)}`
             )
          );
          mus.stop();
          heal();
          atlas.attach(renderer, 'menu', 'save');
-         reload();
+         reload(!save.data.s.name);
          break;
       case '_void':
          const { room, face, position } = player.metadata.voidkey as {
@@ -812,7 +851,7 @@ events.on('script', async (name, ...args) => {
          if (game.movement && game.room[0] === '_') {
             trivia(
                ...text._11[args[0] as keyof typeof text._11](
-                  renderer.layers.main.objects.includes(epicgamer) && !epicgamer.metadata.override
+                  renderer.layers.main.objects.includes(monty) && !monty.metadata.override
                )
             );
          }
@@ -821,8 +860,8 @@ events.on('script', async (name, ...args) => {
 });
 
 events.on('teleport', (from, to) => {
-   grey.index = Math.floor(hash(to)) % grey.frames.length;
-   blue.index = Math.floor(hash(to.split('').reverse().join(''))) % blue.frames.length;
+   grey.index = Math.floor(hashes.of(to)) % grey.frames.length;
+   blue.index = Math.floor(hashes.of(to.split('').reverse().join(''))) % blue.frames.length;
 });
 
 player.on('tick', function () {
@@ -839,6 +878,9 @@ player.on('tick', function () {
    } else if (roomMeta.dark01) {
       this.tint = assets.tints.dark01;
    } else {
+      if (game.room === 's_battle' || game.room === 'f_view') {
+         return;
+      }
       this.tint = void 0;
    }
 });
@@ -851,7 +893,7 @@ renderer.on('tick', () => {
          button.position = button.position.add(Math.round(38 + index * 0.25), 0);
       }
       for (const room of rooms.values()) {
-         for (const [ from, to ] of overrides) {
+         for (const [ from, to ] of musicOverrides) {
             if (room.score.music === from) {
                room.metadata.restoreMuzak = room.score.music;
                room.score.music = to;

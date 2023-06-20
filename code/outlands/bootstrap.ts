@@ -1,14 +1,4 @@
-import assets, { effectSetup, standardSound } from '../assets';
-import { OutertaleMap, OutertaleSpeechPreset } from '../classes';
-import { quickCall } from '../common';
-import { faces as commonFaces } from '../common/bootstrap';
-import commonText from '../common/text';
-import content from '../content';
-import { audio, game, items, maps, speech } from '../core';
-import { CosmosAnimation, CosmosDaemon, CosmosEffect, CosmosSprite, CosmosUtils } from '../engine';
-import { easyRoom, instance, phone, portraits, saver } from '../mantle';
-import save from '../save';
-import text, { toriCheck } from './text';
+
 
 import imOutlands$info from '../../assets/images/maps/outlands.json?url';
 import w_alley1 from '../../assets/rooms/w_alley1.json';
@@ -50,6 +40,20 @@ import w_tutorial from '../../assets/rooms/w_tutorial.json';
 import w_twinkly from '../../assets/rooms/w_twinkly.json';
 import w_wonder from '../../assets/rooms/w_wonder.json';
 import w_zigzag from '../../assets/rooms/w_zigzag.json';
+
+import assets, { effectSetup, standardSound } from '../assets';
+import { OutertaleMap, OutertaleSpeechPreset } from '../classes';
+import { quickCall } from '../common';
+import { faces as commonFaces } from '../common/bootstrap';
+import commonText from '../common/text';
+import content from '../content';
+import { audio, game, items, maps, speech } from '../core';
+import { CosmosDaemon, CosmosEffect } from '../engine/audio';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosUtils } from '../engine/utils';
+import { easyRoom, instance, phone, portraits, saver } from '../mantle';
+import save from '../save';
+import text, { toriCheck } from './text';
 
 export function resetThreshold () {
    switch (save.flag.n.genocide_milestone) {
@@ -115,7 +119,7 @@ export const faces = {
    twinklyWink: new CosmosSprite({ anchor: 0, frames: [ content.idcTwinklyWink ] })
 };
 
-const outlandsMap = new OutertaleMap(imOutlands$info, content.imOutlands);
+export const outlandsMap = new OutertaleMap(imOutlands$info, content.imOutlands);
 
 export const sources = {
    w_start,

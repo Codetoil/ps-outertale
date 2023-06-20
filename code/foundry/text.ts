@@ -1,138 +1,12 @@
-import { random } from '../core';
-import { CosmosUtils } from '../engine';
+import { game, random } from '../core';
+import { CosmosUtils } from '../engine/utils';
 import { battler, choicer, pager, world } from '../mantle';
 import save from '../save';
 
 const text = {
    a_foundry: {
-      plot_call: {
-         a: [
-            '<32>{#p/event}* Ring, ring...',
-            '<18>{#p/papyrus}THIS IS PAPYRUS.',
-            '<18>{#p/papyrus}{#f/5}DESPITE MY BEST EFFORTS TO SWAY HER OPINION...',
-            '<18>{#p/papyrus}{#f/5}UNDYNE STILL WANTS TO KILL YOU.',
-            '<18>{#p/papyrus}{#f/0}BUT... WORRY NOT!\nFOR I, THE GREAT PAPYRUS...',
-            '<18>{#p/papyrus}{#f/9}HAVE A FOOLPROOF PLAN TO SAVE YOU!',
-            "<18>{#p/papyrus}{#f/0}ALL YOU HAVE TO DO IS TELL ME WHAT YOU'RE WEARING.",
-            choicer.create('* (Tell him?)', 8, 7, 'Yes', 'No')
-         ],
-         a1: [
-            "<32>{#p/human}* (You tell Papyrus what you're wearing.)",
-            '<18>{#p/papyrus}{#f/0}GOT IT, THANK YOU VERY MUCH!',
-            '<18>{#p/papyrus}{#f/0}PAPYRUS OUT!'
-         ],
-         a2: [
-            '<32>{#p/human}* (You choose not to tell.)',
-            '<18>{#p/papyrus}{#f/5}TRUST ISSUES, HUH?',
-            "<18>{#p/papyrus}{#f/4}LOOKS LIKE I'LL HAVE TO RESORT TO PLAN B...",
-            '<18>{#p/papyrus}{#f/0}PAPYRUS OUT!'
-         ],
-         b: () => [
-            '<32>{#p/event}* Ring, ring...',
-            '<18>{#p/papyrus}THIS IS PAPYRUS.',
-            '<18>{#p/papyrus}REMEMBER WHEN I ASKED YOU ABOUT CLOTHES?',
-            ...(save.data.b.f_state_papclothes
-               ? [
-                    '<18>{#p/papyrus}{#f/0}WELL, IT TURNS OUT YOUR ANSWER...',
-                    "<18>{#p/papyrus}{#f/6}DIDN'T COME THROUGH VERY WELL ON THE PHONE.",
-                    '<18>{#p/papyrus}{#f/0}I TRIED VERY HARD TO UNDERSTAND, BUT...'
-                 ]
-               : [
-                    '<18>{#p/papyrus}{#f/0}WELL, IT TURNS OUT YOUR LACK OF TRUST...',
-                    '<18>{#p/papyrus}{#f/9}WAS EXACTLY WHAT I NEEDED TO SAVE YOU!',
-                    '<18>{#p/papyrus}{#f/0}AT FIRST, I TRIED GOING OFF MEMORY, BUT...'
-                 ]),
-            '<18>{#p/papyrus}{#f/5}IN THE END, I HAD TO MAKE SOMETHING UP IN MY REPORT.',
-            '<18>{#p/papyrus}{#f/0}NOW, UNDYNE IS GOOD AT KNOWING WHEN I LIE.',
-            '<18>{#p/papyrus}{#f/4}BUT THE FACT THAT I WAS TRULY UNCERTAIN...',
-            '<18>{#p/papyrus}{#f/9}MEANT SHE HAD NO IDEA IF I WAS LYING OR NOT!',
-            '<18>{#p/papyrus}{#f/0}WHILE CHASING YOU, THIS CAUSED HER TO HESITATE...',
-            '<18>{#p/papyrus}{#f/0}AND THUS, YOUR LIFE WAS SAVED!',
-            '<18>{#p/papyrus}{#f/9}NYEH HEH HEH!\nI KNEW THIS PLAN WOULD WORK.',
-            '<18>{#p/papyrus}{#f/0}PAPYRUS OUT!'
-         ]
-      },
-      secretcall: [
-         '<32>{#s/phone}{#p/event}* Ring, ring...',
-         '<18>{#p/papyrus}{#f/9}PSST, THIS IS PAPYRUS!',
-         '<18>{#f/0}AT THE MOMENT, I AM STILL HIDING IN MY SAFE PLACE.',
-         "<18>{#f/4}I HOPE YOU'RE NOT GETTING INTO TROUBLE...",
-         '<18>{#f/4}BECAUSE IF YOU ARE...',
-         "<19>{#f/9}I'D HAVE TO COME OVER THERE AND DO SOMETHING ABOUT IT!",
-         "<18>{#f/6}...WHICH I CAN'T DO, BECAUSE OF THE CURRENT SITUATION.",
-         "<18>{#f/7}SO DON'T GET INTO ANY TROUBLE!",
-         '<18>{#f/5}...',
-         '<18>{#f/5}PAPYRUS OUT...',
-         '<32>{#s/equip}{#p/event}* Click...'
-      ],
-      undynehouse1: [ "<32>{#p/narrator}* It's locked." ],
-      undynehouse2: [ "<32>{#p/narrator}* It's literally on fire.\n* You're not getting in there." ],
-      deathReaction: {
-         f_asriel: [ '<32>{#p/narrator}* Here, of all places...' ],
-         f_dummy: [
-            '<32>{#p/monster}{#npc/a}* Fatal energy signature detected.',
-            '<32>* Name... Undyne.',
-            '<32>* Relationship status... "acquaintance."',
-            '<32>* Last interaction... asked about humans.',
-            '<32>* Time to compensate for loss...',
-            '<32>* Indeterminate.'
-         ],
-         f_village: [ '<32>{#p/tem}{#npc/a}* Welp.', '<32>* That happened.' ],
-         f_hub: [
-            "<32>{#p/monster}{#npc/a}* Wh...\n* What've you done!?",
-            "<32>* Ole' Gerson's not gonna be a happy camper after that one..."
-         ],
-         f_bird: [
-            '<32>{#p/narrator}* This small bird is in shock after witnessing a travesty.',
-            '<32>* It no longer wants to carry you across the gap.'
-         ],
-         f_undyne: [
-            '<32>{#p/monster}* No.\n* No!\n* NO!!!',
-            '<32>* What. Have. You. DONE???',
-            '<32>* She was...',
-            '<32>* She was my FAVORITE bully!\n* How dare you take her away from me like that!?'
-         ],
-         // each line of this is processed one-at-a-time
-         f_blooky: [
-            '<32>{#p/monster}{#npc/a}* Did you hear about Undyne?',
-            '<32>{#p/monster}{#npc/a}* Oh, not at all!',
-            "<32>{#p/monster}{#npc/a}* I heard she's doing well.",
-            '<32>{#p/monster}{#npc/a}* Sounds good to me!',
-            '<32>{#p/monster}{#npc/a}* Undyne will never die.',
-            '<32>{#p/monster}{#npc/a}* Yessir!'
-         ],
-         f_snail: () => [
-            '<32>{#p/monster}* ...',
-            save.data.b.f_state_thundersnail_win
-               ? "<32>* I'll make sure you NEVER win another game of Thundersnail."
-               : "<32>* I'll make sure you NEVER win a game of Thundersnail."
-         ],
-         f_napstablook: [
-            "<32>{#p/narrator}* Looks like Napstablook won't be the only ghost living in this house anymore."
-         ]
-      },
-      fallenfish: [ "<32>{#p/narrator}* She's in shock." ],
-      fallenfish2: [ "<32>{#p/narrator}* She's fallen down.\n* Permanently." ],
-      finalfish1: [ '<25>{#p/undyne}{#f/19}* Ngah...' ],
-      finalfish2: [ '<25>{#p/undyne}{#f/19}* Stupid...\n* Malfunction...' ],
-      watercooler1: [
-         "<32>{#p/narrator}* It's a cooler full of electro- dampening fluid.",
-         choicer.create('* (Get a cup?)', 8, 7, 'Yes', 'No')
-      ],
-      watercooler2a: [ '<32>{#p/human}* (You now hold a cup of the electro-dampening fluid.)' ],
-      watercooler2b: [ '<32>{#p/human}* (You let the cooler be.)' ],
-      watercooler3: [ '<32>{#p/narrator}* You already have a cup.' ],
-      noTem: () =>
-         world.population === 0
-            ? [ "<32>{*}{#p/tem}* Where do you think you're going.{^999}" ]
-            : [ "<32>{*}{#p/tem}* oh no, it's a... FISHES!!!{^999}" ],
-      noTortoise: [ '<32>{*}{#p/monster}* Run while ya still can, kid!{^999}' ],
       artifact1: [ '<32>{#p/human}* (You got the legendary artifact.)', '<32>{#p/narrator}* That was too easy...' ],
       artifact2: [ "<32>{#p/human}* (You're carrying too much to take that.)" ],
-      jumpsuit1: [ '<32>{#p/human}* (You got the jumpsuit.)' ],
-      jumpsuit2: [ "<32>{#p/human}* (You're carrying too much to take that.)" ],
-      boots1: [ '<32>{#p/human}* (You got the hoverboots.)' ],
-      boots2: [ "<32>{#p/human}* (You're carrying too much to take that.)" ],
       artifact3: [
          '<32>{#p/narrator}* There is a writ inscribed on the pedastal.',
          '<32>* "Two halves, split by the ivories."',
@@ -222,7 +96,7 @@ const text = {
       ],
       blookmusic1: () => [
          '<32>{#p/narrator}* There is currently no music playing.',
-         `<99>{#p/human}* (Play a song?)\n{!}     Spooktune       Spookwave\n     Spookwaltz      Cancel{#c/1/5/5}`
+         choicer.create('* (Play a song?)', -1, -1, 'Spooktune', 'Spookwave', 'Spookwaltz', 'Cancel')
       ],
       blookmusic1x: [ '<32>{#p/narrator}* There is currently no music playing.' ],
       blookmusic2: () => [
@@ -412,10 +286,18 @@ const text = {
                  ]
                : 65 <= save.data.n.plot
                ? save.data.b.a_state_hapstablook
-                  ? [
-                       '<32>{#p/napstablook}* hey... thanks for all the help back there...',
-                       "<32>{#p/napstablook}* i don't know how things would've gone without you......"
-                    ]
+                  ? 68 <= save.data.n.plot
+                     ? [
+                          '<32>{#p/napstablook}* hey, hapstablook came by a little while ago.',
+                          "<32>* we talked for a bit about what we've been up to...",
+                          '<32>* about the family...',
+                          "<32>* i... don't think i've ever been this happy before...",
+                          '<32>* what you did for us back there... it means a lot to me.'
+                       ]
+                     : [
+                          "<32>{#p/napstablook}* hey... sorry things didn't work out the way we hoped...",
+                          '<32>{#p/napstablook}* it was nice to have you there, though......'
+                       ]
                   : [ '<32>{#p/napstablook}* with every day that goes by, i feel a little farther away from happiness.' ]
                : 63 <= save.data.n.plot && save.data.b.a_state_hapstablook
                ? [
@@ -456,8 +338,10 @@ const text = {
                ? [ '<32>{#p/napstablook}* ............' ]
                : 65 <= save.data.n.plot
                ? save.data.b.a_state_hapstablook
-                  ? [ "<32>{#p/napstablook}* isn't it intriguing how stuff works out sometimes?" ]
-                  : [ '<32>{#p/napstablook}* sorry', "<32>* it's been a rough day........." ]
+                  ? 68 <= save.data.n.plot
+                     ? [ "<32>{#p/napstablook}* hopefully next time you won't have to risk your life." ]
+                     : [ '<32>{#p/napstablook}* yeah', "<32>{#p/napstablook}* i'm disappointed, too." ]
+                  : [ '<32>{#p/napstablook}* sorry', "<32>* it's been a rough one........." ]
                : 63 <= save.data.n.plot && save.data.b.a_state_hapstablook
                ? [
                     '<32>{#p/napstablook}* oh, and, thanks for coming to check on me...',
@@ -497,6 +381,9 @@ const text = {
                  ],
          [ '<32>{#p/napstablook}* i wish i had more to say...' ]
       ),
+      boots1: [ '<32>{#p/human}* (You got the hoverboots.)' ],
+      boots2: [ "<32>{#p/human}* (You're carrying too much to take that.)" ],
+      bruh: [ '<32>{*}{#p/undyne}* See you soon.{^20}{%}' ],
       candy1: [
          '<32>{#p/narrator}* Synthesize something with the vending machine?',
          choicer.create('* (What will you make?)', 8, 7, 'Rations', 'Water', 'TZN', 'Nothing')
@@ -507,67 +394,50 @@ const text = {
       candy5: [ '<32>{#p/human}* (You decide not to pay.)' ],
       candy6: [ "<32>{#p/human}* (You're carrying too much.)" ],
       candy7: [ '<32>{#p/human}* (You decide not to make anything.)' ],
-      cornered0: [ '<32>{#p/undyne}{#i/60}* Behind you.' ],
-      cornered1: [
-         '<32>{#p/undyne}* Seven.',
-         '<32>* Seven human SOULs and this world will be transformed.',
-         '<32>* Six.',
-         "<32>* That's how many we have right now.",
-         '<32>* Are we clear?',
-         '<32>* Through your seventh and final SOUL, freedom will finally be ours.',
-         '<32>* YOU, human, are the ONLY thing standing in our way.',
-         "<32>* I'll give you one chance, and one chance only.",
-         '<32>* Give up your SOUL...',
-         "<32>* ...or I'll tear it from your body.",
-         choicer.create('* (Give up your SOUL?)', 8, 7, 'No', 'Yes')
-      ],
-      cornered2: [
-         '<32>{#p/undyne}* ...',
-         '<32>* Wait.\n* What?',
-         choicer.create('* (Give up your SOUL?)', 8, 7, 'No', 'Yes')
-      ],
-      cornered3: [
-         '<32>{#p/undyne}* ...',
-         "<32>* You're not seriously going to- {%}",
-         choicer.create('* (Give up your SOUL?)', 8, 7, 'No', 'Yes')
-      ],
-      cornered3a: [ '<32>{#p/undyne}* ...', choicer.create('* (Give up your SOUL?)', 8, 7, 'No', 'Yes') ],
-      cornered4: [ '<32>{#p/undyne}* ...', "<32>* That's what I thought." ],
-      cornered5: [
-         '<25>{#p/kidding}{#f/1}* YO, you did it!!!\n* Undyne is RIGHT in front of you!!!',
-         "<25>* You've got front row seats to her fight!!!"
-      ],
-      cornered6: [ '<25>{#p/kidd}{#f/4}* ...wait.', "<25>{#f/4}* Who's she fighting???" ],
-      cornered7: [ "<25>{#p/kidd}{#f/4}{*}* Hey! You aren't gonna tell my p-parents about this, are you?{^999}" ],
-      cornered8: () =>
-         save.data.n.plot > 46
-            ? [
-                 '<32>{#p/undyne}{#npc/a}* Listen kiddo, I need to talk to your parents.',
-                 '<32>* Can you tell me where they are?',
-                 "<32>{#p/kidd}* Undyne, I...\n* I-I can't...",
-                 "<32>{#p/undyne}* Kiddo...\n* You're crying...",
-                 '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-              ]
-            : world.genocide
-            ? [
-                 '<32>{#p/undyne}{#npc/a}* Behind you.',
-                 '<32>{#p/alphys}* ...?',
-                 "<32>{#p/undyne}* Alphys, if we don't evacuate people in lines, nobody's going to fit through.",
-                 '<32>{#p/undyne}* They gotta be behind you.',
-                 '<32>{#p/alphys}* Y-yeah, I know...\n* Sorry...',
-                 '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-              ]
-            : [
-                 '<32>{#p/undyne}{#npc/a}* Behind you.',
-                 '<32>{#p/alphys}* ...!',
-                 '<32>{#p/undyne}* Heheh, did I scare ya?',
-                 '<32>{#p/alphys}* Undyne... knock it off...!',
-                 '<32>{#p/undyne}* Pfft, no deal.',
-                 '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-              ],
-      cornered9: [ '<32>{#p/undyne}* ...', "<32>{#p/undyne}* I'll be there right away." ],
-      cornered10: [ '<32>{#p/undyne}* (Stupid spiders...)' ],
-      cornered11: [ "<32>{#p/undyne}* This isn't over, punk.", "<32>* We'll be seeing each other again REAL soon." ],
+      deathReaction: {
+         f_asriel: [ '<32>{#p/narrator}* Here, of all places...' ],
+         f_bird: [
+            '<32>{#p/narrator}* This small bird is in shock after witnessing a travesty.',
+            '<32>* It no longer wants to carry you across the gap.'
+         ],
+         // each line of this is processed one-at-a-time
+         f_blooky: [
+            '<32>{#p/monster}{#npc/a}* Did you hear about Undyne?',
+            '<32>{#p/monster}{#npc/a}* Oh, not at all!',
+            "<32>{#p/monster}{#npc/a}* I heard she's doing well.",
+            '<32>{#p/monster}{#npc/a}* Sounds good to me!',
+            '<32>{#p/monster}{#npc/a}* Undyne will never die.',
+            '<32>{#p/monster}{#npc/a}* Indeed not!'
+         ],
+         f_dummy: [
+            '<32>{#p/monster}{#npc/a}* Fatal energy signature detected.',
+            '<32>* Name... Undyne.',
+            '<32>* Relationship status... "acquaintance."',
+            '<32>* Last interaction... asked about humans.',
+            '<32>* Time to compensate for loss...',
+            '<32>* Indeterminate.'
+         ],
+         f_hub: [
+            "<32>{#p/monster}{#npc/a}* Wh...\n* What've you done!?",
+            "<32>* Ole' Gerson's not gonna be a happy camper after that one..."
+         ],
+         f_napstablook: [
+            "<32>{#p/narrator}* Looks like Napstablook won't be the only ghost living in this house anymore."
+         ],
+         f_snail: () => [
+            '<32>{#p/monster}* ...',
+            save.data.b.f_state_thundersnail_win
+               ? "<32>* I'll make sure you NEVER win another game of Thundersnail."
+               : "<32>* I'll make sure you NEVER win a game of Thundersnail."
+         ],
+         f_undyne: [
+            '<32>{#p/monster}* No.\n* No!\n* NO!!!',
+            '<32>* What. Have. You. DONE???',
+            '<32>* She was...',
+            '<32>* She was my FAVORITE bully!\n* How dare you take her away from me like that!?'
+         ],
+         f_village: [ '<32>{#p/tem}{#npc/a}* Welp.', '<32>* That happened.' ]
+      },
       dummy1a: () =>
          save.data.n.state_wastelands_dummy === 2
             ? [ "<32>{#p/monster}* HA!\n* Of course you'd run away.", '<32>* Whatever, DUMMY.' ]
@@ -685,7 +555,8 @@ const text = {
       dummy4: () =>
          world.sad_ghost
             ? [
-                 "<32>{#p/napstablook}* well...\n* i'm going to head home now...",
+                 '<32>{#p/napstablook}* hey...\n* noticed you were coming this way...',
+                 '<32>* i was actually about to head home...',
                  '<32>* just warning you...',
                  "<32>* so you don't accidentally follow me to my house...",
                  "<32>* you probably wouldn't like that..."
@@ -725,12 +596,56 @@ const text = {
               ]
             : [ '<32>{#p/human}* (You slapped the dummy.)', '<32>{#p/narrator}* You probably feel bad.' ],
       dummypunch3: [ "<32>{#p/narrator}* It's a beat-up training dummy." ],
+      epicreaction: () =>
+         [
+            [ '<25>{#p/kidd}{#f/7}* What was THAT!?' ],
+            [ '<25>{#p/kidd}{#f/7}* Ack!!' ],
+            [ '<25>{#p/kidd}{#f/7}* Not again!' ],
+            [ '<25>{#p/kidd}{#f/7}* How many of those things are there!' ],
+            [ '<25>{#p/kidd}{#f/7}* Seriously!?' ],
+            [ '<25>{#p/kidd}{#f/7}* Jeez!!' ],
+            [ "<25>{#p/kidd}{#f/4}* We've gotta find a way outta here..." ],
+            [ '<25>{#p/kidd}{#f/4}* ...' ]
+         ][Math.min(save.data.n.state_foundry_kiddreaction++, 7)],
+      fallenfish: [ "<32>{#p/narrator}* She's in shock." ],
+      fallenfish2: [ "<32>{#p/narrator}* She's fallen down.\n* Permanently." ],
+      finalfish1: [ '<25>{#p/undyne}{#f/19}* Ngah...' ],
+      finalfish2: [ '<25>{#p/undyne}{#f/19}* Stupid...\n* Malfunction...' ],
+      finalpre: [ choicer.create('* (Continue to Aerialis?)', 8, 7, 'No', 'Yes') ],
       genotext: {
-         asrielCorner: [
-            "<25>{#p/asriel2}{#f/8}* That's weird...",
-            "<25>{#p/asriel2}{#f/6}* The side door's open.",
-            '<25>{#p/asriel2}{#f/7}* Well, only one way forward, so...\n* Okay, I guess.'
+         asgoreFinal1: () =>
+            save.flag.n.ga_asrielStutter < 1
+               ? [
+                    '<25>{#p/asgore1}{#i/50}{#f/15}* So you still ended up with him in the end...',
+                    '<25>{#p/asriel2}{#f/7}* $(name) and I are inseperable, Asgore.\n* You should know that.',
+                    '<25>{#p/asgore1}{#i/50}{#f/15}* $(name)... o-of course.\n* So... w-what are you doing with the kid?',
+                    "<25>{#p/asriel2}{#f/8}* That's honestly none of your business.",
+                    "<25>{#p/asgore1}{#i/50}{#f/15}* (Ugh... should've seen that coming...)",
+                    "<25>{#p/asriel2}{#f/6}* To summarize, though...\n* We're going on a little trip together.",
+                    "<25>{#f/6}* Just the three of us.\n* And, surprise surprise, YOU'RE not invited.",
+                    '<25>{#p/asgore1}{#i/50}{#f/15}* D-do I look like I want to be invited??',
+                    '<25>{#p/asriel2}{#f/6}* You tell me.',
+                    "<25>{#p/asgore1}{#i/50}{#f/15}* Well, I j-just wanted to check on you.\n* That's all.",
+                    "<26>{#p/asriel2}{#f/10}{#x1}* ...\n* Something's wrong.",
+                    '<25>{#p/asriel2}{#f/10}* Dr. Alphys?\n* Is that you...?'
+                 ]
+               : [
+                    '<25>{#p/asgore1}{#i/50}{#f/15}* So you still ended up with him in the end...',
+                    '<25>{#p/asriel2}{#f/8}* $(name) and I are inseperable, ALPHYS.',
+                    "<25>{#p/asriel2}{#f/7}* But YOU won't know anything about that, would you?"
+                 ],
+         asgoreFinal2: [
+            '<25>{#p/alphys}{#g/alphysThatSucks}* ...no fooling you, huh?',
+            '<25>{#p/asriel2}{#f/3}* Guess not.',
+            "<25>{#p/alphys}{#g/alphysGarbo}* ...\n* At least you're honest.",
+            '<25>{#p/asriel2}{#f/13}* You must be distraught over the death of your dear friend...',
+            "<25>{#p/asriel2}{#f/16}* I can't imagine how that feels for you.",
+            '<25>{#p/alphys}{#g/alphysIDK}* ...',
+            '<25>{#p/alphys}{#g/alphysNeutralSweat}* ...',
+            '<25>{#p/alphys}{#g/alphysNeutralSweat}* This was a b-bad idea.',
+            "<25>{*}{#p/asriel2}{#f/8}* Don't tell me you're- {%}"
          ],
+         asgoreFinal3: [ '<25>{#p/asriel2}{#f/7}* Coward.' ],
          asgoreMK1: [
             '<25>{#p/kidd}{#f/7}* Woah, is that... no way...',
             "<25>{#f/1}* It's the KING!",
@@ -773,31 +688,10 @@ const text = {
             "<25>{#f/1}* I've heard stories about the king's speeches, but WOW!",
             '<25>{#f/3}* I wish he was MY dad...'
          ],
-         asgoreFinal1: [
-            '<25>{#p/asgore1}{#i/50}{#f/15}* So you still ended up with him in the end...',
-            '<25>{#p/asriel2}{#f/7}* Them and I are inseperable, Asgore.\n* You should know that.',
-            '<25>{#p/asgore1}{#i/50}{#f/15}* Oh, yeah, of course.\n* Um, w-what are you doing with that kid?',
-            "<25>{#p/asriel2}{#f/7}* That's honestly none of your business.",
-            '<25>{#p/asgore1}{#i/50}{#f/15}* (Ugh... shoulda seen that coming...)',
-            '<25>{#p/asriel2}{#f/6}* But to summarize...\n* We\'re uh, going on a little "trip."',
-            "<25>{#f/6}* Just the three of us.\n* And, well, YOU'RE not invited, Asgore.",
-            '<25>{#p/asgore1}{#i/50}{#f/15}* D-do I look like I want to be invited??',
-            '<25>{#p/asriel2}{#f/6}* Fair point.',
-            '<25>{#p/asgore1}{#i/50}{#f/15}* Honestly, I just wanted to... check on you.',
-            '<25>* And, now that I have d-done so, I... think that will be all.',
-            "<25>{#p/asriel2}{#f/10}* You're stuttering...",
-            '<25>{#p/asgore1}{#i/50}{#f/15}* Uh, g-gotta go!'
-         ],
-         asgoreFinal2: [ '<25>{#p/asriel2}{#f/10}* ???' ],
-         asriel31: () =>
-            [ [ '<25>{#p/asriel2}{#f/3}* What an innocent kid...' ], [ '<25>{#p/asriel2}{#f/4}* So innocent...' ] ][
-               Math.min(save.flag.n.ga_asriel31++, 1)
-            ],
-         asriel32: () => [
-            ...(save.flag.n.ga_asriel32++ < 1 ? [ '<25>{#p/asriel2}{#f/6}* Oh boy... here we go.' ] : []),
+         asriel32: [
             '<25>{#p/asgore1}{#f/15}* ...',
             '<25>{#f/16}* I see you have ignored my advice.',
-            '<25>{#p/asriel2}{#f/3}* Yup.',
+            '<25>{#p/asriel2}{#f/3}* I sure did.',
             '<25>{#p/asgore1}{#f/1}* ...',
             '<25>{#f/16}* You know, I have been wondering.',
             '<25>{#f/16}* You may not claim to be my son now, but you were...',
@@ -806,86 +700,89 @@ const text = {
             '<25>{#p/asgore1}{#f/12}* Well...\n* What changed?',
             '<25>{#f/12}* What made you into this... stranger... standing here now?',
             '<26>{#p/asriel2}{#f/6}* You REALLY wanna know?',
-            '<26>{#p/asgore1}{#f/1}* ...',
-            '<26>{#p/asriel2}{#f/6}* Be honest.',
+            '<26>{#p/asgore1}{#f/7}* ...',
+            '<26>{#p/asriel2}{#f/7}* Be honest.',
             '<26>{#p/asgore1}{#f/1}* ...\n* Well, no...\n* Not really...',
-            "<26>{#p/asriel2}{#f/7}* Tch.\n* Now that's more like the Asgore I know.",
-            "<26>{#f/4}* You'd rather pretend everything's juuuust fine, ain't that right?",
-            "<26>{#f/3}* Well, guess what, pal.\n* You're overdue for a wakeup call.",
-            "<26>{#f/8}* (I'd give ya one right now if you weren't a freakin' hologram...)",
+            "<26>{#p/asriel2}{#f/8}* Tch.\n* Now that's more like the Asgore I know.",
+            "<26>{#f/6}* You'd rather pretend everything's juuuust fine, ain't that right?",
+            "<26>{#f/7}* Well, guess what, pal.\n* You're overdue for a wakeup call.",
+            "<26>{#f/8}* (I'd give you one right now if you weren't a freakin' hologram...)",
             '<26>{#p/asgore1}{#f/12}* I heard that.',
-            '<26>{#p/asriel2}{#f/4}* ...',
+            '<26>{#p/asriel2}{#f/8}* ...',
             '<26>{#p/asgore1}{#f/15}* You know... sometimes I wonder how I got here.',
             '<25>{#f/16}* No homeworld... no family... trapped here by the humans...',
             '<25>{#f/15}* And now, my kingdom is going to burn and all I can do is watch.',
-            "<25>{#p/asriel2}{#f/3}* If you're asking ME for insight, you must be really desperate.",
-            '<25>{#f/4}* Small word of advice...',
-            "<25>{#f/1}* Next time, don't get your children killed.",
+            "<25>{#p/asriel2}{#f/15}* If you're asking ME for insight, you must be really desperate...",
+            "<25>{#f/16}* Small word of advice.\n* Next time, don't get your children killed.",
             '<25>{#p/asgore1}{#f/2}* ...',
-            '<25>{#f/4}* Heh...\n* You say that as if...',
+            "<25>{#f/4}* You say that as if...\n* You aren't...",
             '<25>{#f/2}* ...',
             '<25>{#f/6}* You know what, Asriel?\n* Forget it.',
             "<25>{#f/7}* Because you're right...",
             '<25>{#f/5}* Reasoning with you is a total waste of time.',
-            "<25>{#p/asriel2}{#f/9}* ...wow.\n* I'm impressed.",
-            '<25>{#f/1}* You finally said something intelligent for once.',
+            "<25>{#p/asriel2}{#f/15}* ...wow.\n* I'm impressed.",
+            '<25>{#f/16}* You finally said something intelligent for once.',
             '<25>{#p/asgore1}{#f/1}* ...',
-            "<25>{#p/asriel2}{#f/10}* So, what now? What's next for the aspiring king?",
+            "<25>{#p/asriel2}{#f/10}* So what now?\n* What's next for the aspiring king?",
             '<25>{#p/asgore1}{#f/15}* To be honest?',
             '<25>{#f/15}* ...',
             '<25>{#f/16}* I have no idea, Asriel.'
          ],
-         asriel33: () =>
-            [ [ "<25>{#p/asriel2}{#f/10}* Well, he's mad." ], [ '<25>{#p/asriel2}{#f/10}* Heh.' ] ][
-               Math.min(save.flag.n.ga_asriel33++, 1)
-            ],
+         asriel33: [ '<25>{#p/asriel2}{#f/10}* Did I detect a hint of anger at the end?' ],
+         // rule 34!!!!!!!!!!!!!!!!!!!!!!!!!!1
+         asriel34: [
+            "<25>{#p/asriel2}{#f/3}* I've gotta take care of some things, so I'll leave you two alone.",
+            '<25>{#p/kidd}{#f/3}* Will you be back?\n* You gotta tell me more about Undyne...',
+            "<25>{#p/asriel2}{#f/4}* I promised, didn't I?",
+            "<25>{#f/1}* Don't worry.\n* I'll be back before you know it.",
+            '<25>{#p/kidd}{#f/4}* Okay...'
+         ],
          asriel34x: [ '<25>{#p/asriel2}{#f/3}* Hey, stop here.' ],
          asriel35: () =>
             save.flag.n.undying > 0
                ? [
                     [
                        '<25>{#p/asriel2}{#f/6}* Well, here we are again, $(name).',
-                       "<25>{#f/7}* ...I know Undyne won't die when the kid hits her.",
-                       "<25>{#f/3}* But from what I can see, it's our best way forward for now.",
-                       "<25>{#f/4}* So uh, let's stick to the script, okay?"
+                       "<25>{#f/7}* ...look, I know Undyne won't die when the kid hits her.",
+                       "<25>{#f/15}* From what I can see, though, it's our best way forward for now.",
+                       "<25>{#f/16}* Let's just stick to the script, yeah?"
                     ],
-                    [ '<25>{#p/asriel2}{#f/3}* Remember, stick to the script.' ]
+                    []
                  ][Math.min(save.flag.n.ga_asrielUndying++, 1)]
                : [
                     [
                        '<25>{#p/asriel2}{#f/5}* Howdy, $(name)!',
-                       '<25>{#f/2}* Did you miss me?',
-                       "<25>{#f/1}* I see you've parted ways with your friend.",
-                       '<25>{#f/13}* You must be so lonely...',
-                       "<25>{#f/4}* Well.\n* Don't you worry.",
-                       '<25>{#f/3}* I think I may just have the solution.'
+                       '<25>{#f/5}* Did you miss me?',
+                       "<25>{#f/13}* I see you've parted ways with your friend...",
+                       '<25>{#f/16}* You must be so lonely...',
+                       "<25>{#f/1}* Well.\n* Don't you worry.",
+                       '<25>{#f/1}* I think I may just have the solution.'
                     ],
-                    [ "<25>{#p/asriel2}{#f/6}* I've returned, $(name).", "<25>{#f/7}* ...let's not waste any more time." ]
+                    []
                  ][Math.min(save.flag.n.ga_asriel35++, 1)],
          asriel36: [ '<25>{#p/asriel2}{#f/5}* Yoo-hoo!' ],
          asriel37: () => [
-            '<25>{#p/asriel2}{#f/3}* Aw...',
-            "<25>{#f/1}* You'd do anything for me, wouldn't ya?",
+            '<25>{#p/asriel2}{#f/1}* Aw...',
+            "<25>{#f/2}* You'd do anything for me, wouldn't you?",
             '<25>{#p/kidd}{#f/9}* M-hm...'
          ],
          asriel38: () => [
             ...[
                [
                   // Let's go catch a fish.
-                  '<25>{#p/asriel2}{#f/3}* Well, whaddaya think?',
-                  "<25>{#f/4}* They weren't easy to get a hold of, you know.",
+                  '<25>{#p/asriel2}{#f/1}* Well, whaddaya think?',
+                  "<25>{#f/7}* They weren't easy to get ahold of, you know.",
                   ...(save.data.n.state_foundry_muffet === 1
                      ? [
-                          '<25>{#f/8}* They kept saying they wanted to be forgotten...',
-                          '<25>{#f/10}* Geez, $(name).\n* What did you do to them while I was gone?'
+                          '<25>{#f/15}* They kept saying they wanted to be forgotten...',
+                          '<25>{#f/10}* Golly, $(name).\n* What did you do to them while I was gone?'
                        ]
                      : [
-                          "<25>{#f/8}* They wouldn't stop asking me where you were...",
-                          '<25>{#f/10}* Geez, $(name).\n* What were you two doing while I was gone?'
+                          "<25>{#f/15}* They wouldn't stop asking me where you were...",
+                          '<25>{#f/10}* Golly, $(name).\n* What were you two doing while I was gone?'
                        ]),
-                  "<25>{#f/3}* Well y'know, just uh...\n* Think of it as a gift.\n* For being so helpful.",
-                  '<25>{#p/kidd}{#f/12}* Helpful...?',
-                  '<25>{#p/asriel2}{#f/8}* ...'
+                  "<25>{#f/3}* Well y'know... just think of it as a gift.\n* For being so helpful.",
+                  '<25>{#p/kidd}{#f/12}* Helpful...?'
                ],
                [ "<25>{#p/asriel2}{#f/3}* Well, at least that's outta the way now." ]
             ][Math.min(save.flag.n.ga_asriel38++, 1)]
@@ -893,21 +790,20 @@ const text = {
          asriel39: [
             '<25>{#p/asriel2}{#f/6}* Hey, kid...\n* Can you do me a favor?',
             '<25>{#p/kidd}{#f/9}* ...?',
-            '<25>{#p/asriel2}{#f/6}* Solve the puzzle.'
+            '<25>{#p/asriel2}{#f/7}* Solve the puzzle.'
          ],
          asriel40: () =>
             save.flag.n.ga_asriel40++ < 1
                ? [
-                    '<25>{#p/asriel2}{#f/10}* Done already?',
-                    '<25>{#f/9}* ...',
-                    '<25>{#f/3}* See $(name), this is the potential monsters deny themselves.',
-                    '<25>{#f/4}* Hope, fear, empathy...\n* They cling to these pointless emotions.',
-                    '<25>{#f/3}* Under MY guidance, their mind has been unlocked. Untethered.',
-                    "<25>{#f/13}* Shame more monsters don't have implants..."
+                    '<25>{#p/asriel2}{#f/10}* Done already?\n* Golly...',
+                    '<25>{#f/6}* This is the potential monsters deny themselves, $(name).',
+                    '<25>{#f/7}* Hope, fear, empathy...\n* They cling to these pointless emotions.',
+                    '<25>{#f/15}* Under MY guidance, their mind has been unlocked. Untethered.',
+                    '<25>{#f/1}* A true servant to the spirit of chaos.'
                  ]
-               : [ '<25>{#p/asriel2}{#f/1}* Right on time.' ],
-         asriel41: [ '<25>{#p/asriel2}{#f/3}* Perfect.' ],
-         asriel42: [ "<25>{#p/asriel2}{#f/1}* If we keep this up, we'll be over and done with in no time." ],
+               : [ '<25>{#p/asriel2}{#f/4}* Right on time.' ],
+         asriel41: [ '<25>{#p/asriel2}{#f/3}* Well done, kid.' ],
+         asriel42: [ "<25>{#p/asriel2}{#f/4}* If we keep this up, we'll be over and done with in no time." ],
          asriel43: () =>
             [
                [
@@ -920,42 +816,38 @@ const text = {
                      : save.flag.n.undying > 1
                      ? '<25>{#f/8}* Granted, it took us an extra run...'
                      : '<25>{#f/8}* Granted, she did put up a valiant stand...',
-                  '<25>{#f/6}* But in the end, we both knew what was destined to happen.',
-                  '<25>{#f/1}* And now, finally...\n* It has.'
+                  '<25>{#f/7}* But in the end, we both knew what was destined to happen.'
                ],
                [
-                  '<25>{#p/asriel2}{#f/3}* Man, if only that victory felt as good as it did the first time.',
-                  '<25>{#f/2}* Oh well.'
+                  '<25>{#p/asriel2}{#f/3}* ...if only that victory felt as good as it did the first time.',
+                  '<25>{#f/4}* Oh well.'
                ],
                [ '<25>{#p/asriel2}{#f/6}* Killing Undyne is quickly becoming our hobby.' ],
                [ '<25>{#p/asriel2}{#f/6}* ...' ]
             ][Math.min(save.flag.n.ga_asriel43++, 3)],
          asriel44: [ '<25>{#p/asriel2}{#f/13}* Uh, you can take the lead, $(name).' ],
          asriel45: [
-            '<25>{#p/asriel2}{#f/13}* Oh, $(name)...{%40}',
-            "<25>{#f/13}* I can't express how grateful I am for all your help.{%40}",
-            "<25>{#f/4}* This body might not be perfect, but for what it's worth...?{%40}",
-            "<25>{#f/3}* I won't miss being a stupid talking starling.{%40}"
+            '<25>{#p/asriel2}{#f/13}* Well, well, well...{%40}',
+            "<25>{#f/16}* I can't express how grateful I am for all your help.{%40}",
+            "<25>{#f/1}* This body might not be perfect, but for what it's worth...?{%40}",
+            "<25>{#f/2}* I won't miss being a stupid talking starling.{%40}"
          ],
-         asrielElite1: () =>
-            [
-               [
-                  '<25>{#p/asriel2}{#f/3}* Pfft, "ELITE" squad?\n* More like DEFEAT squad.',
-                  '<25>{#f/1}* They do seem to be pretty good at dying...'
-               ],
-               []
-            ][Math.min(save.flag.n.ga_asrielElite1++, 1)],
          asrielHug1: [ '<25>{#p/asriel2}{#f/13}* ...' ],
          asrielHug2: [ '<25>{*}{#p/asriel2}{#f/13}* $(name)...{^100}{%}' ],
          asrielHug3: [ '<25>{#p/asriel2}{#f/13}* Uh...\n* Thanks, $(name).' ],
-         // rule 34!!!!!!!!!!!!!!!!!!!!!!!!!!1
-         asriel34: [
-            "<25>{#p/asriel2}{#f/3}* I've gotta take care of some things, so I'll leave you two alone.",
-            '<25>{#p/kidd}{#f/3}* Will you be back?\n* You gotta tell me more about Undyne...',
-            "<25>{#p/asriel2}{#f/1}* I promised, didn't I?",
-            "<25>{#f/2}* Don't worry.\n* I'll be back before you know it.",
-            '<25>{#p/kidd}{#f/4}* Okay...'
+         bombshell1: [
+            '<32>{*}{#p/alphys}* Talking... starling...?',
+            '<32>{*}* But that experiment...\n* It f-failed...',
+            '<32>{*}* Unless...'
          ],
+         bombshell2: [ '<32>{*}* No...', '<32>{*}{@random:1.1,1.1}* No...' ],
+         bombshell3: [
+            '<32>{*}{@random:1.1,1.1}* Toriel...\n* Sans...\n* Papyrus...',
+            '<32>{*}{@random:1.1,1.1}* Undyne...',
+            "<32>{*}{@random:1.1,1.1}* It's all m-my fault...",
+            '<32>{*}{@random:1.1,1.1}{#i/60}* Oh... g-god...'
+         ],
+         bombshell4: [ "<32>{*}{@random:1.1,1.1}{#i/80}* I've killed you all..." ],
          kidd1: [
             '<25>{#p/kidd}{#f/4}* What did he say your name was?\n* $(name)...?',
             '<25>{#f/3}* Well $(name), just between you and me, he kinda makes me feel...',
@@ -963,33 +855,31 @@ const text = {
          ],
          kidd2: [
             '<25>{#p/kidd}{#f/11}* ...!',
-            '<25>{#p/asriel2}{#f/4}* I saw her too.',
-            '<25>{#f/1}* You excited?',
-            '<25>{#p/kidd}{#f/9}* I...\n* Guess so...',
-            '<25>{#p/asriel2}{#f/8}* Yeah, yeah...'
+            '<25>{#p/asriel2}{#f/4}* I know, I know.\n* I saw her too, kid.',
+            '<25>{#f/3}* You must be excited...',
+            '<25>{#p/kidd}{#f/9}* Yeah...',
+            '<25>{#f/12}* I guess...',
+            '<25>{#f/4}* Good enough for me.'
          ],
          kiddFinal1: () => [
-            '<25>{#p/kidd}{#f/9}* Um...',
+            '<25>{#p/kidd}{#f/9}* I...',
             '<25>{#p/asriel2}{#f/10}* ...?',
             '<25>{#f/6}* ...let me guess.\n* Doubts?',
             '<25>{#p/kidd}{#f/12}* .........',
             "<25>{#p/asriel2}{#f/4}* Listen, kid.\n* Your precious Undyne?\n* She's no hero.",
             '<25>{#f/3}* The REAL heroes in this world are people that can THINK.',
             save.flag.n.ga_asrielKiddFinal1++ < 1
-               ? '<25>{#f/1}* People like...\n* Well, not like her.'
-               : '<25>{#f/1}* People unlike her.',
-            '<25>{#p/kidd}{#f/9}* ...',
-            '<25>* ...you say that...'
+               ? '<26>{#f/4}* People like...\n* Well, people unlike her.'
+               : '<25>{#f/4}* People unlike her.',
+            '<25>{#p/kidd}{#f/12}* Oh...'
          ],
          kiddFinal2: [
             '<25>{#p/asriel2}{#f/1}* Doubts or not, I KNOW you can do it.',
-            '<25>{#p/kidd}{#f/9}* ...',
-            '<25>{#p/asriel2}{#f/1}* You wanted to get stronger, right?\n* Well, this is how.',
+            '<25>{#p/kidd}{#f/9}* But...',
+            '<25>{#p/asriel2}{#f/3}* You wanted to get stronger, right?\n* Well, this is how.',
             "<25>{#p/kidd}{#f/12}* B-but...\n* It's Undyne...",
             "<25>{#p/asriel2}{#f/13}* Undyne, schmundyne...\n* You really look up to her, don'tcha?",
-            "<25>{#f/6}* Don't worry.\n* You'll find another role model.",
-            '<25>{#p/kidd}{#f/9}* I...',
-            '<25>{#f/9}* I h-hope so...'
+            "<25>{#f/6}* Don't worry.\n* You'll find another role model."
          ],
          kiddFinal3: () => [
             '<25>{#p/kidd}{#f/9}* ...',
@@ -1013,151 +903,70 @@ const text = {
          kiddFinal7: [
             '<25>{#p/kidd}{#f/12}* ...',
             '<25>{#p/undyne}{#f/13}* What the HELL?\n* What are you doing all the way out here!?',
-            '<25>{#f/13}* And why does your eye look like- {%}'
-         ],
-         bombshell1: [
-            '<32>{*}{#p/alphys}* Talking... starling...?',
-            '<32>{*}* But that experiment...\n* It f-failed...',
-            '<32>{*}* Unless...'
-         ],
-         bombshell2: [ '<32>{*}* No...', '<32>{*}{@random:1.1,1.1}* No...' ],
-         bombshell3: [
-            '<32>{*}{@random:1.1,1.1}* Toriel...\n* Sans...\n* Papyrus...',
-            '<32>{*}{@random:1.1,1.1}* Undyne...',
-            "<32>{*}{@random:1.1,1.1}* It's all m-my fault...",
-            '<32>{*}{@random:1.1,1.1}{#i/60}* Oh... g-god...'
-         ],
-         bombshell4: [ "<32>{*}{@random:1.1,1.1}{#i/80}* I've killed you all..." ]
+            '<25>{*}{#f/13}* And why does your eye look like- {%}'
+         ]
       },
-      kiddbridge1: [ '<25>{#p/kidd}{#f/1}* Yo!' ],
-      kiddbridge2: [
-         "<25>{#p/kidd}{#f/1}* I know I'm not meant to be here, but I wanted to ask you...",
-         "<25>{#f/4}* Man, I've never had to ask anyone this before...",
-         '<25>{#f/3}* Umm...',
-         '<25>{#f/4}* Well, Undyne told me to "stay away from that human."',
-         '<25>{#f/4}* So, like, umm... I guess that makes us enemies now?',
-         '<25>{#f/2}* But I kinda stink at that, haha.',
-         '<25>{#f/1}* Yo, say something mean so we can be enemies?',
-         '<25>{#f/1}* Please?',
-         choicer.create('* (What do you say?)', 8, 7, 'No', 'Yes')
-      ],
-      kiddbridge3a: () =>
-         save.data.b.oops
-            ? [
-                 '<25>{#p/kidd}{#f/4}* Yo, what?\n* So I have to do it?',
-                 '<25>{#f/5}* Here goes nothing...',
-                 '<25>{#f/4}* Y... yo...\n* I...',
-                 "<25>{#f/1}* I think you're UGLY.",
-                 '<25>{#f/1}* ...',
-                 "<25>{#f/4}* Man, I... I'm such a turd.",
-                 "<25>{#f/5}* I'm... gonna go home now."
-              ]
-            : [
-                 '<25>{#p/kidd}{#f/4}* Yo, what?\n* So I have to do it?',
-                 '<25>{#f/5}* Here goes- {%}',
-                 "<32>{#p/narrator}* No.\n* You don't have to do it.",
-                 '<25>{#p/kidding}{#f/7}* (What?)\n* (What was that?)',
-                 '<32>{#p/narrator}* Listen to me.',
-                 '<25>{#p/kidding}{#f/7}* (W... who are you!?)',
-                 '<32>{#p/narrator}* Someone who wants to do the right thing, for once.',
-                 '<25>{#p/kidding}{#f/7}* (But... Undyne said- {%}',
-                 "<32>{#p/narrator}* Undyne doesn't know this human like you, think about it!",
-                 '<25>{#p/kidding}{#f/4}* (...)\n* (...I guess...)',
-                 "<32>{#p/narrator}* Everyone's different.\n* Humans have a past, but THEY'RE not part of it.",
-                 '<32>* So instead of being mean...',
-                 '<32>* You could be kind.',
-                 '<32>* Instead of making it worse...',
-                 '<25>{#p/kidding}{#f/3}* (I could make it better?)',
-                 "<32>{#p/narrator}* Heh.\n* That's the spirit.",
-                 '<25>{#p/kidding}{#f/3}* (Okay...)',
-                 '<25>* (Well, here goes nothing.)',
-                 '<25>{#p/kidd}{#f/3}* Yo, um...',
-                 "<25>* I don't wanna be mean.",
-                 '<25>{#f/1}* I actually think that...',
-                 "<25>* You're one of the coolest people I've ever met!",
-                 "<25>{#f/4}* Undyne says all humans are bad, but she doesn't know you...",
-                 "<25>{#f/3}* Just because you're a human...",
-                 "<25>* ...doesn't mean we need to be enemies... right?",
-                 "<25>{#f/1}* So... I'm glad we could be friends!\n* T... take that, Undyne!",
-                 '<25>* Haha.',
-                 '<25>{#f/3}* Well, I kinda gotta go home now...',
-                 "<25>* ...but maybe we'll see each other again?",
-                 '<25>* So...\n* Until next time...',
-                 '<25>{#f/1}* See ya, dude!'
-              ],
-      kiddbridge3b: [
-         '<32>{#p/human}* (You said something mean to Monster Kid.)',
-         '<25>{#p/kidd}{#f/4}* Huh...?',
-         "<25>{#f/3}* Yo, THAT's your idea of something mean?",
-         '<25>{#f/2}* My friends say that to me ALL THE TIME!',
-         '<25>{#f/1}* Guess I have to do it, haha.',
-         '<25>{#f/3}* Y... yo...\n* I...',
-         "<25>{#f/3}* I think you're UGLY.",
-         '<25>{#f/3}* ...',
-         "<25>{#f/4}* Man, I... I'm such a turd.",
-         "<25>{#f/5}* I'm... gonna go home now."
-      ],
-      kiddbridge4: [ '<25>{#p/kidding}{#f/7}* Yo, w-w-wait!\n* Help! I tripped on a grav-switch!' ],
-      kiddbridge4a: [ '<25>{#p/kidding}{#f/7}* Wh-what are you standing around for?\n* Get over here, dude!{%20}' ],
-      kiddbridge4b: [ "<25>{#p/kidding}{#f/7}{*}* I...\n* I can't hold on!{^20}{%}" ],
-      kiddbridge5: [
-         '<25>{#p/kidd}{#f/4}* Y... y... yo... dude...',
-         '<25>* If...\n* If y-you wanna hurt them...',
-         "<25>* You're gonna have to get through me, first."
-      ],
-      kiddbridge6: [
-         "<25>{#p/kidd}{#f/3}* She's gone...",
-         '<25>{#f/1}* Yo, you really saved my skin.',
-         '<25>{#f/6}* Guess being enemies was just a thought, haha.',
-         "<25>{#f/1}* We'll just have to be friends instead!",
-         '<25>{#f/2}* ...man, I should REALLY go home...',
-         '<25>{#f/1}* I...\n* I bet my parents are worried sick about me!'
-      ],
-      kiddbridge7: [ '<25>{#p/kidd}{#f/1}* Later, dude!' ],
-      kiddbridge8: [
-         '<32>{#p/kidd}* Undyne...\n* You....\n* You saved me!',
-         '<32>* Huh?\n* They ran away?',
-         "<32>* Yo, you're wrong...",
-         '<32>* They went to get help!',
-         "<32>* They'll be back any second!!",
-         '<32>* ...',
-         "<32>* O-okay, I'll go home..."
-      ],
-      kiddbridgeX: (charged: boolean) => [
-         '<32>{#p/kidd}* Undyne...',
-         '<32>* You saved me...?',
-         '<32>* Yo... I...\n* I thought I was a goner.\n* Haha...',
-         '<32>* ...wait, are you okay?\n* It looks like you hit the ceiling pretty hard...',
-         '<32>* Th-this is my fault.\n* I should have stayed away from them, like you said.',
-         charged
-            ? '<32>* They just went straight to fight you instead of helping me...'
-            : '<32>* They just stood there...\n* Watching...\n* Waiting for me to disappear.',
-         '<32>* I was so scared, and you...',
-         "<32>* What?\n* You're gonna go fight them now?",
-         '<32>* But you look hurt...\n* You should rest, haha...',
-         '<32>* ...',
-         "<32>* W-warriors don't rest, huh?",
-         "<32>* Undyne...\n* You're really cool."
-      ],
+      goatreaction: () =>
+         [
+            [ '<25>{#p/asriel2}{#f/15}* Careful, $(name).' ],
+            [ '<25>{#p/asriel2}{#f/15}* $(name)...' ],
+            [ '<25>{#p/asriel2}{#f/15}* Really now?' ],
+            [ "<25>{#p/asriel2}{#f/15}* We're trying not to die here, $(name)..." ],
+            [ "<25>{#p/asriel2}{#f/16}* I'm really starting to get worried." ],
+            [ '<25>{#p/asriel2}{#f/10}* ...' ]
+         ][Math.min(save.flag.n.ga_asrielEpic++, 5)],
+      hapstadoor1: [ "<32>{#p/narrator}* It's locked." ],
+      hapstadoor2: [ '<32>{#p/human}* (You used the mystery key...)' ],
+      jumpsuit1: [ '<32>{#p/human}* (You got the jumpsuit.)' ],
+      jumpsuit2: [ "<32>{#p/human}* (You're carrying too much to take that.)" ],
       kiddStatue: [
          '<25>{#p/kidd}{#f/1}* Yo, I remember this place!',
          '<25>{#f/3}* My, uh, Mom took me here one time, haha.',
          "<25>{#f/1}* If we both stand on a switch, it lights up.\n* Isn't that awesome!?"
       ],
+      kitchencall: () =>
+         save.data.n.plot_date < 1
+            ? [
+                 '<32>{#p/event}* Ring, ring...',
+                 '<18>{#p/papyrus}HUMAN!\nI WAS THINKING.',
+                 save.data.b.flirt_papyrus
+                    ? '<18>WE SHOULD TOTALLY DATE SOMETIME!'
+                    : '<18>WE SHOULD TOTALLY HANG OUT SOMETIME!',
+                 "<18>{#f/5}AND BESIDES... I HAVEN'T SEEN YOU IN A WHILE.",
+                 "<18>{#f/0}IT'LL BE GOOD TO CATCH UP!",
+                 "<18>{#f/0}WELL, MEET ME AT MY HOUSE WHEN YOU'RE READY.",
+                 '<18>{#f/9}THIS IS GOING TO BE FANTASTIC!'
+              ]
+            : [
+                 '<32>{#p/event}* Ring, ring...',
+                 '<18>{#p/papyrus}HUMAN!\nI WAS THINKING.',
+                 '<18>SO, YOU KNOW HOW WE SPENT TIME TOGETHER?',
+                 '<18>{#f/5}WELL... I THINK UNDYNE NEEDS TO DO THE SAME.',
+                 '<18>{#f/4}BESIDES, I BET YOU TWO WOULD BE GREAT FRIENDS...',
+                 save.data.b.flirt_papyrus ? '<18>{#f/6}...JUST FRIENDS!' : '<18>{#f/0}JUST LIKE WE WERE!',
+                 "<18>{#f/0}WELL, MEET ME AT UNDYNE'S HOUSE WHEN YOU'RE READY.",
+                 '<18>{#f/9}THIS IS GOING TO BE FANTASTIC!'
+              ],
       madfish1: () => [
-         ...(save.flag.n.ga_asrielUndyneX++ < 1 ? [ '<25>{#p/asriel2}{#f/8}* Over-dramatic speech incomi- {%}' ] : []),
+         ...(save.flag.n.ga_asrielUndyneX++ < 1
+            ? [ '<25>{#p/asriel2}{#f/8}* Here comes the over- dramatic speech...' ]
+            : []),
          '<32>{#p/undyne}* You.',
-         '<32>* Y{#x1}ou think you can just waltz around, MURDERING all those innocent monsters?',
+         '<32>{#x1}* You think you can just waltz around, MURDERING all those innocent monsters?',
          '<32>* Well guess what, punks.',
          '<32>* That ends NOW.',
-         '<32>* You may have gotten p{#x2}ast those lousy guards in Starton, but let me tell you...',
-         "<32>* O{#x3}nce my ELITE squad nails you, you're in for a world of hurt."
+         '<32>{#x2}* You may have scraped by Doge, but let me be clear...',
+         "<32>{#x3}* Once the rest of ELITE squad nails you, you're in for a world of hurt."
       ],
       madfish2: [
          '<32>* Nothing to say?\n* Feh.',
-         "<32>* I d{#x4}on't have time to deal with you right now, Alphys needs my help evacuating people.",
-         "<32>* Fuhuhu...\n* H{#x5}ave fun trying to progress.\n* You won't get far."
+         "<32>{#x4}* I don't have time to deal with you right now, Alphys needs my help evacuating people.",
+         "<32>{#x5}* Fuhuhu...\n* Have fun trying to progress.\n* You won't get far."
       ],
+      madfish3: () =>
+         save.flag.n.ga_asrielMadfish++ < 1
+            ? [ '<25>{#p/asriel2}{#f/8}* Whatever you say...' ]
+            : [ '<25>{#p/asriel2}{#f/8}* ...' ],
       muffet1: () =>
          world.genocide
             ? [ '<32>{#p/monster}* Ahuhuhuhu...', '<32>* Tell her she should increase my payout next time.' ]
@@ -1193,7 +1002,7 @@ const text = {
                  ]
             : save.data.b.f_state_mushroomdance
             ? [
-                 '<32>{#p/monster}* If only I could see the world beyond.',
+                 '<32>{#p/monster}* If only I could see the galaxy beyond.',
                  '<32>* But even if the force field was destroyed, how would I leave...?',
                  ...(save.data.b.oops ? [] : [ '<32>* Even you might not be able to help me...' ])
               ]
@@ -1211,812 +1020,31 @@ const text = {
          "<18>That's a nice name.",
          '<18>{*}{#x1}{#p/asriel3}{#i/300}My name is       {%}'
       ],
-      npcinter: {
-         f_shortsy: pager.create(
-            'limit',
-            () =>
-               save.data.n.plot < 48
-                  ? [
-                       '<32>{#p/monster}{#npc/a}* My buddy Longsy and I want to build a new bridge to impress the king.',
-                       "<32>* It'll be the straightest, most sturdy bridge you've ever seen.",
-                       "<32>* I'll make sure of it!"
-                    ]
-                  : [
-                       '<32>{#p/monster}{#npc/a}* Take a look at our newest bridge.',
-                       '<32>* Longsy and I figure this will be enough to impress the king...',
-                       "<32>* It needs to be if we're going to work alongside him!"
-                    ],
-            () =>
-               save.data.n.plot < 48
-                  ? [ "<32>{#p/monster}{#npc/a}* I'm set on doing nothing less than the best.\n* That's just how I am." ]
-                  : [
-                       "<32>{#p/monster}{#npc/a}* No need to thank us, it's only a community service.\n* That's just what I do."
-                    ]
-         ),
-         f_longsy: pager.create(
-            'limit',
-            () =>
-               save.data.n.plot < 48
-                  ? [
-                       '<32>{#p/monster}{#npc/a}* My friend Shortsy and I plan to build a bridge.',
-                       "<32>* He's got his reasons, but personally, I'm just tired of using that unstable raft.",
-                       "<32>* Let's hope we can do something a little better than that."
-                    ]
-                  : [
-                       "<32>{#p/monster}{#npc/a}* How'd you like our bridge?\n* Was it stable?\n* Was it gravitationally secure?",
-                       "<32>* Well, Shortsy said it's fine, and they're kinda the expert here.",
-                       "<32>* I'm mostly just here to carry around the tools!"
-                    ],
-            () =>
-               save.data.n.plot < 48
-                  ? [ "<32>{#p/monster}{#npc/a}* Instability and I don't get along very well.\n* That's just how I am." ]
-                  : [
-                       "<32>{#p/monster}{#npc/a}* Don't get it twisted.\n* I'm a fantastic tool-toter.\n* That's just what I do."
-                    ]
-         ),
-         f_echoLobby: [
-            '<32>{#p/story}{#npc/a}* Recursion matrix... active.',
-            '<32>* Power output... 6.2 trillion yottajoules.',
-            '<32>* Counter-indications negligent.',
-            '<32>* The framework is in place.',
-            '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+      napcomputer1: pager.create('limit', () => [
+         '<32>{#p/narrator}* The computer is currently open to a music-sharing application.',
+         choicer.create('* (View the application?)', 8, 7, 'Yes', 'No')
+      ]),
+      napcomputer2: [ '<32>{#p/human}* (You decide not to look.)' ],
+      napcomputer3: {
+         a: [
+            'MTT - Solarwave.kwac',
+            'MTT - Homeworld Blues.kwac',
+            '_K1llSh0t_ - Hyper Rage.kwac',
+            'MMSA - Main Theme.kwac',
+            () => (save.data.n.state_starton_papyrus === 1 ? 'papyrus tribute.kwac' : 'funny autotune.kwac'),
+            'Song of the Stars.kwac'
          ],
-         f_echo1: () =>
-            world.genocide
-               ? [
-                    '<32>{#p/monster}{#npc/a}* ...',
-                    '<32>{#p/alphys}* Undyne... you have to l-l-listen to me... Sans is already...',
-                    '<32>{#p/monster}* ...',
-                    '<32>{#p/alphys}* But if you try to... if you...',
-                    '<32>{#p/monster}* ...',
-                    '<32>{#p/alphys}* N-no!\n* Undyne, wait!\n* P-PLEASE- {%}',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    '<32>{#p/monster}{#npc/a}* Skrubby of foundry crew.\n* Need u to check pipe for leak.',
-                    "<32>{#p/alphys}* Oh- uhm... s-sorry, ah!\n* I'm a little busy at the moment!",
-                    '<32>{#p/monster}* Okie.\n* I ask Raddy instead.\n* Thx for nothing.',
-                    "<32>{#p/alphys}* Y-you're welcome??",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echo2: () =>
-            world.genocide
-               ? [
-                    '<32>{#p/asgore1}{#npc/a}* This is the king.',
-                    '<32>* All citizens should evacuate to the Citadel at once.',
-                    '<32>* You must not engage with the human or their monster companion.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
-                    ...(world.goatbro && save.flag.n.ga_asrielEcho1++ < 1
-                       ? [ '<25>{#p/asriel2}{#f/8}* Spreading your cowardice to everyone else, I see.' ]
-                       : [])
-                 ]
-               : [
-                    '<32>{#p/asgore1}{#npc/a}* This is the king.',
-                    '<32>* Nice day today, huh?',
-                    '<32>* Stars are shining, auroras are blazing...',
-                    '<32>* Perfect conditions for a night out with the telescope.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echo3: () =>
-            world.genocide
-               ? [
-                    '<32>{#p/monster}{#npc/a}* This is pointless.',
-                    '<32>* Why do we have to evacuate?',
-                    "<32>* ...who said you have to evacuate just because the king's kid went rogue?",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
-                    ...(save.flag.n.ga_asrielEcho2++ < 1
-                       ? [ "<25>{#p/asriel2}{#f/7}* Rogue?\n* Nah, I'm just doing what needs to be done." ]
-                       : [])
-                 ]
-               : [
-                    '<32>{#p/monster}{#npc/a}* This is pointless.',
-                    "<32>* It's always the same stars and the same auroras.",
-                    "<32>* ...don't be so down, Buegie.\n* There's plenty to see.",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echo4: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/monster}{#npc/a}* The king's son...?\n* Asriel...?\n* But he's...",
-                    "<32>* ...I know, I know.\n* I'd be just as confused as you if I were in your place.",
-                    '<32>* Huh...',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    "<32>{#p/monster}{#npc/a}* What direction?\n* I've seen them all.",
-                    "<32>* ...it's not about seeing new things, it's about appreciating what you have.",
-                    '<32>* Ugh...',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echo5: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/monster}{#npc/a}* Maybe he's a demon of some kind, an impostor.",
-                    "<32>* Wa ha ha!\n* ...that's ridiculous.",
-                    "<32>* But if he's not a demon or an impostor, then what...?",
-                    '<32>* ...you know, Burgie, some theories are better left untested.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
-                    ...(save.flag.n.ga_asrielEcho4++ < 1
-                       ? [
-                            "<25>{#p/asriel2}{#f/4}* It's like they always say, $(name)...",
-                            '<25>{#f/3}* Truth is a masterpiece in your dreams.'
-                         ]
-                       : [])
-                 ]
-               : [
-                    "<32>{#p/monster}{#npc/a}* ...look, when you're as old as me, you come to realize something.",
-                    '<32>* ...for all the wonderful things we can observe out there...',
-                    "<32>* ...we're never gonna reach 'em.",
-                    '<32>* ...you might as well enjoy what you can observe, right?',
-                    '<32>* I guess...',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echo6: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/monster}{#npc/a}* I'm scared...\n* I don't want to die...",
-                    "<32>* ...you're a shopkeeper, Burgie. Even a genocidal maniac wouldn't go after ya.",
-                    "<32>* Are you serious!?\n* I'm out in the open here!",
-                    "<32>* ...eh, it's a little somethin' I picked up on during the war.\n* You're safe, trust me.",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    '<32>{#p/monster}{#npc/a}* You know, about what you said earlier...',
-                    "<32>* About how we're never gonna reach the stars...",
-                    '<32>* Well, I heard the royal scientist mention a human earlier.',
-                    '<32>* ...oh, did you now?',
-                    '<32>* She told me herself, old buddy.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echo7: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/monster}{#npc/a}* I hope you're right...",
-                    "<32>* 'Cause if I die, then who's gonna put a stop to...",
-                    "<32>* ...wait, can't talk about that, it's classified.",
-                    "<32>* Burgie...?\n* You tryina tell me you're some kinda secret agent?",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    '<32>{#p/monster}{#npc/a}* ...you know, I could believe it.',
-                    '<32>* ...especially considering I saw a human just a little while ago.',
-                    "<32>* So it's true, then.\n* Freedom is coming...",
-                    '<32>* ...one would presume so.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echo8: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/monster}{#npc/a}* Pfft, me?\n* A secret agent?\n* You're outta your mind!",
-                    "<32>* I'm too busy with my food business, you know that.",
-                    "<32>* ...I've seen someone who looks a lot like you sneak out at times...",
-                    "<32>* ...and when I followed 'em... I saw 'em enter Glyde's place.",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    "<32>{#p/monster}{#npc/a}* We're all counting on Asgore now, I guess...",
-                    "<32>* But hey, he'll do what has to be done, right?",
-                    '<32>* ...if it comes to it.',
-                    "<32>* And what's the alternative?\n* Let 'em go?",
-                    '<32>* ...I dunno, Burgie.\n* I wish I had all the answers.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echo9: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/monster}{#npc/a}* Sounds shady.\n* But it's definitely not me, I know that for a fact.",
-                    '<32>* Wa ha ha!\n* ...if you say so.',
-                    '<32>* * You know, I... heh...\n* Thanks, old buddy.',
-                    '<32>* ...what for?',
-                    "<32>* For a moment, I'd forgotten about all the crap going down today.",
-                    "<32>* I'll take all the moments like that I can get.",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    '<32>{#p/monster}{#npc/a}* Maybe you and I can hang out together after we get out, huh?',
-                    "<32>* ...I wouldn't be against it.",
-                    '<32>* Heh...',
-                    "You're on, old buddy.",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echoAbyss1: () =>
-            world.genocide
-               ? [
-                    '<32>{#s/phone}{#p/event}{#npc/a}* Ring, ring...',
-                    '<32>{#p/mettaton}* YES, DEAR?',
-                    "<32>{#p/alphys}* M... Mettaton... s-something's happening... something bad...",
-                    '<32>{#p/mettaton}* WHAT IS IT?\n* TALK TO ME, ALPHYS.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    '<32>{#s/phone}{#p/event}{#npc/a}* Ring, ring...',
-                    '<32>{#p/mettaton}* YES, DEAR?',
-                    "<32>{#p/alphys}* Mettaton... I've been picking up these weird signals...",
-                    '<32>{#p/mettaton}* WHAT KIND OF SIGNALS?',
-                    "<32>{#p/alphys}* They're like... uhh, r-radio signals!",
-                    '<32>* Old Earth radio signals.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echoAbyss2: () =>
-            world.genocide
-               ? [
-                    '<32>{#p/alphys}{#npc/a}* S-see that bridge?\n* The one to the Outlands?',
-                    '<32>* A human and a monster just came out of there and...\n* Sans is d... d-dead...',
-                    '<32>{#p/mettaton}* ...!',
-                    '<32>{#p/alphys}* Monsters are dropping l-like frog-flies...',
-                    "<32>{#p/mettaton}* OH MY... \n* I'LL HAVE TO INFORM THE KING RIGHT AWAY.",
-                    '<32>{#p/alphys}* N-no, um...!',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
-                    ...(world.epicgamer && !save.data.b.f_state_dc_kidd2
-                       ? ((save.data.b.f_state_dc_kidd2 = true),
-                         [
-                            "<25>{#p/kidd}{#f/3}* Human and monster?\n* That wasn't you guys... right?",
-                            '<25>* Uh... haha...'
-                         ])
-                       : [])
-                 ]
-               : [
-                    '<32>{#p/mettaton}{#npc/a}* MY MY, THAT IS QUITE THE DISCOVERY, ALPHYS.',
-                    '<32>* WHAT DO YOU PLAN TO DO WITH THEM?',
-                    '<32>{#p/alphys}* W-well... I was thinking...',
-                    "<32>* I could broadcast them on air?\n* It'd make a fun TV segment, d-don't you think?",
-                    "<32>{#p/mettaton}* OH YES, THAT'S A BRILLIANT IDEA, DOCTOR!",
-                    '<32>* PLAY THEM BACK RIGHT AWAY!',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echoAbyss3: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/mettaton}{#npc/a}* ALPHYS, WE CAN'T AFFORD TO HESITATE.\n* WHY THE HOLDUP?",
-                    "<32>{#p/alphys}* M-Mettaton...\n* You don't understand...",
-                    "<32>* The boss monster... he's...",
-                    '<32>* U-um...',
-                    '<32>{#p/mettaton}* YES, ALPHYS?',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    '<32>{#p/radio}{#npc/a}* Helloooooo everyone!\n* You are listening to The Midnight Rush!',
-                    '<32>{#v/1}* Well Al, not much went down today, barring a few traffic accidents...',
-                    '<32>{#v/0}* Not much went down?\n* You kidding?',
-                    '<32>{#v/0}* Aliens from the neighboring planet have arrived for crying out loud.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
-                    ...(world.epicgamer && !save.data.b.f_state_dc_kidd3
-                       ? ((save.data.b.f_state_dc_kidd3 = true),
-                         [
-                            '<25>{#p/kidd}{#f/7}* Neighboring planet?\n* Could that mean...',
-                            '<25>{#f/2}* No... n-no way.'
-                         ])
-                       : [])
-                 ],
-         f_echoAbyss4: () =>
-            world.genocide
-               ? [
-                    '<32>{#p/alphys}{#npc/a}* Just... look at the tape.',
-                    '<32>{#p/mettaton}* ...',
-                    '<32>* HMM...',
-                    '<32>* IS THAT- {%}',
-                    '<32>{#p/alphys}* Yes.',
-                    '<32>* ...',
-                    '<32>{#p/mettaton}* ...OH MY.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    "<32>{#p/radio}{#v/1}{#npc/a}* You're kidding, right?\n* Their last transmission to us indicated that- {%}",
-                    "<32>{#v/0}* That was two weeks ago!\n* They're here, Al.\n* They're really here.",
-                    "<32>{#v/1}* ...so what do we do?\n* Surely we're not just going to let 'em destroy us, right?",
-                    "<32>{#v/0}* Man, you've got a crazy imagination my friend.",
-                    '<32>{#v/1}* But still...',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echoAbyss5: () =>
-            world.genocide
-               ? [
-                    '<32>{#p/alphys}{#npc/a}* W-we could call Undyne, o-o-or maybe...',
-                    '<32>* Maybe...',
-                    "<32>{#p/mettaton}* ARE YOU THINKING WHAT I'M THINKING, DEAR?",
-                    '<32>{#p/alphys}* The liftgates.',
-                    "<32>{#p/mettaton}* YES... YES!\n* THAT'S A BRILLIANT IDEA, DR. ALPHYS! BRILLIANT!",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    "<32>{#p/radio}{#npc/a}* People, let's all just caaaalm down, okay?",
-                    '<32>* Personally, I think these aliens could be great allies.\n* Just look at their tech.',
-                    "<32>{#v/1}* Yeah, yeah...\n* Well, if we're gonna be all lovey-dovey with E.T. here...",
-                    '<32>{#v/1}* Then we\'re gonna need a better plan than just walking up and saying "Howdy."',
-                    "<32>{#v/0}* Oh yeah, isn't that how Erogot says Hello?",
-                    "<32>{#v/1}* I get the feeling he's REALLY into western movies...",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
-                    ...(world.epicgamer && !save.data.b.f_state_dc_kidd4
-                       ? ((save.data.b.f_state_dc_kidd4 = true),
-                         [ '<25>{#p/kidd}{#f/1}* Erogot?', '<25>{#f/1}* KING Erogot!?', '<25>{#f/3}* Dude...' ])
-                       : [])
-                 ],
-         f_echoAbyss6: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/alphys}{#npc/a}* I'll s-start on it right away...",
-                    "<32>* Once th-they enter the lab, it'll- {%}",
-                    '<32>{#p/mettaton}* SHH, ALPHYS...',
-                    '<32>* FOR ALL WE KNOW, THEY COULD BE LISTENING TO US RIGHT NOW.',
-                    '<32>{#p/alphys}* O-Oh...\n* Of c-course.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
-                    ...(world.epicgamer && !save.data.b.f_state_dc_kidd6
-                       ? ((save.data.b.f_state_dc_kidd6 = true), [ '<25>{#p/kidd}{#f/4}* Yo...\n* Really creepy...' ])
-                       : [])
-                 ]
-               : [
-                    '<32>{#p/radio}{#v/1}{#npc/a}* Well anyway, about the plan...',
-                    '<32>{#v/0}* About the plan indeed.',
-                    '<32>{#v/1}* Hmm... I think...',
-                    '<32>{#v/1}* ...',
-                    "<32>{#v/0}* You've got no idea, do you?",
-                    "<32>{#v/1}* ...\n* We've got a listener calling into the station...",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echoAbyss7: () =>
-            world.genocide
-               ? [
-                    '<32>{#p/alphys}{#npc/a}* S-so... when are you going to be ready to- {%}',
-                    '<32>{#s/landing}{#p/undyne}* What the HELL is going on?',
-                    '<32>* Papyrus just came running to my door, screaming something about his brother being DEAD.',
-                    '<32>{#p/alphys}* U-um... I...',
-                    "<32>* No, no, no...\n* It's all happening so fast...",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    '<32>{#p/radio}{#v/1}{#npc/a}* Welcome, dear caller, to The Midnight Rush!',
-                    '<32>* Got anything for us?',
-                    "<32>{#p/human}* Yeah, you sure we're ready for this as a species?",
-                    "<32>{#p/radio}{#v/0}* What are you implying?\n* That we're too dumb to comprehend the situation?",
-                    "<32>{#p/human}* Of course not.\n* You think I'm worried for us?\n* Heh, buddy...",
-                    "<32>{#p/human}* I'm worried for THEM.\n* You know how humans can be...",
-                    "<32>* It's only a matter of time before we end up doing something stupid.",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echoAbyss8: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/undyne}{#npc/a}* Just tell me what's going on!\n* I KNOW you've got hidden cameras all over the place.",
-                    "<32>* Don't think I haven't noticed.",
-                    '<32>{#p/alphys}* W-well... I... uh... you see- {%}',
-                    '<32>{#p/mettaton}* A HUMAN AND A MONSTER THAT LOOKS A LOT LIKE PRINCE ASRIEL ARE COMMTTING MASS GENOCIDE.',
-                    '<32>{#p/alphys}* Mettaton!?',
-                    '<32>{#p/mettaton}* IS THAT DETAILED ENOUGH FOR YOU, CAPTAIN?',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
-                    ...(world.epicgamer && !save.data.b.f_state_dc_kidd7
-                       ? ((save.data.b.f_state_dc_kidd7 = true), [ "<25>{#p/kidd}{#f/4}* She doesn't sound good..." ])
-                       : [])
-                 ]
-               : [
-                    '<32>{#p/radio}{#v/1}{#npc/a}* Tch, way to be optimistic.',
-                    '<32>{#v/0}* Well Al, for many people, this is a whole lot to take in all at once.',
-                    "<32>* Remember, we've been pro-alien since the initial discovery back in the day.",
-                    '<32>{#v/1}* Very true, very true.',
-                    "<32>{#v/0}* Well folks, that's all we got time for tonight, make sure to sleep tight...",
-                    "<32>* And don't let the fluffy monsters bite.",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echoAbyss9: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/undyne}{#npc/a}* Damn it, I knew I shoulda taken Silencio's warning seriously...",
-                    "<32>* I'm gonna go tell the king right away, you stay put here and don't try anything DUMB!",
-                    '<32>{#s/landing}{#p/alphys}* N-no, wait- {%}',
-                    "<32>{#p/mettaton}* SHE'S GONE, DEAR.\n* GONE LIKE THE FADING STARLIGHT!",
-                    '<32>{#p/alphys}* I can see that.',
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    '<32>{#p/mettaton}{#npc/a}* OH, THESE RADIO SHOW HOSTS ARE JUST FABULOUS!',
-                    '<32>{#p/alphys}* Ehehe...\n* Taking inspiration, I see?',
-                    '<32>{#p/mettaton}* OH, DEFINITELY.\n* HOW COULD I PASS UP SUCH A GOLDEN OPPORTUNITY?',
-                    "<32>{#p/alphys}* W-well, I'm glad you found a use for all this...",
-                    "<32>{#p/mettaton}* OF COURSE.\n* THERE'S PLENTY OF GOOD MATERIAL HERE.",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echoAbyss10: () =>
-            world.genocide
-               ? [
-                    "<32>{#p/undyne}{#npc/a}* I'm coming for you, human.",
-                    '<32>* You and that PUNK partner of yours...',
-                    "<32>* I'm going to END you.",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ]
-               : [
-                    "<32>{#p/mettaton}{#npc/a}* ALPHYS, ALPHYS, ALPHYS.\n* YOU'RE MORE HELPFUL THAN YOU THINK, DEAR.",
-                    '<32>{#p/alphys}* R-really?',
-                    '<32>{#p/mettaton}* WELL, YOU -ARE- RESPONSIBLE FOR MY FABULOUS BODY.',
-                    '<32>{#p/alphys}* Oh.\n* Yeah.',
-                    "<32>{#p/mettaton}* IT'S NOTHING TO BE ASHAMED OF!\n* THIS BODY MAY BE ROUGH AROUND THE EDGES, BUT...",
-                    "<32>* IT'S A LOT BETTER THAN HAVING NO BODY AT ALL.",
-                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
-                 ],
-         f_echodude: pager.create(
-            'limit',
-            () => [
-               '<32>{#p/monster}{#npc/a}* This is a signal star.\n* When it picks up a signal, it repeats it over and over...'
-            ],
-            [ '<32>{#p/monster}{#npc/a}* Never trust a star.', "<32>* That's the one defining trait of this world." ]
-         ),
-         f_kidd: pager.create(
-            'limit',
-            () =>
-               world.genocide
-                  ? [
-                       '<25>{#p/kidd}{#npc/a}{#f/3}* H... hey...',
-                       '<25>{#p/asriel2}{#f/1}{#npc}* Hey.',
-                       '<25>{#p/kidd}{#npc/a}{#f/1}* ...!\n* Y-yeah, hi!\n* Uh, haha!',
-                       '<25>{#p/asriel2}{#f/8}{#npc}* Weirdo.',
-                       '<25>{#p/kidd}{#npc/a}{#f/4}* ...'
-                    ]
-                  : save.data.n.plot === 33
-                  ? [
-                       '<25>{#p/kidd}{#npc/a}{#f/1}* Hey, how was lunch?',
-                       '<25>{#f/1}* Did that short skeleton pull a prank again?'
-                    ]
-                  : [
-                       '<25>{#p/kidd}{#npc/a}{#f/2}* Yo, are you here to see her too?',
-                       "<25>{#f/1}* Haha, she's the coolest.",
-                       '<25>{#f/2}* I wanna be just like her when I grow up...',
-                       "<25>{#f/1}* And uh, don't tell my parents I'm out here!"
-                    ],
-            () =>
-               world.genocide
-                  ? [ '<25>{#p/kidd}{#npc/a}{#f/4}* ...' ]
-                  : save.data.n.plot === 33
-                  ? [ '<25>{#p/kidd}{#npc/a}{#f/3}* He always gets kicked out for pulling awful pranks.' ]
-                  : [ '<25>{#p/kidd}{#npc/a}{#f/1}* Ha, you go on ahead.', "<25>{#f/1}* I'll be right behind you!" ]
-         ),
-         f_snail1: [ "<32>{#p/narrator}{#npc/a}* (Snail snail...)\n* Time flies when you're having fun..." ],
-         f_snail2: [ "<32>{#p/narrator}{#npc/a}* (Snail snail...)\n* All's well that ends well..." ],
-         f_temmie1: [ '<32>{#p/tem}{#npc/a}* hOI!!\n* im temmie!!!', '<32>* and dis is my friend...\n* temmie!!!' ],
-         f_temmie2: [ '<32>{#p/tem}{#npc/a}* hOI!!\n* im temmie!!!', '<32>* and dis is my friend...\n* temmie!!!' ],
-         f_temmie3: [ '<32>{#p/tem}{#npc/a}* hOI!!\n* im temmie!!!', '<32>* don forget my friend!' ],
-         f_temmie4: () =>
-            world.population === 0
-               ? [ "<32>{#p/tem}{#npc/a}* Bob isn't afraid of bullies." ]
-               : [ '<32>{#p/tem}{#npc/a}* Hi.', "<32>* I'm Bob." ],
-         f_temmie5: [ '<32>{#p/tem}{#npc/a}* awawawawah!!', '<32>* humans...\n* such a...', '<32>* CUTE!!!!' ],
-         f_temmie6: [
-            '<32>{#p/tem}{#npc/a}* tem... WATCH EGG!!!',
-            '<32>* eg... wil HATCH!!!',
-            '<32>* tem... PROUD PARENT!!'
-         ],
-         f_truth: pager.create(
-            'limit',
-            [
-               '<32>{#p/monster}* In this room, there is a gap in the fabric of spacetime...',
-               '<32>* A tear in the very skin of the universe itself...',
-               '<32>* No light or physical matter can enter, and the readings coming through are strange...',
-               "<32>* It's as if...\n* Whatever's on the other end...",
-               '<32>* ...is reliving the same few moments over and over again...'
-            ],
-            [ '<32>{#p/monster}* Who am I, you ask?', '<32>* Oh, you know...', '<32>* Just a template, discarded...' ],
-            [
-               '<32>{#p/monster}* You cannot save me, or the universe on the other end of this disturbance.',
-               '<32>* Unless, of course...',
-               '<32>* The final experiment reaches its conclusion.'
-            ]
-         ),
-         f_starkiller: pager.create(
-            'limit',
-            () =>
-               save.data.n.state_foundry_undyne !== 0
-                  ? [ '<32>{#p/monster}{#npc/a}* I feel the grass has faded.', "<32>* Don't you...?" ]
-                  : [
-                       "<32>{#p/monster}{#npc/a}* What's grass?",
-                       ...(save.data.b.genocide
-                          ? [ '<32>* Can it find you?', '<32>* Can it eat you?', '<32>* Can it kill you?' ]
-                          : save.data.b.oops
-                          ? [ '<32>* Can you find it?', '<32>* Can you eat it?', '<32>* Can you kill it?' ]
-                          : [ '<32>* Can it find you?', '<32>* Can it touch you?', '<32>* ...can it save you?' ]),
-                       '<32>* ...',
-                       '<32>* Are you made of grass?'
-                    ],
-            () =>
-               save.data.b.oops
-                  ? [ "<32>{#p/monster}{#npc/a}* The grass isn't always greener on the other side." ]
-                  : [ '<32>{#p/monster}{#npc/a}* Maybe the grass really is greener on the other side.' ]
-         ),
-         f_clamgirl: pager.create(
-            'limit',
-            () =>
-               save.data.n.plot === 47.2
-                  ? [ "<32>{#p/monster}{#npc/a}* Uh, she's still chasing-" ]
-                  : save.data.s.state_foundry_deathroom === 'f_hub'
-                  ? [ '<32>{#p/monster}{#npc/a}* You should never have come.' ]
-                  : save.data.n.state_foundry_undyne === 1
-                  ? [
-                       '<32>{#p/monster}{#npc/a}* I sense a disturbance in the nearby aura...',
-                       "<32>* You really shouldn't have walked away from that girl."
-                    ]
-                  : save.data.n.state_foundry_undyne === 2
-                  ? [
-                       '<32>{#p/monster}{#npc/a}* I sense a disturbance in the nearby aura...',
-                       '<32>* You really should have left that girl alone.'
-                    ]
-                  : 2 <= save.data.n.plot_date
-                  ? [
-                       '<32>{#p/monster}{#npc/a}* I sense a disturbance in the nearby aura...',
-                       '<32>* You and my new neighbor are getting along, I see.'
-                    ]
-                  : save.data.n.plot > 47.2
-                  ? world.trueKills > 0
-                     ? [
-                          '<32>{#p/monster}{#npc/a}* Papyrus is waiting nearby.',
-                          "<32>* Though, his efforts aren't going to bear much fruit.",
-                          '<32>* You should know why.'
-                       ]
-                     : [ '<32>{#p/monster}{#npc/a}* Papyrus is waiting nearby.', "<32>* Won't you meet my new neighbor?" ]
-                  : [
-                       "<32>{#p/monster}{#npc/a}* I'm visiting the Foundry from the Citadel.",
-                       "<32>* Considering I don't have any neighbors there, I might just end up staying."
-                    ],
-            () =>
-               save.data.n.plot === 47.2
-                  ? [ "<32>{#p/monster}{#npc/a}* Uh, she's still chasing you-" ]
-                  : save.data.s.state_foundry_deathroom === 'f_hub'
-                  ? [ '<32>{#p/monster}{#npc/a}* ...' ]
-                  : save.data.n.state_foundry_undyne > 0
-                  ? [ '<32>{#p/monster}{#npc/a}* ...' ]
-                  : 2 <= save.data.n.plot_date
-                  ? [ '<32>{#p/monster}{#npc/a}* Good neighbors have been quite difficult to find.' ]
-                  : save.data.n.plot > 47.2
-                  ? world.trueKills > 0
-                     ? [ '<32>{#p/monster}{#npc/a}* ...' ]
-                     : [
-                          "<32>{#p/monster}{#npc/a}* Go on, she won't bite.\n* She might throw a few spears at you, though."
-                       ]
-                  : [
-                       '<32>{#p/monster}{#npc/a}* Knowing where I live is nice.',
-                       "<32>* But who'd settle for a world of dreams, when hopes can lift it into reality?"
-                    ]
-         )
+         b: [ 'COOLSKELETON95', 'COOLSKELETON95', '_K1ll3rMann3qu1n_', 'ALPHYS', 'lazybones.', '(Unknown)' ]
       },
-      punchcard0: [ '<32>{#p/narrator}* The box is empty.' ],
-      punchcard1: [ '<32>{#p/narrator}* There is 1 punch card in the box.' ],
-      punchcard2: [ '<32>{#p/narrator}* There are $(x) punch cards in the box.' ],
-      punchcard3: [ choicer.create('* (Take a punch card?)', 8, 7, 'Yes', 'No') ],
-      punchcard4: [ '<32>{#p/human}* (You got the punch card.)' ],
-      puzzle1switch: [ '<32>{#p/narrator}* The switch, quite shockingly, is stuck.', '<32>* What a turn of events!' ],
-      puzzle2switch: [ '<32>{#p/narrator}* The switch is stuck.\n* Naturally.' ],
-      puzzle3switch: [
-         '<32>{#p/narrator}* Believe it or not...',
-         "<32>* The switch isn't stuck, it's just out of order.\n* Oh wait."
-      ],
-      quiche1: [
-         "<32>{#p/narrator}* There's a piece of cheesecake here with a note attached.",
-         '<32>* "I just couldn\'t handle the responsibility."',
-         choicer.create('* (Take the cheesecake?)', 8, 7, 'Yes', 'No')
-      ],
-      quiche2: [ "<32>{#p/human}* (You're carrying too much.)" ],
-      quiche3: [ '<32>{#p/human}* (You got the cheesecake.)' ],
-      quiche4: [ '<32>{#p/narrator}* Just a lonely bench out in the middle of a factory.\n* Nothing weird about that!' ],
-      quiche5: [ '<32>{#p/human}* (You let the cheesecake be.)' ],
-      sansSentry: () =>
-         world.genocide
-            ? [ "<32>{#p/narrator}* Sans's sentry station.\n* Again." ]
-            : [ "<32>{#p/narrator}* Sans's sentry station again...", "<32>* As if one wasn't enough." ],
-      sansSentryBack: () =>
-         world.genocide
-            ? [
-                 '<32>{#p/human}* (You look behind the sentry station...)',
-                 "<32>{#p/narrator}* It's a red scarf and a box of bones."
-              ]
-            : [
-                 '<32>{#p/human}* (You look behind the sentry station...)',
-                 "<32>{#p/narrator}* It's a series of notes on quantum field theory."
-              ],
-      spider1: () =>
-         world.genocide
-            ? [ "<32>{#p/monster}* There's something advancing in the dark." ]
-            : [ "<32>{#p/monster}* There's someone roving in the dark." ],
-      spider2: () =>
-         world.genocide ? [ '<32>{#p/monster}* Something powerful...' ] : [ '<32>{#p/monster}* Someone curious...' ],
-      spider3: () =>
-         world.genocide ? [ '<32>{#p/monster}* Something dangerous...' ] : [ '<32>{#p/monster}* Someone mysterious...' ],
-      spider4: () =>
-         world.genocide ? [ '<32>{#p/monster}* Something impossible...' ] : [ '<32>{#p/monster}* Someone anomalous...' ],
-      spider5: () => (world.genocide ? [ '<32>{#p/monster}* Something...' ] : [ '<32>{#p/monster}* Someone...' ]),
-      spider6: () =>
-         world.genocide
-            ? [
-                 '<32>{#p/monster}* ...that should not be allowed to live.',
-                 '<32>* You think you can just get away with all this, dearies?',
-                 '<32>* Ahuhuhu~\n* You have a lot to answer for!'
-              ]
-            : [
-                 '<32>{#p/monster}* ...that should not be allowed to pass.',
-                 '<32>* You think you can just walk by an ELITE squad volunteer and get away with it?',
-                 '<32>* Ahuhuhu~\n* You have a lot to learn!'
-              ],
-      spookydate0: [ "<25>{#p/sans}* thanks for treatin' me, kiddo.", '<25>* glad we could talk.' ],
-      spookydate1: pager.create(
-         'limit',
-         [
-            "<25>{#p/sans}* so i've been thinking.\n* bein' a sentry can get kinda boring at times.",
-            "<25>{#f/3}* that's why i took this second job as a foundry worker.",
-            '<99>{#f/2}* fortunately, two jobs\n  means twice as many\n  legally-required breaks.',
-            "<25>{#f/0}* i'm going to grillby's.\n* wanna come?",
-            choicer.create('* (What do you say?)', 8, 7, 'Yeah', 'Nah')
-         ],
-         [
-            "<25>{#p/sans}* i'm going to grillby's.\n* wanna come?",
-            choicer.create('* (What do you say?)', 8, 7, 'Yeah', 'Nah')
-         ]
-      ),
-      spookydate2a: [ "<25>{#p/sans}* well, if you insist...\n* i'll pry myself away from my work..." ],
-      spookydate2b: [ '<25>{#p/sans}* well, suit yourself.' ],
-      spookydate3: [ '<25>{#p/sans}* over here.\n* i know a shortcut.' ],
-      spookydate4: [ '<25>{#p/sans}* fast shortcut, huh?' ],
-      spookydate5: [ '<25>{#p/sans}* hey everyone.' ],
-      spookydate6: [ '<32>{#p/monster}* Greetings, Sans.\n{#x1}* Hiya, Sansy~' ],
-      spookydate7: [ '<32>{#p/monster}* Hey, Sans.\n{#x1}* (Hi, Sans.)' ],
-      spookydate8: [ "<32>{#p/monster}* Uh... weren't you just here for breakfast not too long ago?" ],
-      spookydate9: [
-         "<25>{#p/sans}{#f/3}* nah, i haven't had breakfast in at least half an hour.",
-         '<25>{#f/2}* you must be thinking of brunch.'
-      ],
-      spookydate9x: [ "<25>{#p/sans}{#f/3}* gee grillby, where'd everybody go?" ],
-      spookydate9y: [
-         '<32>{#p/monster}{#npc/a}* ...\n* ...\n* ...',
-         "<32>* ...Grillbz doesn't mention the lack of customers, but says seeing you is a nice relief."
-      ],
-      spookydate9z: [ '<25>{#p/sans}{#f/0}* weird.' ],
-      spookydate10: [ "<25>{#p/sans}* kid, why don't you come up here and take a seat?" ],
-      spookydate11: [
-         '<25>{#p/sans}* whoops, watch where you sit down in here.',
-         '<25>{#f/2}* some weirdo musta put a whoopee cushion on the seat.',
-         "<25>{#f/0}* ...anyway, let's order.\n* whaddya want?",
-         choicer.create('* (What do you say?)', 8, 7, 'Fries', 'Burgers'),
-         '<25>{#p/sans}* hey, that sounds pretty good.'
-      ],
-      spookydate12a: [ "<25>{#p/sans}* grillby, we'll have a double order of glow fries." ],
-      spookydate12b: [ "<25>{#p/sans}* grillby, we'll have two jelly burgers." ],
-      spookydate13: [
-         '<25>{#p/sans}* so, what do you think of my brother?',
-         choicer.create('* (What do you say?)', 8, 7, 'Cool', 'Uncool')
-      ],
-      spookydate14a: () =>
-         world.dead_skeleton
-            ? [
-                 "<25>{#p/sans}* of course he's cool.",
-                 "<25>{#f/3}* you'd be cool too if you wore that outfit every day.",
-                 '<25>{#f/0}* he only took that thing off when he absolutely had to.',
-                 '<25>{#f/0}* oh well.\n* at least he washed it.',
-                 '<25>{#f/2}* and by that, i mean he wore it in the shower.'
-              ]
-            : [
-                 "<25>{#p/sans}* of course he's cool.",
-                 "<25>{#f/3}* you'd be cool too if you wore that outfit every day.",
-                 "<25>{#f/0}* he'd only take that thing off if he absolutely had to.",
-                 '<25>{#f/0}* oh well.\n* at least he washes it.',
-                 '<25>{#f/2}* and by that, i mean he wears it in the shower.'
-              ],
-      spookydate14b: () =>
-         world.dead_skeleton
-            ? [
-                 '<25>{#p/sans}* hey, pal.',
-                 "<25>{#f/4}* sarcasm isn't funny, okay?",
-                 '<25>{#f/0}* my brother was a real icon.',
-                 "<25>{#f/3}* if it weren't for him, i wouldn't even be a royal sentry now."
-              ]
-            : [
-                 '<25>{#p/sans}* hey, pal.',
-                 "<25>{#f/4}* sarcasm isn't funny, okay?",
-                 "<25>{#f/0}* my brother's a real icon.",
-                 "<25>{#f/3}* if it weren't for him, i wouldn't even be a royal sentry now."
-              ],
-      spookydate15: [ '<25>{#p/sans}* here comes the grub.' ],
-      spookydate16: [
-         '<25>{#p/sans}* anyway, cool or not, you have to agree he goes above and beyond.',
-         '<99>{#f/0}* matter of fact, his\n  interest in the guard\n  is a good example.',
-         '<25>* not too long ago, papyrus visited the captain of the guard...',
-         '<25>{#f/3}* and begged her to let him be in it.',
-         '<25>{#f/0}* and, naturally, she shut the door on him...',
-         '<25>{#f/2}* but after a few hours, she found him there, still waiting.',
-         '<25>{#f/0}* seeing his dedication, she decided to give him...',
-         "<25>{#f/2}* ...well, let's just call it 'warrior training.'"
-      ],
-      spookydate17: [ "<25>{#p/sans}* oh yeah, there's something i've been meaning to ask ya." ],
-      spookydate18: [
-         '<25>{*}{#p/sans}{#f/1}* have you ever heard of a {@fill:#ff0}talking star{@fill:#fff}?',
-         choicer.create('* (What do you say?)', 8, 7, 'Yes', 'No')
-      ],
-      spookydate19a: [
-         '<25>{#p/sans}* so you know all about it, then.',
-         '<25>{#p/sans}* the {@fill:#0080ff}signal star{@fill:#fff}.'
-      ],
-      spookydate19b: [ "<25>{#p/sans}* well, lemme tell ya.\n* it's called the {@fill:#0080ff}signal star{@fill:#fff}." ],
-      spookydate20: () =>
-         world.dead_skeleton
-            ? [
-                 "<25>* they're all over the factory.",
-                 "<25>* once they pick up a signal, they'll repeat it over and over...",
-                 '<25>{#f/3}* what about it?',
-                 '<25>{#f/0}* well, papyrus told me something interesting the other day.',
-                 '<25>* sometimes, when no one else was around...',
-                 '<25>* a star appeared from the heavens and whispered things to him.',
-                 '<25>* flattery...\n* advice...\n* encouragement...',
-                 '<25>{#f/3}* ...predictions.',
-                 '<25>{#f/0}* weird, huh?',
-                 "<25>* someone must've used a signal star to play a trick on him.",
-                 '<25>* keep an eye out, ok?',
-                 '<25>* thanks.'
-              ]
-            : [
-                 "<25>* they're all over the factory.",
-                 "<25>* once they pick up a signal, they'll repeat it over and over...",
-                 '<25>{#f/3}* what about it?',
-                 '<25>{#f/0}* well, papyrus told me something interesting the other day.',
-                 '<25>* sometimes, when no one else is around...',
-                 '<25>* a star appears from the heavens and whispers things to him.',
-                 '<25>* flattery...\n* advice...\n* encouragement...',
-                 '<25>{#f/3}* ...predictions.',
-                 '<25>{#f/0}* weird, huh?',
-                 '<25>* someone must be using a signal star to play a trick on him.',
-                 '<25>* keep an eye out, ok?',
-                 '<25>* thanks.'
-              ],
-      spookydate21: () => [
-         '<25>{#p/sans}* say, can you foot the bill?',
-         ...(save.data.b.s_state_million && !save.data.b.s_state_million_garb
-            ? [
-                 '<25>{#f/3}* ...actually, since you beat my high score earlier...',
-                 "<25>{#f/2}* well uh, i'm only kidding, anyway."
-              ]
-            : [
-                 "<25>{#f/2}* that'll be 10,000 G.",
-                 choicer.create('* (What do you say?)', 8, 7, 'Yes', 'No'),
-                 '<25>{#p/sans}* heheh... just kidding.'
-              ]),
-         '<25>{#p/sans}{#f/4}* grillby.\n* put it on my tab.'
-      ],
-      spookydate22: [
-         '<25>{#p/sans}* that was quite the break, huh?',
-         "<25>{#f/2}* i can't believe i let ya pull me away from work for that long."
-      ],
-      spookydate23: () => [
-         '<25>{#p/sans}* by the way...',
-         world.genocide
-            ? '<25>{#f/1}* ...i was going to say something, but i forgot.'
-            : '<25>{#f/2}* ...i was going to say something, but i forgot.'
-      ],
-      telescopeX: pager.create(
-         'limit',
-         [
-            "<25>{#p/sans}* i'm thinking about getting into the telescope business.",
-            "<25>{#f/3}* this here is what you'd call a PREMIUM telescope.",
-            '<25>{#f/3}* i was planning on waiting to show it off tomorrow...',
-            '<25>{#f/2}* but, since i know you, you can use it early.',
-            '<25>{#f/0}* howzzabout it?',
-            choicer.create('* (What do you say?)', 8, 7, 'Yes', 'No')
-         ],
-         [ '<25>{#p/sans}{#f/2}* wanna try my telescope?', choicer.create('* (What do you say?)', 8, 7, 'Yes', 'No') ]
-      ),
-      telescopeY: [
-         "<25>{#p/sans}* lemme guess...\n* it doesn't work?",
-         '<25>{#f/3}* oh, sorry, i thought you knew.',
-         '<25>{#f/2}* a premium telescope requires a premium membership.'
-      ],
-      temmiepat1: [
-         '<32>{#p/tem}{#npc/a}* p...\n* tem heard human loves to pet tem...',
-         '<32>* u wana...\n* PET???',
-         choicer.create('{#npc}* (What do you say?)', 8, 7, 'Yuz.', 'Nuu!!')
-      ],
-      temmiepat2a: [ '<32>{#p/human}* (You pet temmie.)', '<32>{#p/tem}{#npc/a}* uwawawawah.....' ],
-      temmiepat2b: [ '<32>{#p/tem}{#npc/a}* ...', "<32>{#p/tem}{#npc/a}* You're gonna regret that." ],
-      temmiepat3a: [ '<32>{#p/human}* (You continue petting temmie.)', '<32>{#p/tem}{#npc/a}* uwawawawah.....' ],
-      temmiepat3b: [ '<32>{#p/tem}{#npc/a}* ...' ],
-      temstatue: [ '<32>{#p/narrator}* Huh...?', '<32>{#p/narrator}* That sounded like a switch...' ],
-      temstatueAftuh: [ '<32>{#p/narrator}* The switch back here has already been pulled.' ],
-      temstatueNormuh: [ '<32>{#p/narrator}* "Statue of tem... very famus"\n* "VERY!!!!!!!!!"' ],
-      temmietourguide: [
-         '<32>{#p/tem}{#npc/a}* hOI!\n* can I be... TOR GIDE???',
-         choicer.create('{#npc}* (What do you say?)', 8, 7, 'Yuz.', 'Nuu!')
-      ],
-      temmietourguide1: [ '<32>{#p/tem}* uwa!!\n* tor gide TEM!!' ],
-      temmietourguide2: [ '<32>{#p/tem}* mayb next tiem!!' ],
+      napcomputer4: {
+         a: [ 'DJ Spectre.kwac', 'Spooktune Mashup.kwac' ],
+         b: [ 'NAPSTABLOOK22', 'NAPSTABLOOK22' ]
+      },
+      noTem: () =>
+         world.population === 0
+            ? [ "<32>{*}{#p/tem}* Where do you think you're going.{^999}" ]
+            : [ "<32>{*}{#p/tem}* oh no, it's a... FISHES!!!{^999}" ],
+      noTortoise: [ '<32>{*}{#p/monster}* Run while ya still can, kid!{^999}' ],
       npc86a: () => [
          '<32>{#p/monster}{#npc/a}* Foreign energy signature detected.',
          '<32>* Name... unknown.',
@@ -2138,15 +1166,1114 @@ const text = {
          ][save.data.n.state_foundry_npc86_feelings - 1][Math.floor(random.next() * 3)],
          '<32>* Your relationship status is unchanged.'
       ],
-      trivia: {
-         hapstabed: [ "<32>{#p/narrator}* It's a ghost bed.\n* You'd sleep right through it." ],
-         hapstatv: [ '<32>{#p/narrator}* An old earth television.\n* An odd, yet fitting choice...' ],
-         hapstawindow: [ '<32>{#p/narrator}* A beautiful view... of the outside foundry wall.' ],
-         hapstacouch: [
-            "<32>{#p/narrator}* Another couch, another awful temptation... you're so tired after all this traveling.",
-            '<32>{#p/narrator}* ...but you have to keep going!'
+      npcinter: {
+         f_clamgirl: pager.create(
+            'limit',
+            () =>
+               world.phish
+                  ? [ "<32>{#p/monster}{#npc/a}* Uh, she's still chasing-" ]
+                  : save.data.s.state_foundry_deathroom === 'f_hub'
+                  ? [ '<32>{#p/monster}{#npc/a}* You should never have come.' ]
+                  : save.data.n.state_foundry_undyne === 1
+                  ? [
+                       '<32>{#p/monster}{#npc/a}* I sense a disturbance in the nearby aura...',
+                       "<32>* You really shouldn't have walked away from that girl."
+                    ]
+                  : save.data.n.state_foundry_undyne === 2
+                  ? [
+                       '<32>{#p/monster}{#npc/a}* I sense a disturbance in the nearby aura...',
+                       '<32>* You really should have left that girl alone.'
+                    ]
+                  : 2 <= save.data.n.plot_date
+                  ? [
+                       '<32>{#p/monster}{#npc/a}* I sense a disturbance in the nearby aura...',
+                       '<32>* You and my new neighbor are getting along, I see.'
+                    ]
+                  : save.data.n.plot > 47.2
+                  ? world.trueKills > 0
+                     ? [
+                          '<32>{#p/monster}{#npc/a}* Papyrus is waiting nearby.',
+                          "<32>* Though, his efforts aren't going to bear much fruit.",
+                          '<32>* You should know why.'
+                       ]
+                     : [ '<32>{#p/monster}{#npc/a}* Papyrus is waiting nearby.', "<32>* Won't you meet my new neighbor?" ]
+                  : [
+                       "<32>{#p/monster}{#npc/a}* I'm visiting the Foundry from the Citadel.",
+                       "<32>* Considering I don't have any neighbors there, I might just end up staying."
+                    ],
+            () =>
+               world.phish
+                  ? [ "<32>{#p/monster}{#npc/a}* Uh, she's still chasing-" ]
+                  : save.data.s.state_foundry_deathroom === 'f_hub'
+                  ? [ '<32>{#p/monster}{#npc/a}* ...' ]
+                  : save.data.n.state_foundry_undyne > 0
+                  ? [ '<32>{#p/monster}{#npc/a}* ...' ]
+                  : 2 <= save.data.n.plot_date
+                  ? [ '<32>{#p/monster}{#npc/a}* Good neighbors have been quite difficult to find.' ]
+                  : save.data.n.plot > 47.2
+                  ? world.trueKills > 0
+                     ? [ '<32>{#p/monster}{#npc/a}* ...' ]
+                     : [
+                          "<32>{#p/monster}{#npc/a}* Go on, she won't bite.\n* She might throw a few spears at you, though."
+                       ]
+                  : [
+                       '<32>{#p/monster}{#npc/a}* Knowing where I live is nice.',
+                       "<32>* But who'd settle for a world of dreams, when hopes can lift it into reality?"
+                    ]
+         ),
+         f_echo1: () =>
+            world.genocide
+               ? [
+                    '<32>{#p/monster}{#npc/a}* ...',
+                    '<32>{#p/alphys}* Undyne... you have to l-l-listen to me... Sans is already...',
+                    '<32>{#p/monster}* ...',
+                    '<32>{#p/alphys}* But if you try to... if you...',
+                    '<32>{#p/monster}* ...',
+                    '<32>{#p/alphys}* N-no!\n* Undyne, wait!\n* Please...',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    '<32>{#p/monster}{#npc/a}* Skrubby of foundry crew.\n* Need u to check pipe for leak.',
+                    "<32>{#p/alphys}* Oh- uh... s-sorry, ah!\n* I'm a little busy at the moment!",
+                    '<32>{#p/monster}* Okie.\n* I ask Raddy instead.\n* Thx for nothing.',
+                    "<32>{#p/alphys}* Y-you're welcome??",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echo2: () =>
+            world.genocide
+               ? [
+                    '<32>{#p/asgore1}{#npc/a}* This is the king.',
+                    '<32>* All citizens should evacuate to the Citadel at once.',
+                    '<32>* You must not engage with the human or their monster companion.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
+                    ...(world.azzie && save.flag.n.ga_asrielEcho1++ < 1
+                       ? [ '<25>{#p/asriel2}{#f/8}* Spreading your cowardice to everyone else, I see.' ]
+                       : [])
+                 ]
+               : [
+                    '<32>{#p/asgore1}{#npc/a}* This is the king.',
+                    '<32>* Nice day today, huh?',
+                    '<32>* Stars are shining, auroras are blazing...',
+                    '<32>* Perfect conditions for a night out with the telescope.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echo3: () =>
+            world.genocide
+               ? [
+                    '<32>{#p/monster}{#npc/a}* This is pointless.',
+                    '<32>* Why do we have to evacuate?',
+                    "<32>* ...who said you have to evacuate just because the king's kid went rogue?",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
+                    ...(save.flag.n.ga_asrielEcho2++ < 1
+                       ? [ "<25>{#p/asriel2}{#f/8}* Rogue?\n* I'm just doing what needs to be done." ]
+                       : [])
+                 ]
+               : [
+                    '<32>{#p/monster}{#npc/a}* This is pointless.',
+                    "<32>* It's always the same stars and the same auroras.",
+                    "<32>* ...don't be so down, Buegie.\n* There's plenty to see.",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echo4: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/monster}{#npc/a}* The king's son...?\n* Asriel...?\n* But he's...",
+                    "<32>* ...I know, I know.\n* I'd be just as confused as you if I were in your place.",
+                    '<32>* Huh...',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    "<32>{#p/monster}{#npc/a}* What direction?\n* I've seen them all.",
+                    "<32>* ...it's not about seeing new things, it's about appreciating what you have.",
+                    '<32>* Ugh...',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echo5: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/monster}{#npc/a}* Maybe he's a demon of some kind, an impostor.",
+                    "<32>* Wa ha ha!\n* ...that's ridiculous.",
+                    "<32>* But if he's not a demon or an impostor, then what...?",
+                    '<32>* ...you know, Burgie, some theories are better left untested.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
+                    ...(save.flag.n.ga_asrielEcho4++ < 1
+                       ? [
+                            "<25>{#p/asriel2}{#f/3}* It's like they always say, $(name)...",
+                            '<25>{#f/4}* Truth is a masterpiece in your dreams.'
+                         ]
+                       : [])
+                 ]
+               : [
+                    "<32>{#p/monster}{#npc/a}* ...look, when you're as old as me, you come to realize something.",
+                    '<32>* ...for all the wonderful things we can observe out there...',
+                    "<32>* ...we're never gonna reach 'em.",
+                    '<32>* ...you might as well enjoy what you can observe, right?',
+                    '<32>* I guess...',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echo6: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/monster}{#npc/a}* I'm scared...\n* I don't want to die...",
+                    "<32>* ...you're a shopkeeper, Burgie. Even a genocidal maniac wouldn't go after ya.",
+                    "<32>* Are you serious!?\n* I'm out in the open here!",
+                    "<32>* ...eh, it's a little somethin' I picked up on during the war.\n* You're safe, trust me.",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    '<32>{#p/monster}{#npc/a}* You know, about what you said earlier...',
+                    "<32>* About how we're never gonna reach the stars...",
+                    '<32>* Well, I heard the royal scientist mention a human earlier.',
+                    '<32>* ...oh, did you now?',
+                    '<32>* She told me herself, old buddy.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echo7: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/monster}{#npc/a}* I hope you're right...",
+                    "<32>* 'Cause if I die, then who's gonna put a stop to...",
+                    "<32>* ...wait, can't talk about that, it's classified.",
+                    "<32>* Burgie...?\n* You tryina tell me you're some kinda secret agent?",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    '<32>{#p/monster}{#npc/a}* ...you know, I could believe it.',
+                    '<32>* ...especially considering I saw a human just a little while ago.',
+                    "<32>* So it's true, then.\n* Freedom is coming...",
+                    '<32>* ...one would presume so.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echo8: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/monster}{#npc/a}* Pfft, me?\n* A secret agent?\n* You're outta your mind!",
+                    "<32>* I'm too busy with my food business, you know that.",
+                    "<32>* ...I've seen someone who looks a lot like you sneak out at times...",
+                    "<32>* ...and when I followed 'em... I saw 'em enter Glyde's place.",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    "<32>{#p/monster}{#npc/a}* We're all counting on Asgore now, I guess...",
+                    "<32>* But hey, he'll do what has to be done, right?",
+                    '<32>* ...if it comes to it.',
+                    "<32>* And what's the alternative?\n* Let 'em go?",
+                    '<32>* ...I dunno, Burgie.\n* I wish I had all the answers.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echo9: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/monster}{#npc/a}* Sounds shady.\n* But it's definitely not me, I know that for a fact.",
+                    '<32>* Wa ha ha!\n* ...if you say so.',
+                    '<32>* * You know, I... heh...\n* Thanks, old buddy.',
+                    '<32>* ...what for?',
+                    "<32>* For a moment, I'd forgotten about all the crap going down today.",
+                    "<32>* I'll take all the moments like that I can get.",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    '<32>{#p/monster}{#npc/a}* Maybe you and I can hang out together after we get out, huh?',
+                    "<32>* ...I wouldn't be against it.",
+                    '<32>* Heh...',
+                    "You're on, old buddy.",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echoAbyss1: () =>
+            world.genocide
+               ? [
+                    '<32>{#s/phone}{#p/event}{#npc/a}* Ring, ring...',
+                    '<32>{#p/mettaton}* YES, DEAR?',
+                    "<32>{#p/alphys}* M... Mettaton... s-something's happening... something bad...",
+                    '<32>{#p/mettaton}* WHAT IS IT?\n* TALK TO ME, ALPHYS.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    '<32>{#s/phone}{#p/event}{#npc/a}* Ring, ring...',
+                    '<32>{#p/mettaton}* YES, DEAR?',
+                    "<32>{#p/alphys}* Mettaton... I've been picking up these weird signals...",
+                    '<32>{#p/mettaton}* WHAT KIND OF SIGNALS?',
+                    "<32>{#p/alphys}* They're like... uhh, r-radio signals!",
+                    '<32>* Old Earth radio signals.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echoAbyss2: () =>
+            world.genocide
+               ? [
+                    '<32>{#p/alphys}{#npc/a}* S-see that bridge?\n* The one to the Outlands?',
+                    '<32>* A human and a monster just came out of there and...\n* Sans is d... d-dead...',
+                    '<32>{#p/mettaton}* ...!',
+                    '<32>{#p/alphys}* Monsters are dropping l-like frog-flies...',
+                    "<32>{#p/mettaton}* OH MY... \n* I'LL HAVE TO INFORM THE KING RIGHT AWAY.",
+                    '<32>{#p/alphys}* N-no, um...!',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
+                    ...(world.monty && !save.data.b.f_state_dc_kidd2
+                       ? ((save.data.b.f_state_dc_kidd2 = true),
+                         [
+                            "<25>{#p/kidd}{#f/3}* Human and monster?\n* That wasn't you guys... right?",
+                            '<25>* Uh... haha...'
+                         ])
+                       : [])
+                 ]
+               : [
+                    '<32>{#p/mettaton}{#npc/a}* MY MY, THAT IS QUITE THE DISCOVERY, ALPHYS.',
+                    '<32>* WHAT DO YOU PLAN TO DO WITH THEM?',
+                    '<32>{#p/alphys}* W-well... I was thinking...',
+                    "<32>* I could broadcast them on air?\n* It'd make a fun TV segment, d-don't you think?",
+                    "<32>{#p/mettaton}* OH YES, THAT'S A BRILLIANT IDEA, DOCTOR!",
+                    '<32>* PLAY THEM BACK RIGHT AWAY!',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echoAbyss3: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/mettaton}{#npc/a}* ALPHYS, WE CAN'T AFFORD TO HESITATE.\n* WHY THE HOLDUP?",
+                    "<32>{#p/alphys}* M-Mettaton...\n* You don't understand...",
+                    "<32>* The boss monster... he's...",
+                    '<32>* U-um...',
+                    '<32>{#p/mettaton}* YES, ALPHYS?',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    '<32>{#p/radio}{#npc/a}* Helloooooo everyone!\n* You are listening to The Midnight Rush!',
+                    '<32>{#v/1}* Well Al, not much went down today, barring a few traffic accidents...',
+                    '<32>{#v/0}* Not much went down?\n* You kidding?',
+                    '<32>{#v/0}* Aliens from the neighboring planet have arrived for crying out loud.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
+                    ...(world.monty && !save.data.b.f_state_dc_kidd3
+                       ? ((save.data.b.f_state_dc_kidd3 = true),
+                         [
+                            '<25>{#p/kidd}{#f/7}* Neighboring planet?\n* Could that mean...',
+                            '<25>{#f/2}* No... n-no way.'
+                         ])
+                       : [])
+                 ],
+         f_echoAbyss4: () =>
+            world.genocide
+               ? [
+                    '<32>{#p/alphys}{#npc/a}* Just... look at the tape.',
+                    '<32>{#p/mettaton}* ...',
+                    '<32>* HMM...',
+                    '<32>{*}* IS THAT- {%}',
+                    '<32>{#p/alphys}* Yes.',
+                    '<32>* ...',
+                    '<32>{#p/mettaton}* ...OH MY.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    "<32>{#p/radio}{#v/1}{#npc/a}* You're kidding, right?\n* Their last transmission indicated the opposite!",
+                    "<32>{#v/0}* That was two weeks ago.\n* They're here, Al!\n* They're really here.",
+                    "<32>{#v/1}* ...so what do we do?\n* Surely we're not just going to let 'em destroy us, right?",
+                    "<32>{#v/0}* Man, you've got a crazy imagination my friend.",
+                    '<32>{#v/1}* But still...',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echoAbyss5: () =>
+            world.genocide
+               ? [
+                    '<32>{#p/alphys}{#npc/a}* W-we could call Undyne, o-o-or maybe...',
+                    '<32>* Maybe...',
+                    "<32>{#p/mettaton}* ARE YOU THINKING WHAT I'M THINKING, DEAR?",
+                    '<32>{#p/alphys}* The liftgates.',
+                    "<32>{#p/mettaton}* YES... YES!\n* THAT'S A BRILLIANT IDEA, DR. ALPHYS! BRILLIANT!",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    "<32>{#p/radio}{#npc/a}* People, let's all just caaaalm down, okay?",
+                    '<32>* Personally, I think these aliens could be great allies.\n* Just look at their tech.',
+                    "<32>{#v/1}* Yeah, yeah...\n* Well, if we're gonna be all lovey-dovey with E.T. here...",
+                    '<32>{#v/1}* Then we\'re gonna need a better plan than just walking up and saying "Howdy."',
+                    "<32>{#v/0}* Oh yeah, isn't that how Erogot says Hello?",
+                    "<32>{#v/1}* I get the feeling he's REALLY into western movies...",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
+                    ...(world.monty && !save.data.b.f_state_dc_kidd4
+                       ? ((save.data.b.f_state_dc_kidd4 = true),
+                         [ '<25>{#p/kidd}{#f/1}* Erogot?', '<25>{#f/1}* KING Erogot!?', '<25>{#f/3}* Dude...' ])
+                       : [])
+                 ],
+         f_echoAbyss6: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/alphys}{#npc/a}* As l-long as they can't get access to the system...",
+                    "<32>{*}* They won't be able to- {%}",
+                    '<32>{#p/mettaton}* SHH...',
+                    '<32>* FOR ALL WE KNOW, THEY COULD BE LISTENING TO US RIGHT NOW.',
+                    '<32>{#p/alphys}* O-Oh...\n* Of c-course.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
+                    ...(world.monty && !save.data.b.f_state_dc_kidd6
+                       ? ((save.data.b.f_state_dc_kidd6 = true), [ '<25>{#p/kidd}{#f/4}* Yo...\n* Really creepy...' ])
+                       : [])
+                 ]
+               : [
+                    '<32>{#p/radio}{#v/1}{#npc/a}* Well anyway, about the plan...',
+                    '<32>{#v/0}* About the plan indeed.',
+                    '<32>{#v/1}* Hmm... I think...',
+                    '<32>{#v/1}* ...',
+                    "<32>{#v/0}* You've got no idea, do you?",
+                    "<32>{#v/1}* ...\n* We've got a listener calling into the station...",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echoAbyss7: () =>
+            world.genocide
+               ? [
+                    '<32>{#p/undyne}* What the HELL is going on?',
+                    '<32>* Papyrus just came running to my door, screaming something about his brother being DEAD.',
+                    '<32>{#p/alphys}* U-um... I...',
+                    "<32>* No, no, no...\n* It's all happening so fast...",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    '<32>{#p/radio}{#v/1}{#npc/a}* Welcome, dear caller, to The Midnight Rush!',
+                    '<32>* Got anything for us?',
+                    "<32>{#p/human}* Yeah, you sure we're ready for this as a species?",
+                    "<32>{#p/radio}{#v/0}* What are you implying?\n* That we're too dumb to comprehend the situation?",
+                    "<32>{#p/human}* Of course not.\n* You think I'm worried for us?\n* Heh, buddy...",
+                    "<32>{#p/human}* I'm worried for THEM.\n* You know how humans can be...",
+                    "<32>* It's only a matter of time before we end up doing something stupid.",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echoAbyss8: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/undyne}{#npc/a}* Just tell me what's going on!\n* I KNOW you've got hidden cameras all over the place.",
+                    "<32>* Don't think I haven't noticed.",
+                    '<33>{#p/alphys}* W-well... I... uh... you see...',
+                    '<32>{#p/mettaton}* A HUMAN AND A MONSTER THAT LOOKS A LOT LIKE PRINCE ASRIEL ARE COMMTTING MASS GENOCIDE.',
+                    '<32>{#p/alphys}* Mettaton!?',
+                    '<32>{#p/mettaton}* IS THAT DETAILED ENOUGH FOR YOU, CAPTAIN?',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.',
+                    ...(world.monty && !save.data.b.f_state_dc_kidd7
+                       ? ((save.data.b.f_state_dc_kidd7 = true), [ "<25>{#p/kidd}{#f/4}* She doesn't sound good..." ])
+                       : [])
+                 ]
+               : [
+                    '<32>{#p/radio}{#v/1}{#npc/a}* Tch, way to be optimistic.',
+                    '<32>{#v/0}* Well Al, for many people, this is a whole lot to take in all at once.',
+                    "<32>* Remember, we've been pro-alien since the initial discovery back in the day.",
+                    '<32>{#v/1}* Very true, very true.',
+                    "<32>{#v/0}* Well folks, that's all we got time for tonight, make sure to sleep tight...",
+                    "<32>* And don't let the fluffy monsters bite.",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echoAbyss9: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/undyne}{#npc/a}* Damn it, I knew I shoulda taken Silencio's warning seriously...",
+                    "<32>* I'm gonna go tell the king right away, you stay put here and don't try anything DUMB!",
+                    '<32>{*}{#p/alphys}* N-no, wait- {%}',
+                    "<32>{#p/mettaton}* SHE'S GONE, DEAR.\n* GONE LIKE THE FADING STARLIGHT!",
+                    '<32>{#p/alphys}* I can see that.',
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    '<32>{#p/mettaton}{#npc/a}* OH, THESE RADIO SHOW HOSTS ARE JUST FABULOUS!',
+                    '<32>{#p/alphys}* Ehehe...\n* Taking inspiration, I see?',
+                    '<32>{#p/mettaton}* OH, DEFINITELY.\n* HOW COULD I PASS UP SUCH A GOLDEN OPPORTUNITY?',
+                    "<32>{#p/alphys}* W-well, I'm glad you found a use for all this...",
+                    "<32>{#p/mettaton}* OF COURSE.\n* THERE'S PLENTY OF GOOD MATERIAL HERE.",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echoAbyss10: () =>
+            world.genocide
+               ? [
+                    "<32>{#p/undyne}{#npc/a}* I'm coming for you, human.",
+                    '<32>* You and that PUNK partner of yours...',
+                    "<32>* I'm going to END you.",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ]
+               : [
+                    "<32>{#p/mettaton}{#npc/a}* ALPHYS, ALPHYS, ALPHYS.\n* YOU'RE MORE HELPFUL THAN YOU THINK, DEAR.",
+                    '<32>{#p/alphys}* R-really?',
+                    '<32>{#p/mettaton}* WELL, YOU -ARE- RESPONSIBLE FOR MY FABULOUS BODY.',
+                    '<32>{#p/alphys}* Oh.\n* Yeah.',
+                    "<32>{#p/mettaton}* IT'S NOTHING TO BE ASHAMED OF!\n* THIS BODY MAY BE ROUGH AROUND THE EDGES, BUT...",
+                    "<32>* IT'S A LOT BETTER THAN HAVING NO BODY AT ALL.",
+                    '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
+                 ],
+         f_echodude: pager.create(
+            'limit',
+            () => [
+               '<32>{#p/monster}{#npc/a}* This is a signal star.\n* When it picks up a signal, it repeats it over and over...'
+            ],
+            [ '<32>{#p/monster}{#npc/a}* Never trust a star.', "<32>* That's the one defining trait of this world." ]
+         ),
+         f_echoLobby: () => [
+            '<32>{#p/monster}{#npc/a}* Skrubby of foundry crew.\n* Reporting on success of maintenance mission with Raddy.',
+            world.genocide
+               ? "<32>{#p/alphys}* That's... g-great...\n* Look, I-I can't deal with this right now, so just..."
+               : "<32>{#p/alphys}* Uh... g-glad you could fix it!\n* I'm sure you did well.",
+            '<32>{#p/monster}* No problem, thx for your time.',
+            '<32>{#p/alphys}* Y-yeah... sure.',
+            '<32>{#s/echostop}{#p/event}{#npc}* Signal end.'
          ],
-         hapstaposter: [ '<32>{#p/narrator}* "Two star-crossed lovers fall into a digital abyss..."' ],
+         f_kidd: pager.create(
+            'limit',
+            () =>
+               world.genocide
+                  ? [
+                       '<25>{#p/kidd}{#npc/a}{#f/3}* H... hey...',
+                       '<25>{#p/asriel2}{#f/1}{#npc}* Hey.',
+                       '<25>{#p/kidd}{#npc/a}{#f/1}* ...!\n* Y-yeah, hi!\n* Uh, haha!'
+                    ]
+                  : save.data.n.plot === 33
+                  ? [
+                       '<25>{#p/kidd}{#npc/a}{#f/1}* Hey, how was lunch?',
+                       '<25>{#f/1}* Did that short skeleton pull a prank again?'
+                    ]
+                  : [
+                       '<25>{#p/kidd}{#npc/a}{#f/2}* Yo, are you here to see her too?',
+                       "<25>{#f/1}* Haha, she's the coolest.",
+                       '<25>{#f/2}* I wanna be just like her when I grow up...',
+                       "<25>{#f/1}* And uh, don't tell my parents I'm out here!"
+                    ],
+            () =>
+               world.genocide
+                  ? [ '<25>{#p/kidd}{#npc/a}{#f/4}* ...' ]
+                  : save.data.n.plot === 33
+                  ? [ '<25>{#p/kidd}{#npc/a}{#f/3}* He always gets kicked out for pulling awful pranks.' ]
+                  : [ '<25>{#p/kidd}{#npc/a}{#f/1}* Ha, you go on ahead.', "<25>{#f/1}* I'll be right behind you!" ]
+         ),
+         f_longsy: pager.create(
+            'limit',
+            () =>
+               save.data.n.plot < 48
+                  ? [
+                       '<32>{#p/monster}{#npc/a}* My friend Shortsy and I plan to build a bridge.',
+                       "<32>* He's got his reasons, but personally, I'm just tired of using that unstable raft.",
+                       "<32>* Let's hope we can do something a little better than that."
+                    ]
+                  : [
+                       "<32>{#p/monster}{#npc/a}* How'd you like our bridge?\n* Was it stable?\n* Was it gravitationally secure?",
+                       "<32>* Well, Shortsy said it's fine, and they're kinda the expert here.",
+                       "<32>* I'm mostly just here to carry around the tools!"
+                    ],
+            () =>
+               save.data.n.plot < 48
+                  ? [ "<32>{#p/monster}{#npc/a}* Instability and I don't get along very well.\n* That's just how I am." ]
+                  : [
+                       "<32>{#p/monster}{#npc/a}* Don't get it twisted.\n* I'm a fantastic tool-toter.\n* That's just what I do."
+                    ]
+         ),
+         f_shortsy: pager.create(
+            'limit',
+            () =>
+               save.data.n.plot < 48
+                  ? [
+                       '<32>{#p/monster}{#npc/a}* My buddy Longsy and I want to build a new bridge to impress the king.',
+                       "<32>* It'll be the straightest, most sturdy bridge you've ever seen.",
+                       "<32>* I'll make sure of it!"
+                    ]
+                  : [
+                       '<32>{#p/monster}{#npc/a}* Take a look at our newest bridge.',
+                       '<32>* Longsy and I figure this will be enough to impress the king...',
+                       "<32>* It needs to be if we're going to work alongside him!"
+                    ],
+            () =>
+               save.data.n.plot < 48
+                  ? [ "<32>{#p/monster}{#npc/a}* I'm set on doing nothing less than the best.\n* That's just how I am." ]
+                  : [
+                       "<32>{#p/monster}{#npc/a}* No need to thank us, it's only a community service.\n* That's just what I do."
+                    ]
+         ),
+         f_snail1: [ "<32>{#p/narrator}{#npc/a}* (Snail snail...)\n* Time flies when you're having fun..." ],
+         f_snail2: [ "<32>{#p/narrator}{#npc/a}* (Snail snail...)\n* All's well that ends well..." ],
+         f_starkiller: pager.create(
+            'limit',
+            () =>
+               save.data.n.state_foundry_undyne !== 0
+                  ? [ '<32>{#p/monster}{#npc/a}* I feel the grass has faded.', "<32>* Don't you...?" ]
+                  : [
+                       "<32>{#p/monster}{#npc/a}* What's grass?",
+                       ...(save.data.b.genocide
+                          ? [ '<32>* Can it find you?', '<32>* Can it eat you?', '<32>* Can it kill you?' ]
+                          : save.data.b.oops
+                          ? [ '<32>* Can you find it?', '<32>* Can you eat it?', '<32>* Can you kill it?' ]
+                          : [ '<32>* Can it find you?', '<32>* Can it touch you?', '<32>* ...can it save you?' ]),
+                       '<32>* ...',
+                       '<32>* Are you made of grass?'
+                    ],
+            () =>
+               save.data.b.oops
+                  ? [ "<32>{#p/monster}{#npc/a}* The grass isn't always greener on the other side." ]
+                  : [ '<32>{#p/monster}{#npc/a}* Maybe the grass really is greener on the other side.' ]
+         ),
+         f_temmie1: [ '<32>{#p/tem}{#npc/a}* hOI!!\n* im temmie!!!', '<32>* and dis is my friend...\n* temmie!!!' ],
+         f_temmie2: [ '<32>{#p/tem}{#npc/a}* hOI!!\n* im temmie!!!', '<32>* and dis is my friend...\n* temmie!!!' ],
+         f_temmie3: [ '<32>{#p/tem}{#npc/a}* hOI!!\n* im temmie!!!', '<32>* don forget my friend!' ],
+         f_temmie4: () =>
+            world.population === 0
+               ? [ "<32>{#p/tem}{#npc/a}* Bob isn't afraid of bullies." ]
+               : [ '<32>{#p/tem}{#npc/a}* Hi.', "<32>* I'm Bob." ],
+         f_temmie5: [ '<32>{#p/tem}{#npc/a}* awawawawah!!', '<32>* humans...\n* such a...', '<32>* CUTE!!!!' ],
+         f_temmie6: [
+            '<32>{#p/tem}{#npc/a}* tem... WATCH EGG!!!',
+            '<32>* eg... wil HATCH!!!',
+            '<32>* tem... PROUD PARENT!!'
+         ]
+      },
+      plot_call: {
+         a: [
+            '<32>{#p/event}* Ring, ring...',
+            '<18>{#p/papyrus}THIS IS PAPYRUS.',
+            '<18>{#p/papyrus}{#f/5}DESPITE MY BEST EFFORTS TO SWAY HER OPINION...',
+            '<18>{#p/papyrus}{#f/5}UNDYNE STILL WANTS TO KILL YOU.',
+            '<18>{#p/papyrus}{#f/0}BUT... WORRY NOT!\nFOR I, THE GREAT PAPYRUS...',
+            '<18>{#p/papyrus}{#f/9}HAVE A FOOLPROOF PLAN TO SAVE YOU!',
+            "<18>{#p/papyrus}{#f/0}ALL YOU HAVE TO DO IS TELL ME WHAT YOU'RE WEARING.",
+            choicer.create('* (Tell him?)', 8, 7, 'Yes', 'No')
+         ],
+         a1: [
+            "<32>{#p/human}* (You tell Papyrus what you're wearing.)",
+            '<18>{#p/papyrus}{#f/0}GOT IT, THANK YOU VERY MUCH!',
+            '<18>{#p/papyrus}{#f/0}PAPYRUS OUT!'
+         ],
+         a2: [
+            '<32>{#p/human}* (You choose not to tell.)',
+            '<18>{#p/papyrus}{#f/5}TRUST ISSUES, HUH?',
+            "<18>{#p/papyrus}{#f/4}LOOKS LIKE I'LL HAVE TO RESORT TO PLAN B...",
+            '<18>{#p/papyrus}{#f/0}PAPYRUS OUT!'
+         ],
+         b: () => [
+            '<32>{#p/event}* Ring, ring...',
+            '<18>{#p/papyrus}THIS IS PAPYRUS.',
+            '<18>{#p/papyrus}REMEMBER WHEN I ASKED YOU ABOUT CLOTHES?',
+            ...(save.data.b.f_state_papclothes
+               ? [
+                    '<18>{#p/papyrus}{#f/0}WELL, IT TURNS OUT YOUR ANSWER...',
+                    "<18>{#p/papyrus}{#f/6}DIDN'T COME THROUGH VERY WELL ON THE PHONE.",
+                    '<18>{#p/papyrus}{#f/0}I TRIED VERY HARD TO UNDERSTAND, BUT...'
+                 ]
+               : [
+                    '<18>{#p/papyrus}{#f/0}WELL, IT TURNS OUT YOUR LACK OF TRUST...',
+                    '<18>{#p/papyrus}{#f/9}WAS EXACTLY WHAT I NEEDED TO SAVE YOU!',
+                    '<18>{#p/papyrus}{#f/0}AT FIRST, I TRIED GOING OFF MEMORY, BUT...'
+                 ]),
+            '<18>{#p/papyrus}{#f/5}IN THE END, I HAD TO MAKE SOMETHING UP IN MY REPORT.',
+            '<18>{#p/papyrus}{#f/0}NOW, UNDYNE IS GOOD AT KNOWING WHEN I LIE.',
+            '<18>{#p/papyrus}{#f/4}BUT THE FACT THAT I WAS TRULY UNCERTAIN...',
+            '<18>{#p/papyrus}{#f/9}MEANT SHE HAD NO IDEA IF I WAS LYING OR NOT!',
+            '<18>{#p/papyrus}{#f/0}THIS UNCERTAINTY NO DOUBT CAUSED HER TO HESITATE...',
+            '<18>{#p/papyrus}{#f/0}AND THUS, YOUR LIFE WAS SAVED!',
+            '<18>{#p/papyrus}{#f/9}NYEH HEH HEH!\nI KNEW THIS PLAN WOULD WORK.',
+            '<18>{#p/papyrus}{#f/0}PAPYRUS OUT!'
+         ]
+      },
+      punchcard0: [ '<32>{#p/narrator}* The box is empty.' ],
+      punchcard1: [ '<32>{#p/narrator}* There is 1 punch card in the box.' ],
+      punchcard2: [ '<32>{#p/narrator}* There are $(x) punch cards in the box.' ],
+      punchcard3: [ choicer.create('* (Take a punch card?)', 8, 7, 'Yes', 'No') ],
+      punchcard4: [ '<32>{#p/human}* (You got the punch card.)' ],
+      puzzle1switch: [ '<32>{#p/narrator}* The switch, quite shockingly, is stuck.', '<32>* What a turn of events!' ],
+      puzzle2switch: [ '<32>{#p/narrator}* The switch is stuck.\n* Naturally.' ],
+      puzzle3switch: [
+         '<32>{#p/narrator}* Believe it or not...',
+         "<32>* The switch isn't stuck, it's just out of order.\n* Oh wait."
+      ],
+      quiche1: [
+         "<32>{#p/narrator}* There's a piece of cheesecake here with a note attached.",
+         '<32>* "I just couldn\'t handle the responsibility."',
+         choicer.create('* (Take the cheesecake?)', 8, 7, 'Yes', 'No')
+      ],
+      quiche2: [ "<32>{#p/human}* (You're carrying too much.)" ],
+      quiche3: [ '<32>{#p/human}* (You got the cheesecake.)' ],
+      quiche4: [ '<32>{#p/narrator}* Just a lonely bench out in the middle of a factory.\n* Nothing weird about that!' ],
+      quiche5: [ '<32>{#p/human}* (You let the cheesecake be.)' ],
+      run1: [ '<32>{*}{#p/undyne}* Run.{^20}{%}' ],
+      run2a: [ '<32>{#p/undyne}* ...', "<32>{#p/undyne}* I'll go check." ],
+      run2b: [ '<32>{#p/undyne}* (Stupid spiders...)' ],
+      run2c: [ "<32>{#p/undyne}* This isn't over, punk.", "<32>* We'll be seeing each other again REAL soon." ],
+      run3: [ "<25>{*}{#p/kidd}{#f/13}{#x1}* I'll save you!{#x2}{^20}{%}" ],
+      run4: [ "<25>{*}{#p/kidd}{#f/1}{#x1}* Sorry, I, uh... don't really know how to land this thing!{#x2}{^20}{%}" ],
+      run5: [ '<25>{*}{#p/kidd}{#f/7}{#x1}* What the...{#x2}{^20}{%}' ],
+      run6: [ '<25>{*}{#p/kidd}{#f/7}{#x1}* Help!!!{#x2}{^20}{%}' ],
+      run6a: [ '<25>{*}{#p/kidd}{#f/7}{#x1}* Come on!!!{#x2}{^20}{%}' ],
+      run6b: [ '<25>{*}{#p/kidd}{#f/7}{#x1}* Come on, please!!!{#x2}{^20}{%}' ],
+      run6c: [ "<25>{*}{#p/kidd}{#f/7}{#x1}* I...\n* I-I can't stop it...!{#x2}{^20}{%}" ],
+      run6d: [
+         '<25>{*}{#p/kidd}{#f/7}{#x1}* What are you doing!?{#x2}{^20}{%}',
+         '<25>{*}{#p/kidd}{#f/7}{#x1}* Ah...!{#x2}{^20}{%}'
+      ],
+      run7: [
+         '<25>{#p/kidd}{#f/4}* Y... y... yo... dude...',
+         '<25>* If...\n* If y-you wanna hurt my friend...',
+         "<25>* You're gonna have to get through me, first."
+      ],
+      run8: [
+         "<25>{#p/kidd}{#f/3}* She's gone...",
+         '<25>{#f/1}* Yo, you really saved my skin.',
+         '<25>{#f/3}* Even if I was trying to save yours instead.',
+         '<25>{#f/2}* Haha.',
+         "<25>{#f/3}* ...man, I've never been so TIRED...",
+         '<25>{#f/4}* Guess I should probably go home.',
+         '<25>{#f/7}* I...\n* I bet my parents are worried sick about me!'
+      ],
+      run9: [ '<25>{#p/kidd}{#f/13}* L... later, dude!' ],
+      run10: [
+         '<32>{#p/kidd}* Undyne...\n* You....\n* You saved me!',
+         '<32>* Huh?\n* They ran away?',
+         "<32>* Yo, you're wrong...",
+         '<32>* They went to get help!',
+         "<32>* They'll be back any second!!",
+         '<32>* ...',
+         "<32>* O-okay, I'll go home..."
+      ],
+      run11: (charged: boolean) => [
+         '<32>{#p/kidd}* Undyne...',
+         '<32>* You saved me...?',
+         '<32>* Yo... I...\n* I thought I was a goner.\n* Haha...',
+         '<32>* ...wait, are you okay?\n* It looks like you hit the ceiling pretty hard...',
+         '<32>* Th-this is my fault.\n* I should have stayed away from them, like you said.',
+         charged
+            ? '<32>* They just went straight to fight you instead of helping me...'
+            : '<32>* They just stood there...\n* Watching...\n* Waiting for me to disappear.',
+         '<32>* I was so scared, and you...',
+         "<32>* What?\n* You're gonna go fight them now?",
+         '<32>* But you look hurt...\n* You should rest, haha...',
+         '<32>* ...',
+         "<32>* W-warriors don't rest, huh?",
+         "<32>* Undyne...\n* You're really cool."
+      ],
+      sansSentry: () =>
+         world.genocide
+            ? [ "<32>{#p/narrator}* Sans's sentry station.\n* Again." ]
+            : [ "<32>{#p/narrator}* Sans's sentry station again...", "<32>* As if one wasn't enough." ],
+      sansSentryBack: () =>
+         world.genocide
+            ? [
+                 '<32>{#p/human}* (You look behind the sentry station...)',
+                 "<32>{#p/narrator}* It's a red scarf and a box of bones."
+              ]
+            : [
+                 '<32>{#p/human}* (You look behind the sentry station...)',
+                 "<32>{#p/narrator}* It's a series of notes on quantum field theory."
+              ],
+      secretcall: [
+         '<32>{#s/phone}{#p/event}* Ring, ring...',
+         '<18>{#p/papyrus}{#f/9}PSST, THIS IS PAPYRUS!',
+         '<18>{#f/0}AT THE MOMENT, I AM STILL HIDING IN MY SAFE PLACE.',
+         "<18>{#f/4}I HOPE YOU'RE NOT GETTING INTO TROUBLE...",
+         '<18>{#f/4}BECAUSE IF YOU ARE...',
+         "<19>{#f/9}I'D HAVE TO COME OVER THERE AND DO SOMETHING ABOUT IT!",
+         "<18>{#f/6}...WHICH I CAN'T DO, BECAUSE OF THE CURRENT SITUATION.",
+         "<18>{#f/7}SO DON'T GET INTO ANY TROUBLE!",
+         '<18>{#f/5}...',
+         '<18>{#f/5}PAPYRUS OUT...',
+         '<32>{#s/equip}{#p/event}* Click...'
+      ],
+      sleeper: [ '<32>{#p/narrator}* Yet another sentry station made for Sans.\n* Like, really guys?' ],
+      sleepersans: [ "<32>{#p/narrator}* He's fast asleep." ],
+      spider1: () =>
+         world.genocide
+            ? [ "<32>{#p/monster}* There's something advancing in the dark." ]
+            : [ "<32>{#p/monster}* There's someone roving in the dark." ],
+      spider2: () =>
+         world.genocide ? [ '<32>{#p/monster}* Something powerful...' ] : [ '<32>{#p/monster}* Someone curious...' ],
+      spider3: () =>
+         world.genocide ? [ '<32>{#p/monster}* Something dangerous...' ] : [ '<32>{#p/monster}* Someone mysterious...' ],
+      spider4: () =>
+         world.genocide ? [ '<32>{#p/monster}* Something impossible...' ] : [ '<32>{#p/monster}* Someone anomalous...' ],
+      spider5: () => (world.genocide ? [ '<32>{#p/monster}* Something...' ] : [ '<32>{#p/monster}* Someone...' ]),
+      spider6: () =>
+         world.genocide
+            ? [
+                 '<32>{#p/monster}* ...that should not be allowed to live.',
+                 '<32>* You think you can just get away with all this, dearies?',
+                 '<32>* Ahuhuhu~\n* You have a lot to answer for!'
+              ]
+            : [
+                 '<32>{#p/monster}* ...that should not be allowed to pass.',
+                 '<32>* You think you can just walk by an ELITE squad volunteer and get away with it?',
+                 '<32>* Ahuhuhu~\n* You have a lot to learn!'
+              ],
+      spookydate0: [ "<25>{#p/sans}* thanks for treatin' me, kiddo.", '<25>* glad we could talk.' ],
+      spookydate1: pager.create(
+         'limit',
+         [
+            "<25>{#p/sans}* so i've been thinking.\n* bein' a sentry can get kinda boring at times.",
+            "<25>{#f/3}* that's why i took this second job as a foundry worker.",
+            '<26>{#f/2}* fortunately, two jobs means twice as many legally-required breaks.',
+            "<25>{#f/0}* i'm going to grillby's.\n* wanna come?",
+            choicer.create('* (What do you say?)', 8, 7, 'Yeah', 'Nah')
+         ],
+         [
+            "<25>{#p/sans}* i'm going to grillby's.\n* wanna come?",
+            choicer.create('* (What do you say?)', 8, 7, 'Yeah', 'Nah')
+         ]
+      ),
+      spookydate2a: [ "<25>{#p/sans}* well, if you insist...\n* i'll pry myself away from my work..." ],
+      spookydate2b: [ '<25>{#p/sans}* well, suit yourself.' ],
+      spookydate3: [ '<25>{#p/sans}* over here.\n* i know a shortcut.' ],
+      spookydate4: [ '<25>{#p/sans}* fast shortcut, huh?' ],
+      spookydate5: [ '<25>{#p/sans}* hey everyone.' ],
+      spookydate6: [ '<32>{#p/monster}* Greetings, Sans.\n{#x1}* Hiya, Sansy~' ],
+      spookydate7: [ '<32>{#p/monster}* Hey, Sans.\n{#x1}* (Hi, Sans.)' ],
+      spookydate8: [ "<32>{#p/monster}* Uh... weren't you just here for breakfast not too long ago?" ],
+      spookydate9: [
+         "<25>{#p/sans}{#f/3}* nah, i haven't had breakfast in at least half an hour.",
+         '<25>{#f/2}* you must be thinking of brunch.'
+      ],
+      spookydate9x: [ "<25>{#p/sans}{#f/3}* gee grillby, where'd everybody go?" ],
+      spookydate9y: [
+         '<32>{#p/monster}{#npc/a}* ...\n* ...\n* ...',
+         "<32>* ...Grillbz doesn't mention the lack of customers, but says seeing you is a nice relief."
+      ],
+      spookydate9z: [ '<25>{#p/sans}{#f/0}* weird.' ],
+      spookydate10: [ "<25>{#p/sans}* kid, why don't you come up here and take a seat?" ],
+      spookydate11: [
+         '<25>{#p/sans}* whoops, watch where you sit down in here.',
+         '<25>{#f/2}* some weirdo musta put a whoopee cushion on the seat.',
+         "<25>{#f/0}* ...anyway, let's order.\n* whaddya want?",
+         choicer.create('* (What do you say?)', 8, 7, 'Fries', 'Burgers'),
+         '<25>{#p/sans}* hey, that sounds pretty good.'
+      ],
+      spookydate12a: [ "<25>{#p/sans}* grillby, we'll have a double order of glow fries." ],
+      spookydate12b: [ "<25>{#p/sans}* grillby, we'll have two jelly burgers." ],
+      spookydate13: [
+         '<25>{#p/sans}* so, what do you think of my brother?',
+         choicer.create('* (What do you say?)', 8, 7, 'Cool', 'Uncool')
+      ],
+      spookydate14a: () =>
+         world.dead_skeleton
+            ? [
+                 "<25>{#p/sans}* of course he's cool.",
+                 "<25>{#f/3}* you'd be cool too if you wore that outfit every day.",
+                 '<25>{#f/0}* he only took that thing off when he absolutely had to.',
+                 '<25>{#f/0}* oh well.\n* at least he washed it.',
+                 '<25>{#f/2}* and by that, i mean he wore it in the shower.'
+              ]
+            : [
+                 "<25>{#p/sans}* of course he's cool.",
+                 "<25>{#f/3}* you'd be cool too if you wore that outfit every day.",
+                 "<25>{#f/0}* he'd only take that thing off if he absolutely had to.",
+                 '<25>{#f/0}* oh well.\n* at least he washes it.',
+                 '<25>{#f/2}* and by that, i mean he wears it in the shower.'
+              ],
+      spookydate14b: () =>
+         world.dead_skeleton
+            ? [
+                 '<25>{#p/sans}* hey, pal.',
+                 "<25>{#f/4}* sarcasm isn't funny, okay?",
+                 '<25>{#f/0}* my brother was a real icon.',
+                 "<25>{#f/3}* if it weren't for him, i wouldn't even be a royal sentry now."
+              ]
+            : [
+                 '<25>{#p/sans}* hey, pal.',
+                 "<25>{#f/4}* sarcasm isn't funny, okay?",
+                 "<25>{#f/0}* my brother's a real icon.",
+                 "<25>{#f/3}* if it weren't for him, i wouldn't even be a royal sentry now."
+              ],
+      spookydate15: [ '<25>{#p/sans}* here comes the grub.' ],
+      spookydate16: [
+         '<25>{#p/sans}* anyway, cool or not, you have to agree he goes above and beyond.',
+         '<99>{#f/0}* matter of fact, his\n   interest in the guard\n   is a good example.',
+         '<25>* not too long ago, papyrus visited the captain of the guard...',
+         '<25>{#f/3}* and begged her to let him be in it.',
+         '<25>{#f/0}* and, naturally, she shut the door on him...',
+         '<25>{#f/2}* but after a few hours, she found him there, still waiting.',
+         '<25>{#f/0}* seeing his dedication, she decided to give him...',
+         "<25>{#f/2}* ...well, let's just call it 'warrior training.'"
+      ],
+      spookydate17: [ "<25>{#p/sans}* oh yeah, there's something i've been meaning to ask ya." ],
+      spookydate18: [
+         '<25>{*}{#p/sans}{#f/1}* have you ever heard of a {@fill:#ff0}talking star{@fill:#fff}?',
+         choicer.create('* (What do you say?)', 8, 7, 'Yes', 'No')
+      ],
+      spookydate19a: [
+         '<25>{#p/sans}* so you know all about it, then.',
+         '<25>{#p/sans}* the {@fill:#0080ff}signal star{@fill:#fff}.'
+      ],
+      spookydate19b: [ "<25>{#p/sans}* well, lemme tell ya.\n* it's called the {@fill:#0080ff}signal star{@fill:#fff}." ],
+      spookydate20: () =>
+         world.dead_skeleton
+            ? [
+                 "<25>* they're all over the factory.",
+                 "<25>* once they pick up a signal, they'll repeat it over and over...",
+                 '<25>{#f/3}* what about it?',
+                 '<25>{#f/0}* well, papyrus told me something interesting the other day.',
+                 '<25>* sometimes, when no one else was around...',
+                 '<25>* a star appeared from the heavens and whispered things to him.',
+                 '<25>* flattery...\n* advice...\n* encouragement...',
+                 '<25>{#f/3}* ...predictions.',
+                 '<25>{#f/0}* weird, huh?',
+                 "<25>* someone must've used a signal star to play a trick on him.",
+                 '<25>* keep an eye out, ok?',
+                 '<25>* thanks.'
+              ]
+            : [
+                 "<25>* they're all over the factory.",
+                 "<25>* once they pick up a signal, they'll repeat it over and over...",
+                 '<25>{#f/3}* what about it?',
+                 '<25>{#f/0}* well, papyrus told me something interesting the other day.',
+                 '<25>* sometimes, when no one else is around...',
+                 '<25>* a star appears from the heavens and whispers things to him.',
+                 '<25>* flattery...\n* advice...\n* encouragement...',
+                 '<25>{#f/3}* ...predictions.',
+                 '<25>{#f/0}* weird, huh?',
+                 '<25>* someone must be using a signal star to play a trick on him.',
+                 '<25>* keep an eye out, ok?',
+                 '<25>* thanks.'
+              ],
+      spookydate21: () => [
+         '<25>{#p/sans}* say, can you foot the bill?',
+         ...(save.data.b.s_state_million && !save.data.b.s_state_million_garb
+            ? [
+                 '<25>{#f/3}* ...actually, since you beat my high score earlier...',
+                 "<25>{#f/2}* well uh, i'm only kidding, anyway."
+              ]
+            : [
+                 "<25>{#f/2}* that'll be 10,000 G.",
+                 choicer.create('* (What do you say?)', 8, 7, 'Yes', 'No'),
+                 '<25>{#p/sans}* heheh... just kidding.'
+              ]),
+         '<25>{#p/sans}{#f/4}* grillby.\n* put it on my tab.'
+      ],
+      spookydate22: [
+         '<25>{#p/sans}* that was quite the break, huh?',
+         "<25>{#f/2}* i can't believe i let ya pull me away from work for that long."
+      ],
+      spookydate23: () => [
+         '<25>{#p/sans}* by the way...',
+         world.genocide
+            ? '<25>{#f/1}* ...i was going to say something, but i forgot.'
+            : '<25>{#f/2}* ...i was going to say something, but i forgot.'
+      ],
+      telescopeX: pager.create(
+         'limit',
+         [
+            "<25>{#p/sans}* i'm thinking about getting into the telescope business.",
+            "<25>{#f/3}* this here is what you'd call a PREMIUM telescope.",
+            '<25>{#f/3}* i was planning on waiting to show it off tomorrow...',
+            '<25>{#f/2}* but, since i know you, you can use it early.',
+            '<25>{#f/0}* howzzabout it?',
+            choicer.create('* (What do you say?)', 8, 7, 'Yes', 'No')
+         ],
+         [ '<25>{#p/sans}{#f/2}* wanna try my telescope?', choicer.create('* (What do you say?)', 8, 7, 'Yes', 'No') ]
+      ),
+      telescopeY: [
+         "<25>{#p/sans}* lemme guess...\n* it doesn't work?",
+         '<25>{#f/3}* oh, sorry, i thought you knew.',
+         '<25>{#f/2}* a premium telescope requires a premium membership.'
+      ],
+      temmiepat1: [
+         '<32>{#p/tem}{#npc/a}* p...\n* tem heard human loves to pet tem...',
+         '<32>* u wana...\n* PET???',
+         choicer.create('{#npc}* (What do you say?)', 8, 7, 'Yuz.', 'Nuu!!')
+      ],
+      temmiepat2a: [ '<32>{#p/human}* (You pet temmie.)', '<32>{#p/tem}{#npc/a}* uwawawawah.....' ],
+      temmiepat2b: [ '<32>{#p/tem}{#npc/a}* ...', "<32>{#p/tem}{#npc/a}* You're gonna regret that." ],
+      temmiepat3a: [ '<32>{#p/human}* (You continue petting temmie.)', '<32>{#p/tem}{#npc/a}* uwawawawah.....' ],
+      temmiepat3b: [ '<32>{#p/tem}{#npc/a}* ...' ],
+      temmietourguide: [
+         '<32>{#p/tem}{#npc/a}* hOI!\n* can I be... TOR GIDE???',
+         choicer.create('{#npc}* (What do you say?)', 8, 7, 'Yuz.', 'Nuu!')
+      ],
+      temmietourguide1: [ '<32>{#p/tem}* uwa!!\n* tor gide TEM!!' ],
+      temmietourguide2: [ '<32>{#p/tem}* mayb next tiem!!' ],
+      temstatue: [ '<32>{#p/narrator}* Huh...?', '<32>{#p/narrator}* That sounded like a switch...' ],
+      temstatueAftuh: [ '<32>{#p/narrator}* The switch back here has already been pulled.' ],
+      temstatueNormuh: [ '<32>{#p/narrator}* "Statue of tem... very famus"\n* "VERY!!!!!!!!!"' ],
+      trivia: {
+         f_armor_sign: [ '<32>{#p/narrator}* "Be wary of sleeping dogs."' ],
+         f_backsign: [ '<32>{#p/narrator}* "Even when you\'re lost, the will to find yourself shows through."' ],
+         f_cheesetable: [
+            '<32>{#p/narrator}* A holographic cheese wedge.',
+            '<32>{#p/narrator}* The table is holographic, too.'
+         ],
+         f_creamsign: () =>
+            save.data.n.kills_starton + save.data.n.bully_starton > 2 || world.genocide
+               ? [ '<32>{#p/narrator}* "We claim this outpost as our own, never to be taken again."' ]
+               : [ '<32>{#p/narrator}* The glyphs have been painted over with a list of 21 different flavors.' ],
+         f_doge_sign: [
+            '<32>{#p/narrator}* "This is a box."',
+            '<32>* "You can put an item inside or take an item out."',
+            '<32>* "Why would you, though??"\n* "It\'s not like you can use items while they\'re inside."',
+            '<32>* "Sincerely, a box critic."'
+         ],
+         f_doge1: [
+            '<32>{#p/narrator}* "Why did the humans attack?"\n* "Indeed, it seemed that they had nothing to fear."',
+            '<32>* "Humans are unbelievably strong. It would take the SOUL of nearly every monster..."',
+            '<32>* "...just to equal the power of a single human SOUL."'
+         ],
+         f_doge3: () => [
+            '<32>{#p/narrator}* "But humans have one weakness. Ironically, it is the strength of their SOUL."',
+            '<32>* "Its power allows it to persist outside the human body, even after death."',
+            '<32>{#p/narrator}* "If a monster defeats a human, they can take its SOUL."',
+            '<32>* "A monster with a human SOUL... a horrible beast with unfathomable power."',
+            ...(world.azzie
+               ? [
+                    [ '<25>{#p/asriel2}{#f/10}* A horrible beast, eh?', "<25>{#f/8}* I'd beg to differ." ],
+                    [ '<25>{#f/8}* ...' ]
+                 ][Math.min(save.flag.n.ga_asrielBeast++, 1)]
+               : [])
+         ],
+         f_doge5: () => [
+            "<32>{#p/narrator}* It's an illustration of a harrowing creature...",
+            "<32>* There's something very unsettling about this drawing.",
+            ...(world.azzie && save.flag.n.ga_asrielDrawing++ < 1
+               ? [
+                    "<25>{#p/asriel2}{#f/5}* Look $(name)!\n* It's us... sort of.",
+                    '<26>{#f/4}* ...is that really how they think we looked?\n* Golly...'
+                 ]
+               : [])
+         ],
+         f_gersonshop: [
+            '<32>{#p/narrator}* "Gerson\'s Bits \'n\' Bobs!"\n* "A humble store for all your factory life needs!"'
+         ],
+         f_hub_sign: [
+            '<32>{#p/narrator}* "Left - Dark Zone"\n* "Forward - Undyne\'s House"\n* "Right - Gerson\'s Shop"',
+            '<32>{#p/narrator}* "Backward - Snail Preserve"'
+         ],
+         f_lobbywindow: [
+            '<32>{#p/narrator}* "You feel like you\'ve already seen this window from another perspective somewhere else."'
+         ],
+         f_paintblaster: [
+            '<32>{#p/narrator}* An old fuel injection device.\n* There is a similar one somewhere in the Outlands...'
+         ],
+         f_path1: [
+            '<32>{#p/narrator}* "When the humans trapped us, they sealed this place with a force field."',
+            '<32>* "Anything can enter through it, but only beings with a powerful SOUL can leave."'
+         ],
+         f_path2: [
+            '<32>{#p/narrator}* "There is only one way to beat this thing."',
+            '<32>* "If a huge power, equivalent to seven human SOULs, attacks the force field..."',
+            '<32>* "It will be destroyed."'
+         ],
+         f_path3: [
+            '<32>{#p/narrator}* "But this cursed place is too far away from any other outpost."',
+            '<32>* "There is no way a human could come here."',
+            '<32>* "We will remain trapped out here forever."'
+         ],
+         f_puzzle1_sign: [
+            '<32>{#p/narrator}* "Move the pylons to guide the laser into the reciever."\n* "Then press the switch."'
+         ],
+         f_puzzle2_sign: [ '<32>{#p/narrator}* "All pylons must be used in the puzzle solution."' ],
+         f_puzzle3_sign: [ '<32>{#p/narrator}* "The solution is lost unless the lines are crossed."' ],
+         f_statue_kidd: [ '<25>{#p/kidd}{#f/1}* Stand on the other switch!' ],
+         f_telescope: [ '<32>{#p/narrator}* It\'s a "premium" telescope.' ],
+         f_temhistory: [ '<32>{#p/narrator}* Tem history.\n* The deepest and most rich history in all the galaxy.' ],
+         f_temhole: () =>
+            world.population === 0
+               ? [ "<32>{#p/narrator}* It's a hole." ]
+               : [ "<32>{#p/narrator}* It's a temmie in a hole.\n* A tem hole." ],
+         f_trash: pager.create(
+            'sequence',
+            () => (world.genocide ? [ '<32>{#p/narrator}* Trash.\n* How fitting.' ] : [ '<32>{#p/narrator}* Trash.' ]),
+            () =>
+               world.genocide ? [ '<32>{#p/narrator}* Trash.\n* How fitting.' ] : [ '<32>{#p/narrator}* Still trash.' ],
+            () =>
+               world.genocide ? [ '<32>{#p/narrator}* Trash.\n* How fitting.' ] : [ '<32>{#p/narrator}* Just trash...' ],
+            () =>
+               world.genocide
+                  ? [ '<32>{#p/narrator}* Trash.\n* How fitting.' ]
+                  : [ '<32>{#p/narrator}* The trash is trash.' ],
+            () =>
+               world.genocide ? [ '<32>{#p/narrator}* Trash.\n* How fitting.' ] : [ '<32>{#p/narrator}* Trashy trash.' ],
+            () =>
+               world.genocide
+                  ? [ '<32>{#p/narrator}* Trash.\n* How fitting.' ]
+                  : [ '<32>{#p/narrator}* Surprisingly, trash.' ],
+            () => (world.genocide ? [ '<32>{#p/narrator}* Trash.\n* How fitting.' ] : [ '<32>{#p/narrator}* Trash!!!' ])
+         ),
+         f_trash1: [
+            '<32>{#p/narrator}* A written report on Starlings.\n* The data on this tablet is mostly corrupted...',
+            '<32>* "Starling... a flower from beyond... luminous glow... the shape of a star..."',
+            "<32>* That's all you can make out."
+         ],
+         f_trash2: [
+            "<32>{#p/narrator}* It's a tablet with information pertaining to wormhole travel.",
+            "<32>* There's also a section about wormhole weapons...\n* Oh god."
+         ],
+         f_trash3: [
+            "<32>{#p/narrator}* It's an old DVD case for a science fiction cartoon.",
+            '<32>* Desperate claw marks cover the edges...'
+         ],
+         f_undynedummy: () =>
+            save.data.s.state_foundry_deathroom === 'f_undyne'
+               ? [
+                    '<32>{#p/monster}* No.\n* No!\n* NO!!',
+                    '<32>* You killed my only training partner.',
+                    '<32>* How DARE you kill the only person who knows how to hit me the way I like it!?',
+                    ...(save.data.n.bad_lizard < 2 && 49 <= save.data.n.plot
+                       ? [ '<32>* No matter how many dumb game shows I agree to be in to try and distract myself...' ]
+                       : []),
+                    "<32>* I'll never be able to replace her!"
+                 ]
+               : world.azzie
+               ? [
+                    '<32>{#p/monster}* Seriously.\n* Seriously?\n* SERIOUSLY!?',
+                    '<32>{#p/monster}* You guys are unironically adorable together.',
+                    ...(save.flag.n.ga_asrielDummy++ < 1
+                       ? [ '<25>{#p/asriel2}{#f/13}* Are we... really...', '<25>{#p/asriel2}{#f/16}* ...' ]
+                       : [])
+                 ]
+               : save.data.n.plot_date > 1.3 && save.data.n.plot_date < 2.1
+               ? [ '<32>{#p/monster}* What.\n* What?\n* WHAT!?', '<32>{#p/monster}* This happens all the time.' ]
+               : save.storage.inventory.contents.includes('tvm_mewmew')
+               ? [
+                    "<32>{#p/monster}* Yeah, you're so cool with that Mew Mew doll of yours, huh?",
+                    '<32>{#p/monster}* Get outta here.'
+                 ]
+               : 65 <= save.data.n.plot
+               ? save.data.b.a_state_hapstablook
+                  ? 68 <= save.data.n.plot
+                     ? [ '<32>{#p/monster}* You did it, human.', "<32>{#p/monster}* I'm sorry I ever doubted you." ]
+                     : [
+                          '<32>{#p/monster}* Well.\n* Well!\n* WELL!',
+                          '<32>* You certainly know how to choose your battles.'
+                       ]
+                  : [ '<32>{#p/monster}* Ugh.\n* Ugh!\n* UGH!', '<33>{#p/monster}* My life really sucks right now.' ]
+               : 63 <= save.data.n.plot && save.data.b.a_state_hapstablook
+               ? [
+                    "<32>{#p/monster}* Hey, aren't you supposed to be in Mettaton's next show?",
+                    '<32>* What are you doing way back here?',
+                    '<32>* Come on.\n* Come on!\n* COME ON!!',
+                    '<32>* Get back in the spotlight so we can go forward with our plan!'
+                 ]
+               : save.data.n.bad_lizard < 2 && 49 <= save.data.n.plot
+               ? [
+                    '<32>{#p/monster}* So.\n* So!\n* SO!',
+                    "<32>* You're a TV star now, huh?",
+                    '<32>* Yeah, Mettaton usually has that effect on people.'
+                 ]
+               : save.data.b.toriel_phone
+               ? [ '<32>{#p/monster}* Nice to see you too!' ]
+               : save.data.b.f_state_dummypunch
+               ? [
+                    '<32>{#p/monster}* Hey.\n* Hey!\n* HEY!',
+                    ...(save.data.n.bully > 20
+                       ? [
+                            "<32>* You don't hit too bad for a dummy.",
+                            "<32>* It's a pity...",
+                            "<32>* BECAUSE I'M ALREADY TAKEN!",
+                            '<32>* Go find your own dummy and get the hell outta my face!'
+                         ]
+                       : [
+                            '<32>* Hands off the goods!\n* I ain\'t rated "E" for everyone, you know!',
+                            '<32>* Wimpy strikes like yours will never compare to those of Undyne!'
+                         ])
+                 ]
+               : save.data.b.f_state_dummytalk
+               ? [
+                    '<32>{#p/monster}* Hey.\n* Hey!\n* HEY!',
+                    ...(save.data.n.bully > 20
+                       ? [
+                            "<32>* You've got quite the intimidating stare.",
+                            "<32>* It's a shame you wasted it on me...",
+                            "<32>* BECAUSE I COULDN'T CARE LESS!"
+                         ]
+                       : [
+                            '<32>* Eyes off the prize!\n* I ain\'t rated "E" for everyone, you know!',
+                            "<32>* A weak stare like yours will never compare to Undyne's menacing gaze!"
+                         ])
+                 ]
+               : [ '<32>{#p/monster}* What.\n* What?\n* WHAT!?', "<32>{#p/monster}* It's a living." ],
+         f_view: [ "<32>{#p/kidd}{#f/6}* Isn't it pretty...?" ],
+         f_village_egg: [ '<32>{#p/narrator}* It looks hard-boiled.' ],
+         f_village_sign1: [ '<32>{#p/narrator}* "hOI!!"\n* "welcom to..."\n* "TEM VILLAGE!!!"' ],
+         f_village_sign2: [ '<32>{#p/narrator}* "hOI!!"\n* "u shud check out..."\n* "TEM SHOP!!!"' ],
+         f_village_sign3: [ '<32>{#p/narrator}* "yaYA!! i AGREES!!"\n* "shud check..."\n* "TEM SHOP!!!"' ],
+         fstatue: [ "<32>{#p/narrator}* It's an old, derelict statue." ],
+         hapstabed: [ "<32>{#p/narrator}* It's a ghost bed.\n* You'd sleep right through it." ],
          hapstabook1: [
             "<32>{#p/narrator}* It's a voicebook.",
             '<32>{#p/human}* (You pick it up and open to the only recorded section...)',
@@ -2217,195 +2344,93 @@ const text = {
             '<32>* A little part of me will always miss being here.',
             '<32>{#p/human}* (You put the book back down.)'
          ],
-         fstatue: [ "<32>{#p/narrator}* It's an old, derelict statue." ],
-         plankstop: [
-            "<32>{#p/narrator}* The endless abyss of space is met only by the distant sight of the factory's edge."
+         hapstacouch: [
+            "<32>{#p/narrator}* Another couch, another awful temptation... you're so tired after all this traveling.",
+            '<32>{#p/narrator}* ...but you have to keep going!'
          ],
-         f_village_egg: [ '<32>{#p/narrator}* It looks hard-boiled.' ],
-         f_cheesetable: [ "<32>{#p/narrator}* It's just an ordinary table." ],
-         f_statue_kidd: [ '<25>{#p/kidd}{#f/1}* Stand on the other switch!' ],
-         f_armor_sign: [ '<32>{#p/narrator}* "Be wary of sleeping dogs."' ],
-         f_backsign: [ '<32>{#p/narrator}* "Even when you\'re lost, the will to find yourself shows through."' ],
-         f_creamsign: () =>
-            save.data.n.kills_starton + save.data.n.bully_starton > 2 || world.genocide
-               ? [ '<32>{#p/narrator}* "Where specificity lacks, chaos thrives."' ]
-               : [ '<32>{#p/narrator}* The glyphs have been painted over with a list of 21 different flavors.' ],
-         f_doge_sign: [
-            '<32>{#p/narrator}* "This is a box."',
-            '<32>* "You can put an item inside or take an item out."',
-            '<32>* "Why would you, though??"\n* "It\'s not like you can use items while they\'re inside."',
-            '<32>* "Sincerely, a box critic."'
-         ],
-         f_doge1: [
-            '<32>{#p/narrator}* "Why did the humans attack?"\n* "Indeed, it seemed that they had nothing to fear."',
-            '<32>* "Humans are unbelievably strong. It would take the SOUL of nearly every monster..."',
-            '<32>* "...just to equal the power of a single human SOUL."'
-         ],
-         f_doge3: () => [
-            '<32>{#p/narrator}* "But humans have one weakness. Ironically, it is the strength of their SOUL."',
-            '<32>* "Its power allows it to persist outside the human body, even after death."',
-            '<32>{#p/narrator}* "If a monster defeats a human, they can take its SOUL."',
-            '<32>* "A monster with a human SOUL... a horrible beast with unfathomable power."',
-            ...(world.goatbro
-               ? [
-                    [ '<25>{#p/asriel2}{#f/10}* A horrible beast, eh?', "<25>{#f/8}* I'd beg to differ." ],
-                    [ '<25>{#f/8}* ...' ]
-                 ][Math.min(save.flag.n.ga_asrielBeast++, 1)]
-               : [])
-         ],
-         f_doge5: () => [
-            "<32>{#p/narrator}* It's an illustration of a harrowing creature...",
-            "<32>* There's something very unsettling about this drawing.",
-            ...(world.goatbro && save.flag.n.ga_asrielDrawing++ < 1
-               ? [
-                    "<25>{#p/asriel2}{#f/5}* Look $(name)!\n* It's us... sorta.",
-                    '<26>{#f/4}* ...is that really how they think we looked?\n* Golly...'
-                 ]
-               : [])
-         ],
-         f_gersonshop: [
-            '<32>{#p/narrator}* "Gerson\'s Bits \'n\' Bobs!"\n* "A humble store for all your factory life needs!"'
-         ],
-         f_hub_sign: [
-            '<32>{#p/narrator}* "Left - Dark Zone"\n* "Forward - Undyne\'s House"\n* "Right - Gerson\'s Shop"',
-            '<32>{#p/narrator}* "Backward - Snail Preserve"'
-         ],
-         f_lobbywindow: [
-            '<32>{#p/narrator}* "You feel like you\'ve already seen this window from another perspective somewhere else."'
-         ],
-         f_paintblaster: [
-            '<32>{#p/narrator}* An old fuel injection device.\n* There is a similar one somewhere in the OUTLANDS...'
-         ],
-         f_path1: [
-            '<32>{#p/narrator}* "When the humans trapped us, they sealed this place with a force field."',
-            '<32>* "Anything can enter through it, but only beings with a powerful SOUL can leave."'
-         ],
-         f_path2: [
-            '<32>{#p/narrator}* "There is only one way to beat this thing."',
-            '<32>* "If a huge power, equivalent to seven human SOULs, attacks the force field..."',
-            '<32>* "It will be destroyed."'
-         ],
-         f_path3: [
-            '<32>{#p/narrator}* "But this cursed place is too far away from any other outpost."',
-            '<32>* "There is no way a human could come here."',
-            '<32>* "We will remain trapped out here forever."'
-         ],
-         f_puzzle1_sign: [
-            '<32>{#p/narrator}* "Move the pylons to guide the laser into the reciever."\n* "Then press the switch."'
-         ],
-         f_puzzle2_sign: [ '<32>{#p/narrator}* "All pylons must be used in the puzzle solution."' ],
-         f_puzzle3_sign: [ '<32>{#p/narrator}* "The solution is lost unless the lines are crossed."' ],
-         f_telescope: [ '<32>{#p/narrator}* It\'s a "premium" telescope.' ],
-         f_temhistory: [ '<32>{#p/narrator}* Tem history.\n* The deepest and most rich history in all the galaxy.' ],
-         f_temhole: () =>
-            world.population === 0
-               ? [ "<32>{#p/narrator}* It's a hole." ]
-               : [ "<32>{#p/narrator}* It's a temmie in a hole.\n* A tem hole." ],
-         f_trash: pager.create(
-            'sequence',
-            [ '<32>{#p/narrator}* Trash.' ],
-            [ '<32>{#p/narrator}* Still trash.' ],
-            [ '<32>{#p/narrator}* Just trash...' ],
-            [ '<32>{#p/narrator}* The trash is trash.' ],
-            [ '<32>{#p/narrator}* Trashy trash.' ],
-            [ '<32>{#p/narrator}* Surprisingly, trash.' ],
-            [ '<32>{#p/narrator}* Trash!!!' ]
+         hapstaposter: [ '<32>{#p/narrator}* "Two star-crossed lovers fall into a digital abyss..."' ],
+         hapstatv: [ '<32>{#p/narrator}* An old earth television.\n* An odd, yet fitting choice...' ],
+         hapstawindow: [ '<32>{#p/narrator}* A beautiful view... of the outside foundry wall.' ],
+         k_bonedrawer: pager.create(
+            'limit',
+            () => [
+               "<25>{#p/undyne}{#f/1}* I'll be honest...",
+               "<25>{#f/14}* It's been a long time since I've seen the bottom of that drawer.",
+               save.data.b.oops
+                  ? '<32>{#p/narrator}* Nothing but bones...'
+                  : "<32>{#p/narrator}* It's a drawer reserved just for Papyrus.\n* I like this."
+            ],
+            () => [
+               save.data.b.oops
+                  ? '<32>{#p/narrator}* Nothing but bones...'
+                  : "<32>{#p/narrator}* It's a drawer reserved just for Papyrus.\n* I like this."
+            ]
          ),
-         f_trash1: [
-            '<32>{#p/narrator}* A written report on Starlings.\n* The data on this tablet is mostly corrupted...',
-            '<32>* "Starling... a flower from beyond... luminous glow... the shape of a star..."',
-            "<32>* That's all you can make out."
-         ],
-         f_trash2: [
-            "<32>{#p/narrator}* It's a tablet with information pertaining to wormhole travel.",
-            "<32>* There's also a section about wormhole weapons...\n* Oh god."
-         ],
-         f_trash3: [
-            "<32>{#p/narrator}* It's an old DVD case for a science fiction cartoon.",
-            '<32>* Desperate claw marks cover the edges...'
-         ],
-         f_undynedummy: () =>
-            save.data.s.state_foundry_deathroom === 'f_undyne'
-               ? [
-                    '<32>{#p/monster}* No.\n* No!\n* NO!!',
-                    '<32>* You killed my only training partner.',
-                    '<32>* How DARE you kill the only person who knows how to hit me the way I like it!?',
-                    ...(save.data.n.bad_lizard < 2 && 49 <= save.data.n.plot
-                       ? [ '<32>* No matter how many dumb game shows I agree to be in to try and distract myself...' ]
-                       : []),
-                    "<32>* I'll never be able to replace her!"
-                 ]
-               : world.goatbro
-               ? [
-                    '<32>{#p/monster}* Seriously.\n* Seriously?\n* SERIOUSLY!?',
-                    '<32>{#p/monster}* You guys are unironically adorable together.',
-                    ...(save.flag.n.ga_asrielDummy++ < 1
-                       ? [ '<25>{#p/asriel2}{#f/13}* Are we... really...', '<25>{#p/asriel2}{#f/13}* ...' ]
-                       : [])
-                 ]
-               : save.data.n.plot_date < 2.1
-               ? [ '<32>{#p/monster}* What.\n* What?\n* WHAT!?', '<32>{#p/monster}* This happens all the time.' ]
-               : save.storage.inventory.contents.includes('tvm_mewmew')
-               ? [
-                    "<32>{#p/monster}* Yeah, you're so cool with that Mew Mew doll of yours, huh?",
-                    '<32>{#p/monster}* Get outta here.'
-                 ]
-               : 65 <= save.data.n.plot
-               ? save.data.b.a_state_hapstablook
-                  ? [
-                       '<32>{#p/monster}* Well.\n* Well!\n* WELL!',
-                       '<32>* Who knew Mettaton was such a softie this whole time?',
-                       '<32>* Thanks for the help, human.'
-                    ]
-                  : [ '<32>{#p/monster}* Ugh.\n* Ugh!\n* UGH!', '<33>{#p/monster}* My life really sucks right now.' ]
-               : 63 <= save.data.n.plot && save.data.b.a_state_hapstablook
-               ? [
-                    "<32>{#p/monster}* Hey, aren't you supposed to be in Mettaton's next show?",
-                    '<32>* What are you doing way back here?',
-                    '<32>* Come on.\n* Come on!\n* COME ON!!',
-                    '<32>* Get back in the spotlight so we can go forward with our plan!'
-                 ]
-               : save.data.n.bad_lizard < 2 && 49 <= save.data.n.plot
-               ? [
-                    '<32>{#p/monster}* So.\n* So!\n* SO!',
-                    "<32>* You're a TV star now, huh?",
-                    '<32>* Yeah, Mettaton usually has that effect on people.'
-                 ]
-               : save.data.b.f_state_dummypunch
-               ? [
-                    '<32>{#p/monster}* Hey.\n* Hey!\n* HEY!',
-                    ...(save.data.n.bully > 20
-                       ? [
-                            "<32>* You don't hit too bad for a dummy.",
-                            "<32>* It's a pity...",
-                            "<32>* BECAUSE I'M ALREADY TAKEN!",
-                            '<32>* Go find your own dummy and get the hell outta my face!'
-                         ]
-                       : [
-                            '<32>* Hands off the goods!\n* I ain\'t rated "E" for everyone, you know!',
-                            '<32>* Wimpy strikes like yours will never compare to those of Undyne!'
-                         ])
-                 ]
-               : save.data.b.f_state_dummytalk
-               ? [
-                    '<32>{#p/monster}* Hey.\n* Hey!\n* HEY!',
-                    ...(save.data.n.bully > 20
-                       ? [
-                            "<32>* You've got quite the intimidating stare.",
-                            "<32>* It's a shame you wasted it on me...",
-                            "<32>* BECAUSE I COULDN'T CARE LESS!"
-                         ]
-                       : [
-                            '<32>* Eyes off the prize!\n* I ain\'t rated "E" for everyone, you know!',
-                            "<32>* A weak stare like yours will never compare to Undyne's menacing gaze!"
-                         ])
-                 ]
-               : [ '<32>{#p/monster}* What.\n* What?\n* WHAT!?', "<32>{#p/monster}* It's a living." ],
-         f_view: [ "<32>{#p/kidd}{#f/6}* Isn't it pretty...?" ],
-         wallsign4: [ '<32>{#p/narrator}* "Foundry Exit"' ],
-         f_village_sign1: [ '<32>{#p/narrator}* "hOI!!"\n* "welcom to..."\n* "TEM VILLAGE!!!"' ],
-         f_village_sign2: [ '<32>{#p/narrator}* "hOI!!"\n* "u shud check out..."\n* "TEM SHOP!!!"' ],
-         f_village_sign3: [ '<32>{#p/narrator}* "yaYA!! i AGREES!!"\n* "shud check..."\n* "TEM SHOP!!!"' ],
+         k_broadsword: pager.create(
+            'limit',
+            () => [
+               '<25>{#p/undyne}{#f/1}* Humans can be awful, but their history... kinda rules.',
+               '<25>{#f/1}* Case in point, this giant energy saber!',
+               '<25>{#f/1}* Historically, humans wielded sabers up to ten times their size.',
+               '<25>{#f/15}* Not to mention their inter-dimensional portals...',
+               '<25>{#f/15}* Colossal parsec-length battleships...',
+               '<25>{#f/1}* When I first heard about it, I immediately wanted my own!',
+               "<25>{#f/14}* That's why Alphys and I built a giant replica saber together.",
+               '<25>{#f/12}* She even figured out all the specs herself!',
+               save.data.b.oops
+                  ? '<32>{#p/human}* (You feel this weapon has quite a past.)'
+                  : '<32>{#p/narrator}* I once owned a toy just like this.\n* Except smaller.'
+            ],
+            () => [
+               save.data.b.oops
+                  ? '<32>{#p/human}* (You feel this weapon has quite a past.)'
+                  : '<32>{#p/narrator}* I once owned a toy just like this.\n* Except smaller.'
+            ]
+         ),
+         k_closet: pager.create(
+            'limit',
+            () => [
+               "<25>{#p/undyne}{#f/1}* That's my snack closet.",
+               '<25>{#f/17}* What, you thought I had a bedroom back there or something?',
+               '<25>{#f/8}* Pfft, hah!\n* Everyone knows I sleep on a cold, hard floor.',
+               save.data.b.oops
+                  ? "<32>{#p/narrator}* It's locked."
+                  : '<32>{#p/narrator}* I get the feeling there\'s more to this "closet" than snacks.'
+            ],
+            () => [
+               save.data.b.oops
+                  ? "<32>{#p/narrator}* It's locked."
+                  : '<32>{#p/narrator}* I get the feeling there\'s more to this "closet" than snacks.'
+            ]
+         ),
+         k_fridge: pager.create(
+            'limit',
+            () => [
+               "<25>{#p/undyne}{#f/11}* Cold food and I don't really get along.",
+               '<25>{#f/14}* Luckily, Alphys modded my fridge so it heats up food instead!',
+               '<25>{#f/1}* Neat, huh?',
+               save.data.b.oops
+                  ? '<32>{#p/narrator}* There are several pre-heated plates of spaghetti inside.'
+                  : '<32>{#p/narrator}* A hot fridge would have done wonders back home.'
+            ],
+            () => [
+               save.data.b.oops
+                  ? '<32>{#p/narrator}* There are several pre-heated plates of spaghetti inside.'
+                  : '<32>{#p/narrator}* A hot fridge would have done wonders back home.'
+            ]
+         ),
+         k_otherdrawer: pager.create(
+            'limit',
+            [
+               "<25>{#p/undyne}{#f/17}* Steal anything from that drawer, and you're DEAD.",
+               "<32>{#p/narrator}* There's a silverware drawer.\n* It has forks, spoons, knives...",
+               '<32>* ...tiny cosmo-spears, plasma sabers, dimensional axes, anti-grav boomerangs...'
+            ],
+            [
+               "<32>{#p/narrator}* There's a silverware drawer.\n* It has forks, spoons, knives...",
+               '<32>* ...tiny cosmo-spears, plasma sabers, dimensional axes, anti-grav boomerangs...'
+            ]
+         ),
          k_piano: pager.create(
             'limit',
             [
@@ -2436,49 +2461,6 @@ const text = {
             ],
             [ '<32>{#p/narrator}* The stove has seen a lot of heavy use.' ]
          ),
-         k_bonedrawer: pager.create(
-            'limit',
-            () => [
-               "<25>{#p/undyne}{#f/1}* I'll be honest...",
-               "<25>{#f/14}* It's been a long time since I've seen the bottom of that drawer.",
-               save.data.b.oops
-                  ? '<32>{#p/narrator}* Nothing but bones...'
-                  : "<32>{#p/narrator}* This might as well be Papyrus's personal drawer.\n* I love it."
-            ],
-            () => [
-               save.data.b.oops
-                  ? '<32>{#p/narrator}* Nothing but bones...'
-                  : "<32>{#p/narrator}* This might as well be Papyrus's personal drawer.\n* I love it."
-            ]
-         ),
-         k_otherdrawer: pager.create(
-            'limit',
-            [
-               "<25>{#p/undyne}{#f/17}* Steal anything from that drawer, and you're DEAD.",
-               "<32>{#p/narrator}* There's a silverware drawer.\n* It has forks, spoons, knives...",
-               '<32>* ...tiny cosmo-spears, plasma sabers, dimensional axes, anti-grav boomerangs...'
-            ],
-            [
-               "<32>{#p/narrator}* There's a silverware drawer.\n* It has forks, spoons, knives...",
-               '<32>* ...tiny cosmo-spears, plasma sabers, dimensional axes, anti-grav boomerangs...'
-            ]
-         ),
-         k_fridge: pager.create(
-            'limit',
-            () => [
-               "<25>{#p/undyne}{#f/11}* Cold food and I don't really get along.",
-               '<25>{#f/14}* Luckily, Alphys modded my fridge so it heats up food instead!',
-               '<25>{#f/1}* Neat, huh?',
-               save.data.b.oops
-                  ? '<32>{#p/narrator}* There are several pre-heated plates of spaghetti inside.'
-                  : '<32>{#p/narrator}* Hot fridge, huh?\n* Well, this woulda been nice to have in the Outlands...'
-            ],
-            () => [
-               save.data.b.oops
-                  ? '<32>{#p/narrator}* There are several pre-heated plates of spaghetti inside.'
-                  : '<32>{#p/narrator}* Hot fridge, huh?\n* Well, this woulda been nice to have in the Outlands...'
-            ]
-         ),
          k_window: pager.create(
             'limit',
             () => [
@@ -2488,137 +2470,53 @@ const text = {
             ],
             [ '<32>{#p/narrator}* Papyrus flew out so fast, it triggered a sonic boom.' ]
          ),
-         k_closet: pager.create(
-            'limit',
-            () => [
-               "<25>{#p/undyne}{#f/1}* That's my snack closet.",
-               '<25>{#f/17}* What, you thought I had a bedroom back there or something?',
-               '<25>{#f/8}* Pfft, hah!\n* Everyone knows I sleep on a cold, hard floor.',
-               save.data.b.oops
-                  ? "<32>{#p/narrator}* It's locked."
-                  : '<32>{#p/narrator}* I get the feeling there\'s more to this "closet" than snacks.'
-            ],
-            () => [
-               save.data.b.oops
-                  ? "<32>{#p/narrator}* It's locked."
-                  : '<32>{#p/narrator}* I get the feeling there\'s more to this "closet" than snacks.'
-            ]
-         ),
-         k_broadsword: pager.create(
-            'limit',
-            () => [
-               '<25>{#p/undyne}{#f/1}* Humans can be awful, but their history... kinda rules.',
-               '<25>{#f/1}* Case in point, this giant energy saber!',
-               '<25>{#f/1}* Historically, humans wielded sabers up to ten times their size.',
-               '<25>{#f/15}* Not to mention their inter-dimensional portals...',
-               '<25>{#f/15}* Colossal parsec-length battleships...',
-               '<25>{#f/1}* When I first heard about it, I immediately wanted my own!',
-               "<25>{#f/14}* That's why Alphys and I built a giant replica saber together.",
-               '<25>{#f/12}* She even figured out all the specs herself!',
-               save.data.b.oops
-                  ? '<32>{#p/human}* (You feel this weapon has quite a past.)'
-                  : '<32>{#p/narrator}* I used to own a toy that looked like this thing.'
-            ],
-            () => [
-               save.data.b.oops
-                  ? '<32>{#p/human}* (You feel this weapon has quite a past.)'
-                  : '<32>{#p/narrator}* I used to own a toy that looked like this thing.'
-            ]
-         )
+         plankstop: [
+            "<32>{#p/narrator}* The endless abyss of space is met only by the distant sight of the factory's edge."
+         ],
+         wallsign4: [ '<32>{#p/narrator}* "Foundry Exit"' ]
       },
       truetext: {
+         doge1: [ '<32>{#p/narrator}* ...so much for the "kill or be killed" speech, eh?' ],
+         muffet: [ '<32>{#p/narrator}* ...that was close.' ],
+         preundyne: [
+            '<32>{#p/narrator}* ...',
+            "<32>* This won't be easy.",
+            "<32>* Heck, this won't even be intermediate.",
+            '<32>* ...',
+            "<32>* But... if I've learned anything thus far...",
+            "<32>* That won't be a problem for you, right?",
+            "<32>* No matter what Undyne says, I know you'll find a way to get through to her.",
+            '<32>* So go on.',
+            "<32>* Step forward and show her what you're made on."
+         ],
          unddate: () =>
             save.data.b.oops
                ? [
                     '<32>{#p/narrator}* ...',
-                    '<32>{#p/human}* (It sounds like someone is banging their head against an imaginary wall.)',
-                    '<32>{#p/human}* (But who?)'
+                    '<32>{#p/human}* (It sounds like someone is banging their head against an imaginary wall.)'
                  ]
                : [
-                    '<32>{#p/narrator}* So... that happened.',
-                    '<32>* Heh...',
-                    "<32>* I'm not really sure what to make of all this, y'know?",
-                    "<32>* One second, we're running for our lives from her...",
-                    "<32>* And the next second, we're cooking spaghetti with her.\n* And burning her house down.",
+                    "<32>{#p/narrator}* So.\n* One second, we're running for our lives from her...",
+                    '<32>* And the next?',
+                    "<32>* We're cooking spaghetti with her.\n* And burning her house down.",
                     '<32>{#p/human}* (You hear a small giggle.)',
-                    "<32>* ...\n* ...it's...",
-                    "<32>* It's been a long time since I've genuinely felt... excited like that.",
-                    '<32>* Happy, too.\n* I feel like things are actually going well for once.',
-                    '<32>* And, uhm...',
-                    "<32>* I'm just glad to have you around, y'know?",
-                    "<32>* I might've been harsh on you for certain things, but...",
-                    '<32>* It comes from a good place.',
-                    '<32>* Heh...',
-                    "<32>* You just keep doing what you're doing, alright?\n* And I'll...",
-                    "<32>* I'll be here for you."
+                    '<32>{#p/narrator}* Oh, uh, sorry!\n* I...',
+                    "<32>* I can't... actually remember the last time I felt this way.",
+                    "<32>* It's... good?\n* I mean, things are finally going right for once.",
+                    "<32>* At least, that's how it feels...",
+                    "<32>* Well.\n* Here's hoping it continues!"
                  ],
-         doge1: () => [
-            "<32>{#p/narrator}* Just when I think you've faced an opponent that won't spare you...",
-            '<32>* ...they go and do it anyway.',
-            '<32>{#p/narrator}* So much for "kill or be killed" huh?'
-         ],
-         muffet: () => [
-            '<32>{#p/narrator}* Getting two elite guards to spare you in one day?',
-            "<32>* Now that's something.",
-            "<32>* Though, even after this, I still can't be sure...",
-            "<32>* Undyne's ruthless...\n* There's no way you could possibly convince her to...",
-            '<32>* ...',
-            '<32>* Just... be careful...'
-         ],
-         view1: [ '<32>{#p/narrator}* Heh... look at that.', '<32>* The Citadel...' ],
-         view2: [
-            "<32>* That's where my dad lives.\n* King Asgore.",
-            '<32>* ...',
-            "<32>* I can't stop thinking about what Toriel said to you...",
-            "<32>* About how he'd kill you...",
-            '<32>* I guess from her point of view, it makes sense.',
-            "<32>* But if she knew what was really going on up there, she wouldn't be saying that.",
-            "<32>* It's just...",
-            "<32>* It's frustrating to see her get stuck in this stupid mindset for so long.",
-            '<32>* I bet she still thinks of him as a coward...',
-            "<32>* Kinda funny, considering SHE'S the one who refuses to leave her precious power station.",
-            '<32>* Ugh...',
-            '<32>* If things had played out a little differently...',
-            '<32>* Maybe none of this woulda happened.',
-            '<32>* Maybe...',
-            '<32>* ...',
-            "<32>* ...maybe I'm just getting carried away...",
-            "<32>* I can't even appreciate a simple view...?",
-            '<32>* ...\n* Just...',
-            "<32>* Don't let Toriel's words get to you, alright?",
-            "<32>* That's all I ask."
-         ],
-         preundyne: [
-            '<32>{#p/narrator}* ...',
-            "<32>* This isn't gonna be easy.",
-            "<32>* I mean, obviously.\n* But you've gotta be ready...",
-            "<32>* I don't know if she'll ever let you...",
-            '<32>* ...',
-            '<32>* ...no...',
-            "<32>* No, no, no...\n* I've been doubting you this entire time.",
-            '<32>* First Doge, then Muffet...?',
-            '<32>* These are NOT monsters that you can just go out and get past peacefully.',
-            '<32>* Yet, despite that...\n* You went and did it anyway.',
-            '<32>* So you know what?',
-            '<32>* You CAN do it.',
-            '<32>* No matter what Undyne says, I know you can find a way to get through to her.',
-            "<32>* You've practically got this one in the bag!",
-            '<32>* So go on.\n* Step forward...',
-            '<32>* And rock her world!'
-         ],
          undyne1: () =>
             save.data.b.oops
                ? [
                     '<32>{#p/narrator}* ...',
-                    '<32>{#p/human}* (It sounds like someone is banging their head against an imaginary wall.)',
-                    '<32>{#p/human}* (But who?)'
+                    '<32>{#p/human}* (It sounds like someone is banging their head against an imaginary wall.)'
                  ]
                : [
-                    "<32>{#p/narrator}* Well...\n* I'm glad that's over with.",
-                    '<32>* Gee...',
-                    "<32>* I don't know what to say.",
-                    "<32>* I mean... we did it.\n* Undyne's off your back...",
-                    '<32>* The rest of the outpost should be an easy journey, right?',
+                    '<32>{#p/narrator}* We did it.\n* We really did it!',
+                    '<32>* Or, uh, you did it.\n* I just sorta... watched?',
+                    "<32>* Well, it'll be nice to finally have her off your back.",
+                    '<32>* The rest of the journey should be straightforward now, right?',
                     '<32>* Right!?',
                     '<32>* ...',
                     '<32>* ...anyway...\n* Well done, partner.',
@@ -2637,441 +2535,19 @@ const text = {
             ],
             [ '<32>{#p/narrator}* Please...' ]
          ),
-         undyne3: [ '<32>{#p/narrator}* ...', '<32>{#p/narrator}* A certain, sudden coldness washes over you.' ]
-      },
-      undyne1a: [
-         "<23>{#p/papyrus}{#f/30}H... HI, UNDYNE!\nI'M HERE WITH MY DAILY REPORT...",
-         '<23>UHHH... REGARDING THAT HUMAN I CALLED YOU ABOUT EARLIER...'
-      ],
-      undyne1b: [ '<23>{#p/papyrus}{#f/30}...HUH?\nDID I FIGHT THEM?' ],
-      undyne1c: [ '<23>{#p/papyrusnt}Y-YES!\nOF COURSE I DID!', '<23>I FOUGHT THEM VALIANTLY!' ],
-      undyne1d: [ '<23>{#p/papyrus}{#f/30}...WHAT?\nDID I CAPTURE THEM...?' ],
-      undyne1e: [ '<23>{#p/papyrus}{#f/30}W-W-WELL...', '<23>NO...' ],
-      undyne1f: [ '<23>{#p/papyrus}{#f/30}I-I MEAN, I TRIED VERY HARD TO, B-BUT, IN THE END- {%}' ],
-      undyne1g: [ '<23>{#p/papyrus}{#f/30}...W-WHAT?', "<23>YOU'RE GOING TO TAKE THE HUMAN'S SOUL YOURSELF??" ],
-      undyne1h: [ "<23>{#p/papyrus}{#f/30}BUT UNDYNE, YOU DON'T H-HAVE TO DESTROY THEM! YOU SEE...", '<23>YOU SEE...' ],
-      undyne1i: [ '<23>{#p/papyrus}{#f/30}...', '<23>...I UNDERSTAND.', "<23>I'LL HELP YOU IN ANY WAY I CAN." ],
-      undyne1j: () =>
-         world.genocide
-            ? [
-                 '<25>{#p/kidd}{#f/4}* Yo... what?',
-                 "<25>{#f/4}* Why's she so mad at you guys?",
-                 "<25>{#p/asriel2}{#f/2}* Oh, I don't know...",
-                 '<25>{#f/1}* Maybe because of the mass genocide we committed?'
-              ]
-            : [
-                 '<25>{#p/kidd}{#f/7}* Yo... did you see the way she flew into the air!?',
-                 '<25>{#f/7}* That...',
-                 '<25>{#f/1}* ...was AWESOME!',
-                 ...(save.data.n.state_starton_papyrus === 1
-                    ? [
-                         '<25>{#f/2}* You walked in, and she was just standing there waiting FOREVER and...',
-                         '<25>* And then you just...!'
-                      ]
-                    : [
-                         '<25>{#f/2}* You walked in as she was talking and then you moved and...',
-                         '<25>* And she was like "NYROOOM" and...!'
-                      ])
-              ],
-      undyne1k: () =>
-         world.genocide
-            ? [ '<25>{#p/kidd}{#f/3}* Haha...\n* G-good one...', '<25>* ...' ]
-            : [ "<25>{#f/1}* If it wasn't so dark in here, maybe she would've SEEN you!!" ],
-      undyne1l: () =>
-         world.genocide
-            ? [ "<25>{#f/1}* I-I'll be... up ahead!\n* Yeah!" ]
-            : [ '<25>{#f/3}* Dang...', "<25>* Well c'mon, let's go watch her take down some BADDIES!" ],
-      undyne2a: [
-         '<25>{#p/kidd}{#f/7}* She... she...',
-         '<25>{#f/7}* She TOUCHED me!!',
-         '<25>{#f/2}* Man, are you unlucky...',
-         "<25>* If you'd have just been TWO inches closer...",
-         "<25>{#f/1}* Whew, I'm never gonna wash my face EVER again!"
-      ],
-      undyne2ax: [
-         '<25>{#p/kidd}{#f/1}* She... she...',
-         "<25>{#f/1}* She's NOWHERE to be found!?",
-         '<25>{#f/3}* Have you guys seen her ANYWHERE out here?',
-         '<25>{#p/asriel2}{#f/3}* Who, Undyne?',
-         "<25>{#p/kidd}{#f/1}* Yeah!\n* She's totally gone!",
-         '<25>{#p/asriel2}{#f/2}* (Hee hee hee.)',
-         '<25>{#p/kidd}{#f/4}* Huh??',
-         '<25>{#p/asriel2}{#f/1}* Oh, nothing.',
-         '<25>{#f/5}* Say, wanna join us for a bit?',
-         '<25>{#p/kidd}{#f/3}* Y... you want me to join you?',
-         "<25>{#p/asriel2}{#f/4}* Yeah, why not.\n* It'll be fun, I think.",
-         "<25>{#p/kidd}{#f/4}* Uhm...\n* I don't know...",
-         '<25>{#p/asriel2}{#f/5}* Well, did you know Undyne likes Dr. Alphys?',
-         '<25>* I happen to know she wants to marry her.',
-         '<25>{#p/kidd}{#f/7}* What!?\n* No way...',
-         "<25>{#p/asriel2}{#f/5}* Yeah, and that's not the only thing I know about Undyne.",
-         '<25>{#p/kidd}{#f/7}* Tell me more!',
-         '<25>{#p/asriel2}{#f/5}* Okay, okay...\n* But only if you come with $(name) and I.',
-         '<25>{#p/kidd}{#f/2}* Hmm...',
-         '<25>{#f/1}* Deal!\n* Haha.'
-      ],
-      undyne2b: [ '<25>{#p/kidd}{#f/1}* Yo, what are you waiting for?' ],
-      undyne2bx: [ "<25>{#p/kidd}{#f/1}* Let's go!" ],
-      undyne2c: [
-         "<25>{#f/3}* Hey...\n* I've been thinking...",
-         "<25>{#f/4}* The factory's kind of a scary place... so...",
-         '<25>{#f/3}* Maybe we should stick together for a little while?',
-         '<25>* ...',
-         '<25>{#f/1}* Better safe than sorry, haha.'
-      ],
-      undyne2cx: () => [
-         '<25>{#p/kidd}{#f/2}* Man, you shoulda SEEN her during human- chasing practice...',
-         '<25>{#f/1}* She was throwing like, a MILLION spears a second!'
-      ],
-      undyne2d: [ "<25>{#f/1}* I'm right behind you!" ],
-      undyne2dx: () => [
-         '<25>{#p/kidd}{#f/2}* And when the simulation was about to get away...',
-         '<25>{#f/1}* She CORNERED it at the FINAL moment!',
-         ...(save.flag.n.ga_asrielKidd2++ < 1
-            ? [ '<25>{#p/asriel2}{#f/6}* Good for her, I guess.', '<25>{#p/kidd}{#f/1}* Yeah!!' ]
-            : [])
-      ],
-      undyne2ex: [
-         '<25>{#p/kidd}{#f/4}* Uh, hold on...',
-         "<25>* If Undyne isn't here, who's going to protect us from those baddies?",
-         '<25>{#f/12}* You know...\n* The ones who- {%}',
-         "<25>{#p/asriel2}{#f/2}* Eh, I wouldn't worry about it, buddy.",
-         '<25>{#f/3}* Besides, if Undyne is as tactically skilled as you say...',
-         "<25>{#f/3}* Then clearly she must have a reason.\n* She's smart, right?",
-         "<25>{#p/kidd}{#f/4}* Yeah...\n* That's true..."
-      ],
-      undyne2fx: [
-         '<25>{#p/kidd}{#f/1}* Hey... thanks for taking me along, you guys.',
-         "<25>{#p/asriel2}{#f/10}* Uh... you're welcome?\n* But we haven't gotten that far, you know...",
-         '<25>{#p/kidd}{#f/3}* Well, yeah, but like, I barely get time away from my parents, so...',
-         "<25>{#p/asriel2}{#f/2}* You have parents?\n* That's new.",
-         "<25>{#p/kidd}{#f/7}* Uh, y-yes, of course I have parents, who doesn't!?",
-         '<25>{#p/asriel2}{#f/10}* ...',
-         '<25>{#p/kidd}{#f/4}* Yo... why are you looking at me like that?',
-         '<25>{#f/8}* Did I do something wrong?'
-      ],
-      undynefinal1a: [
-         '<32>{#p/undyne}* Seven.',
-         '<32>* Seven human SOULs and this world will be transformed.',
-         '<32>{#x1}* After your SOUL is captured, the force field will be shattered.',
-         '<32>{#x2}* Monsters will finally go free.',
-         '<32>{#x3}* But first, as is customary for those who make it this far...',
-         '<32>{#x4}* I must tell you the tragic tale of our people.',
-         '<32>{#x5}* It all began long ago, when...'
-      ],
-      undynefinal1b: [ '<32>{#p/undyne}* You know what?' ],
-      undynefinal1c: [ '<32>{*}{#p/undyne}{#i/25}* SCREW IT!!{^999}' ],
-      undynefinal1d: [ '<32>{*}{#p/undyne}{#i/25}* WHY SHOULD I TELL YOU THAT STORY!!{^999}' ],
-      undynefinal1e: [ "<32>{*}{#p/undyne}{#i/25}* WHEN YOU'RE ABOUT TO DIE!!{^999}" ],
-      undynefinal1f: [ '<32>{*}{#p/undyne}{#i/25}* NGAHHHHHHHHHHHH!!!{^999}' ],
-      undynefinal1g: [
-         '<25>{#p/undyne}{#f/1}* HUMAN!',
-         "<25>* YOU'RE standing in the way of EVERYBODY's hopes and dreams!",
-         "<25>{#f/11}* Alphys's history films made me think humans were cool...",
-         '<25>{#f/16}* ...with their living spacecraft and inter- dimensional portals.',
-         '<25>{#f/4}* But YOU???'
-      ],
-      undynefinal2a: () => [
-         "<25>{#f/7}* You're just a COWARD!",
-         ...(save.data.b.f_state_kidd_betray
-            ? [ "<25>{#f/13}* ...and you didn't even bother to save your friend." ]
-            : [ '<25>* Hiding behind that kid so you could run away from me again!' ]),
-         "<25>{#f/9}* I'll admit, I was impressed...",
-         ...(save.data.n.state_foundry_doge === 2 && save.data.n.state_foundry_muffet === 2
-            ? [
-                 '<25>* The way you managed to not only get past the local ELITE squad...',
-                 '<25>{#f/10}* But BEFRIEND them???',
-                 "<25>{#f/11}* You've got cojones, punk."
-              ]
-            : [
-                 "<25>{#f/10}* The way you've managed to get through without killing anyone?",
-                 "<25>{#f/11}* Congratulations, punk.\n* You're a little nicer than the average human."
-              ]),
-         '<25>{#f/8}* ...AS IF IT ACTUALLY MATTERS!',
-         '<25>{#f/4}* You know what would be more valuable to everyone?',
-         '<25>{#f/7}* IF YOU WERE DEAD!',
-         '<25>{#f/17}* Your life is all that stands between us and our freedom!',
-         "<25>{#f/1}* Right now, I can feel everyone's minds racing together!",
-         "<25>* Everyone's been waiting their whole lives for this moment!",
-         "<25>{#f/9}* But we're not nervous at all.",
-         "<25>{#f/17}* When everyone puts their minds together, they can't lose!",
-         "<25>{#f/1}* Now, human!\n* Let's end this, right here, right now!",
-         "<25>{#f/17}* I'll show you how determined monsters can try be!",
-         "<25>{#f/1}* Step forward when you're ready!\n* Fuhuhuhu!"
-      ],
-      undynefinal2b1: [ "<25>{#f/7}* You're just a ruthless MURDERER!" ],
-      undynefinal2b1a: [ '<25>{#f/11}* Self-defense?\n* Please.' ],
-      undynefinal2b1b: [
-         "<25>{#f/11}* What? You thought I wouldn't know what you were up to in the Outlands?",
-         '<25>{#f/1}* Fuhuhu... think again.'
-      ],
-      undynefinal2b2: () => [
-         world.trueKills === 1
-            ? "<25>{#f/9}* You didn't kill that monster because you had to."
-            : "<25>{#f/9}* You didn't kill those monsters because you had to.",
-         '<25>{#f/11}* You did it because it was EASY for you.\n* Because it was FUN.',
-         '<25>{#f/16}* Do you think it was fun when I found out?'
-      ],
-      undynefinal2b2a: [
-         '<25>{#f/9}* The canine unit.\n* The local ELITE squad.\n* And many others, too...',
-         '<25>* Almost everyone I know and love, dead just like that.'
-      ],
-      undynefinal2b2b: [
-         '<25>{#f/9}* The canine unit, AND the local ELITE squad...',
-         "<25>* People I've served with for years, gone in the blink of an eye."
-      ],
-      undynefinal2b2c: [
-         '<25>{#f/9}* The local ELITE squad, who dedicated their lives to royal service...',
-         '<25>* Gone in one fell swoop.'
-      ],
-      undynefinal2b2d: [
-         '<25>{#f/9}* The canine unit, who protected that little town for years...',
-         '<25>* Gone without a trace.'
-      ],
-      undynefinal2b2e: [
-         '<26>{#f/9}* That ghost, who wanted nothing more than to fuse with their dummy...',
-         '<25>* Erased in a mere moment.'
-      ],
-      undynefinal2b2f: [
-         '<25>{#f/9}* That spider, who only wanted to protect and care for the clans...',
-         "<25>* Not only is she dead, but spiders' lives are in jeopardy."
-      ],
-      undynefinal2b2g: [
-         '<25>{#f/9}* Doge, who had a strong and unwavering sense of duty...',
-         "<25>* Even if putting her life at risk was her job, she's still dead."
-      ],
-      undynefinal2b2h: [
-         '<25>{#f/9}* That big dog, one of the kindest and sweetest dogs ever...',
-         '<25>* Eliminated before his time.'
-      ],
-      undynefinal2b2i: [
-         '<25>{#f/9}* Those two dogs, caring for each other through thick and thin...',
-         '<25>* Their love and legacy, ripped away in an instant.'
-      ],
-      undynefinal2b2j: [
-         '<25>{#f/9}* That little dog who wanted nothing more than to be pet...',
-         '<25>* Only to be met with a ruthless attack.'
-      ],
-      undynefinal2b2k: [
-         '<25>{#f/9}* Doggo, who I PERSONALLY looked after for some time...',
-         '<25>* Now dead thanks to the whims of a single human.'
-      ],
-      undynefinal2b2l: [
-         "<25>{#f/9}* That woman in the Outlands... I didn't know her, but...",
-         "<25>* She hasn't been seen since you arrived in Starton."
-      ],
-      undynefinal2b2m: [
-         '<25>{#f/9}* Every. Single. Monster. who spent their lives in the factory...',
-         '<25>* Only to have it all snatched away.'
-      ],
-      undynefinal2b2n: [
-         '<25>{#f/9}* Every. Single. Monster. who lived peacefully in Starton...',
-         '<25>* Only to meet an untimely end.'
-      ],
-      undynefinal2b2o: [
-         '<25>{#f/9}* Those monsters who spent their lives here in the factory...',
-         '<25>* Only to have it all be undone.'
-      ],
-      undynefinal2b2p: [
-         '<25>{#f/9}* Those monsters who lived peacefully in Starton...',
-         '<25>* Slaughtered in cold blood.'
-      ],
-      undynefinal2b2q: [
-         '<25>{#f/9}* One monster dead from each area thus far...',
-         "<25>{#f/13}* It's like you have some kind of per-area kill quota."
-      ],
-      undynefinal2b2r: () => [
-         world.trueKills === 1
-            ? "<25>{#f/9}* That monster in the Outlands...\n* I didn't really know them, but..."
-            : "<25>{#f/9}* Those monsters in the Outlands...\n* I didn't really know them, but...",
-         "<25>* Thanks to you, they're dead now."
-      ],
-      undynefinal2b2s: [
-         '<25>{#f/9}* Even if it was just one monster...',
-         "<25>* That's still one less SOUL that'll get to see the stars one day."
-      ],
-      // 2B2T :flushed: :flushed: :flushed:
-      undynefinal2b2t: [
-         '<25>{#f/9}* At least two monsters left home for the last time today.',
-         '<25>* Thanks to you, their families will never see them again.'
-      ],
-      undynefinal2b3: [
-         "<25>{#f/11}* Do you think that's FUN?",
-         '<25>* ...',
-         '<25>{#f/17}* Well guess what, punk.',
-         '<25>* Your time is up.',
-         '<25>{#f/4}* All the pain you inflicted on the fallen...',
-         "<25>{#f/7}* Every hope, every dream you've turned to dust...",
-         "<25>{#f/1}* This hero's gonna send it all right back through her spear!",
-         '<25>{#f/4}* NGAHHH!!!',
-         "<25>{#f/5}* I'll show you how determined monsters truly are!",
-         "<25>{#f/17}* Come on!\n* Step forward and let's end this!"
-      ],
-      undynefinal2c1: [ '<32>* ...', '<32>* Forget it.' ],
-      undynefinal2c2: [
-         '<25>{#f/16}{#x1}* Look.',
-         "<25>* Papyrus didn't come to his meeting today.",
-         '<25>{#f/19}* ...',
-         '<25>{#x2}* Say what you want about him.',
-         "<25>{#f/18}* He's weird, he's naive, he's self-absorbed...",
-         '<25>{#f/20}{#x3}* But Papyrus has NEVER missed a meeting.',
-         '<25>{#f/18}{#x4}* And no matter what time you call him on the phone...',
-         '<25>{#f/20}{#x5}* He ALWAYS answers within the first two rings.',
-         '<25>* ...',
-         "<25>{#f/18}{#x6}* But now he's gone.",
-         "<25>{#f/22}{#x7}* And his brother isn't around, either.",
-         '<25>* ...',
-         '<25>{#f/18}* What did you do to him?',
-         '<25>{#f/11}{#x8}* What did you DO TO HIM?',
-         '<25>{#f/16}{#x9}* Papyrus, who I have trained every day...',
-         "<25>{#f/19}* Even though I KNOW he's too goofy to ever hurt anyone...",
-         '<25>* ...',
-         '<25>{#f/16}{#x10}* Go ahead.\n* Prepare however you want.',
-         '<25>{#f/20}* But when you step forward...',
-         '<25>{#f/11}{#x11}* I will KILL you.'
-      ],
-      undynefinal3: () => [
-         ...(save.data.n.state_starton_papyrus === 1
-            ? [ '<25>{#p/undyne}{#f/21}* Alright, then.', '<25>{#f/19}* ...' ]
-            : world.trueKills > 1
-            ? [ '<25>{#p/undyne}{#f/11}* You asked for it, punk.', '<25>{#f/9}* Ready or not...' ]
-            : [ "<25>{#p/undyne}{#f/1}* That's it, then...!", '<25>{#f/17}* No more running away!' ])
-      ],
-      undynefinal3x: [ '<25>{#f/7}{*}* HERE I COME!!!!!!!{#x1}{^999}' ],
-      walktext: {
-         bird: () => [
-            '<25>{#p/kidd}{#f/4}* Dead end...',
-            world.genocide
-               ? '<25>{#f/3}* He must be on the other side of the gap by now, haha.'
-               : '<25>{#f/3}* The bird must be busy right now, haha.'
-         ],
-         birdx: [ '<32>{#p/narrator}* ...but nobody came.' ],
-         kidd1: () => [
-            '<25>{#p/kidd}{#f/4}* Do you ever get the feeling this place is hiding something?',
-            ...(world.genocide && save.flag.n.ga_asrielKiddWalk++ < 1
-               ? [ "<25>{#p/asriel2}{#f/6}* I don't see anything wrong.", '<25>{#p/kidd}{#f/4}* Yo... suit yourself...' ]
-               : [])
-         ],
-         path1: () =>
-            save.data.n.state_foundry_muffet === 1
-               ? [
-                    "<25>{#p/kidd}{#f/8}* I feel like I'm gonna puke...",
-                    save.data.n.state_foundry_kidddeath > 5
-                       ? '<25>* We killed so many monsters...'
-                       : save.data.n.state_foundry_kidddeath > 1
-                       ? '<25>* We killed other monsters...'
-                       : '<25>* We killed a monster...'
-                 ]
-               : [
-                    '<25>{#p/kidd}{#f/1}* Did I ever tell you about how we got shuttle pilot lessons!?',
-                    '<25>{#p/kidd}{#f/7}* It was EPIC!'
-                 ],
-         path2: () =>
-            save.data.n.state_foundry_muffet === 1
-               ? [
-                    save.data.b.f_state_kidd_fight
-                       ? '<25>{#p/kidd}{#f/4}* I mean, you TOLD me to fight...'
-                       : '<25>{#p/kidd}{#f/4}* I mean, you did ALL the attacking...',
-                    '<25>{#p/kidd}{#f/8}* But did you really...\n* ...m-mean to do...\n* ...that...?'
-                 ]
-               : [
-                    '<25>{#p/kidd}{#f/2}* One day, that short skeleton and his brother subbed in...',
-                    '<25>{#p/kidd}{#f/2}* And, this is a secret, but...',
-                    '<25>{#f/1}* They let me fly around the outpost all by MYSELF!!'
-                 ],
-         path3: () =>
-            save.data.n.state_foundry_muffet === 1
-               ? [
-                    '<25>{#p/kidd}{#f/4}* I never wanted to hurt anyone, I just...\n* I...',
-                    '<25>{#p/kidd}{#f/8}* I just wanna wake up...\n* Please... let it all be a bad dream...'
-                 ]
-               : [
-                    "<25>{#p/kidd}{#f/1}* Maybe one day I'll be a real pilot, with my own starship.",
-                    "<25>{#p/kidd}{#f/1}* It'd have FLAMES painted on the side, and HUGE wings, and...",
-                    "<25>{#p/kidd}{#f/6}* Man, that'd be so cool..."
-                 ],
-         path4: () =>
-            save.data.n.state_foundry_muffet === 1
-               ? [ '<25>{#p/kidd}{#f/8}* I...', '<25>{#f/8}* I...', "<25>{#f/5}* I'm just... \n* ...gonna be quiet." ]
-               : [
-                    '<25>{#p/kidd}{#f/2}* We could go anywhere in the universe, dude...',
-                    '<25>{#p/kidd}{#f/1}* And the best part?\n* No more school, like, EVER!'
-                 ],
-         path5: [ '<25>{#p/kidd}{#f/4}* Wait...' ],
-         path6: () =>
-            save.data.n.state_foundry_muffet === 1
-               ? [
-                    "<25>{#p/kidd}{#f/8}* You can't get over that gap alone, dude...",
-                    '<25>{#p/kidd}{#f/8}* ...',
-                    '<25>{#p/kidd}{#f/5}* ...let me help.'
-                 ]
-               : [
-                    '<25>{#p/kidd}{#f/2}* You sure you can get across that gap?',
-                    '<25>{#p/kidd}{#f/1}* Yo, let me help you!'
-                 ],
-         path7: () =>
-            save.data.n.state_foundry_muffet === 1
-               ? [ '<25>{#p/kidd}{#f/8}* Climb on.' ]
-               : [ '<25>{#p/kidd}{#f/1}* Climb on!' ],
-         path8: () =>
-            save.data.n.state_foundry_muffet === 1
-               ? [
-                    '<25>{#p/kidd}{#f/4}* ...\n* Well...',
-                    '<25>{#f/8}* If you never see me again...\n* Tell my parents...',
-                    "<25>{#f/5}* ...\n* They're better off without me."
-                 ]
-               : [ "<25>{#p/kidd}{#f/1}* Don't worry, dude!\n* I always find my own way around!" ],
-         prechase: [
-            '<25>{#p/kidd}{#f/4}* Hey... uh...\n* This place gives me the creeps.',
-            '<25>{#f/3}* Can we turn around now?'
-         ],
-         snailcom: [
-            '<25>{#p/kidd}{#f/9}* Napstablook and I played Thundersnail here one time...',
-            '<25>* Have you ever...?',
-            '<25>{#p/asriel2}{#f/10}* Um... no?',
-            '<25>{#f/4}* Not in this timeline, anyway.',
-            '<25>{#p/kidd}{#f/9}* Timeline?'
-         ],
-         undynecom: [
-            "<25>{#p/kidd}{#f/11}* Oh, it's...\n* This is Undyne's house...!",
-            "<25>{#p/asriel2}{#f/8}* Thankfully, Undyne's not here right now.",
-            '<25>{#f/6}* If all goes to plan, she never will be again.'
-         ],
-         trashcom: [
-            '<25>{#p/asriel2}{#f/13}* Oh, hey...\n* This is where we...',
-            '<25>{#f/13}* Where you...',
-            '<25>{#f/4}* ...',
-            '<25>{#f/3}* Oh, $(name)...\n* Silly, silly $(name)...',
-            '<25>{#p/kidd}{#f/9}* ...?',
-            "<25>{#p/asriel2}{#f/6}* It's nothing.",
-            "<25>{#f/3}* Just a little reminder, that's all.",
-            '<25>{#p/kidd}{#f/9}* Oh...'
+         undyne3: [ '<32>{#p/narrator}* ...', '<32>{#p/narrator}* A certain, sudden coldness washes over you.' ],
+         view1: [ '<32>{#p/narrator}* Wow, look at that.', '<32>* The Citadel...' ],
+         view2: [
+            "<32>* ...that's where we're headed, you know.",
+            "<32>* It's where King Asgore lives.",
+            "<32>* I guess you could say he's the misunderstood type...",
+            "<32>* ...but that's par for the course out here.",
+            '<32>* ...',
+            '<32>* Whatever happens, though...',
+            "<32>* Appreciate what's given to you before it's too late.",
+            "<32>* You can't regret that...\n* Can you?"
          ]
       },
-      finalpre: [ choicer.create('* (Continue to Aerialis?)', 8, 7, 'No', 'Yes') ],
-      kitchencall: () =>
-         save.data.n.plot_date < 1
-            ? [
-                 '<32>{#p/event}* Ring, ring...',
-                 '<18>{#p/papyrus}HUMAN!\nI WAS THINKING.',
-                 save.data.b.flirt_papyrus
-                    ? '<18>WE SHOULD TOTALLY DATE SOMETIME!'
-                    : '<18>WE SHOULD TOTALLY HANG OUT SOMETIME!',
-                 "<18>{#f/5}AND BESIDES... I HAVEN'T SEEN YOU IN A WHILE.",
-                 "<18>{#f/0}IT'LL BE GOOD TO CATCH UP!",
-                 "<18>{#f/0}WELL, MEET ME AT MY HOUSE WHEN YOU'RE READY.",
-                 '<18>{#f/9}THIS IS GOING TO BE FANTASTIC!'
-              ]
-            : [
-                 '<32>{#p/event}* Ring, ring...',
-                 '<18>{#p/papyrus}HUMAN!\nI WAS THINKING.',
-                 '<18>SO, YOU KNOW HOW WE SPENT TIME TOGETHER?',
-                 '<18>{#f/5}WELL... I THINK UNDYNE NEEDS TO DO THE SAME.',
-                 '<18>{#f/4}BESIDES, I BET YOU TWO WOULD BE GREAT FRIENDS...',
-                 save.data.b.flirt_papyrus ? '<18>{#f/6}...JUST FRIENDS!' : '<18>{#f/0}JUST LIKE WE WERE!',
-                 "<18>{#f/0}WELL, MEET ME AT UNDYNE'S HOUSE WHEN YOU'RE READY.",
-                 '<18>{#f/9}THIS IS GOING TO BE FANTASTIC!'
-              ],
       unddate0: () =>
          world.trueKills > 0
             ? [
@@ -3116,7 +2592,6 @@ const text = {
                  '<18>{#p/papyrus}{#f/0}OKAY!\nALL READIED UP TO HANG OUT?',
                  choicer.create('* (Befriend Undyne?)', 8, 7, 'Yes', 'No')
               ],
-
       // outside: start
       unddate1a: [ '<18>{#p/papyrus}{#f/0}OKAY!\nSTAND BEHIND ME!' ],
       unddate1b: pager.create(
@@ -3140,7 +2615,6 @@ const text = {
          '<18>{#p/papyrus}{#f/5}...',
          "<25>{#p/undyne}{#f/17}* Why don't.\n* You two.\n* Come in?"
       ],
-
       // inside: pre-sitdown
       unddate5: [ '<18>{#p/papyrus}HERE, UNDYNE.', '<18>MY FRIEND WANTED YOU TO HAVE THIS!' ],
       unddate5x: [
@@ -3572,7 +3046,7 @@ const text = {
       unddate46: [ '<25>{*}{#p/undyne}{#f/17}* Stir harder!{^20}{%}' ],
       unddate47: [ '<25>{*}{#p/undyne}{#f/7}* HARDER!{^20}{%}' ],
       unddate48: [ '<25>{*}{#p/undyne}{#f/8}* HARDER!!!{^20}{%}' ],
-      unddate49: [ '<25>{*}{#p/undyne}{#f/8}* Ugh, let me do it- {^10}{%}' ],
+      unddate49: [ '<25>{*}{#p/undyne}{#f/8}* Ugh, let me do it-{^10}{%}' ],
       unddate50: [ "<25>{#p/undyne}{#f/8}* Fuhuhuhu!\n* That's the stuff!" ],
       unddate51: [
          '<25>{#p/undyne}{#f/1}* Alright, now for the final step...',
@@ -3617,53 +3091,439 @@ const text = {
          "<25>{#f/8}* Since we're in the same place, I'll be able to talk too!"
       ],
       unddate66: [ '<25>{#f/14}* Well, see ya later, punk!!' ],
-      sleeper: [ '<32>{#p/narrator}* Yet another sentry station made for Sans.\n* Like, really guys?' ],
-      sleepersans: [ "<32>{#p/narrator}* He's fast asleep." ],
-      hapstadoor1: [ "<32>{#p/narrator}* It's locked." ],
-      hapstadoor2: [ '<32>{#p/human}* (You used the mystery key...)' ],
-      napcomputer1: pager.create('limit', () => [
-         '<32>{#p/narrator}* The computer is currently open to a music-sharing application.',
-         choicer.create('* (View the application?)', 8, 7, 'Yes', 'No')
-      ]),
-      napcomputer2: [ '<32>{#p/human}* (You decide not to look.)' ],
-      napcomputer3: {
-         a: [
-            'MTT - Solarwave.kwac',
-            'MTT - Homeworld Blues.kwac',
-            '_K1llSh0t_ - Hyper Rage.kwac',
-            'MMSA - Main Theme.kwac',
-            () => (save.data.n.state_starton_papyrus === 1 ? 'papyrus tribute.kwac' : 'funny autotune.kwac'),
-            'Song of the Stars.kwac'
+      undyne1a: [
+         "<23>{#p/papyrus}{#f/30}H... HI, UNDYNE!\nI'M HERE WITH MY DAILY REPORT...",
+         '<23>UHHH... REGARDING THAT HUMAN I CALLED YOU ABOUT EARLIER...'
+      ],
+      undyne1b: [ '<23>{#p/papyrus}{#f/30}...HUH?\nDID I FIGHT THEM?' ],
+      undyne1c: () =>
+         save.data.n.kills_starton + save.data.n.bully_starton < 12 || // population > 0
+         save.data.n.bully_starton > save.data.n.kills_starton / 3 // bullied
+            ? [ '<23>{#p/papyrusnt}Y-YES!\nOF COURSE I DID!', '<23>I FOUGHT THEM VALIANTLY!' ]
+            : [ '<23>{#p/papyrusnt}UH...', "<23>I-IT'S COMPLICATED!" ],
+      undyne1d: [ '<23>{#p/papyrus}{#f/30}...WHAT?\nDID I CAPTURE THEM...?' ],
+      undyne1e: [ '<23>{#p/papyrus}{#f/30}W-W-WELL...', '<23>NO...' ],
+      undyne1f: [ '<23>{#p/papyrus}{#f/30}I-I MEAN, I TRIED VERY HARD TO, B-BUT, IN THE END...' ],
+      undyne1g: () => [
+         '<23>{#p/papyrus}{#f/30}...W-WHAT?',
+         ...(save.data.n.state_foundry_doge === 1
+            ? [ "<23>THEY'VE ALREADY KILLED A ROYAL GUARD MEMBER??", "<23>N-NO... THEY WOULDN'T DO THAT, WOULD THEY?" ]
+            : [ "<23>YOU'RE GOING TO TAKE THE HUMAN'S SOUL YOURSELF??" ])
+      ],
+      undyne1h: () =>
+         save.data.n.state_foundry_doge === 1
+            ? [ '<23>{#p/papyrus}{#f/30}SURELY THERE MUST BE ANOTHER WAY!', '<23>SURELY...' ]
+            : [ "<23>{#p/papyrus}{#f/30}BUT UNDYNE, YOU DON'T H-HAVE TO DESTROY THEM! YOU SEE...", '<23>YOU SEE...' ],
+      undyne1i: [ '<23>{#p/papyrus}{#f/30}...', '<23>...I UNDERSTAND.', "<23>I'LL HELP YOU IN ANY WAY I CAN." ],
+      undyne1j: [ '<25>{#p/kidd}{#f/1}* Yo!\n* There she is!' ],
+      undyne1k: [ "<25>{#p/kidd}{#f/7}* Wait... you're a human, aren't you?" ],
+      undyne1l: [ '<25>{*}{#p/kidd}{#f/7}* RUUUUUUUUUUUN!{^20}{%}' ],
+      undyne1m: [ '<25>{#p/kidd}{#f/2}* Phew...' ],
+      undyne1n: [ '<25>{#p/kidd}{#f/1}* Uh, you can step off the platform now.' ],
+      undyne1o: [ "<25>{#p/kidd}{#f/4}* Where'd she go...?" ],
+      undyne1p: [ '<25>{#p/kidd}{#f/7}* AH!{^10}{%}' ],
+      undyne1q: [ '<25>{#p/kidd}{#f/2}* Psst, I think we can sneak past her.\n* Come on!' ],
+      undyne1r: [ "<25>{#p/kidd}{#f/4}* It's dark...", '<25>{#p/kidd}{#f/7}* ...but we have to keep going forward!' ],
+      undyne1s: [ '<25>{#p/kidd}{#f/7}* Quick, into the hydroponic rubberbushes!' ],
+      undyne2a: [
+         '<25>{#p/kidd}{#f/7}* She... she...',
+         '<25>{#f/7}* She TOUCHED me!!',
+         "<25>{#f/4}* ...\n* Guess we're BOTH lucky, then, huh?",
+         "<25>{#f/5}* Things could've gotten real bad if she saw you."
+      ],
+      undyne2ax: [
+         '<25>{#p/kidd}{#f/1}* She... she...',
+         "<25>{#f/1}* She's NOWHERE to be found!?",
+         '<25>{#f/3}* Have you guys seen her ANYWHERE out here?',
+         '<25>{#p/asriel2}{#f/3}* Who, Undyne?',
+         "<25>{#p/kidd}{#f/1}* Yeah!\n* She's totally gone!",
+         '<25>{#p/asriel2}{#f/2}* Hee hee hee...',
+         '<25>{#p/kidd}{#f/4}* Huh??',
+         '<25>{#p/asriel2}{#f/1}* Oh, nothing.',
+         '<25>{#f/5}* Say, wanna join us for a bit?',
+         '<25>{#p/kidd}{#f/3}* Y... you want me to join you?',
+         "<25>{#p/asriel2}{#f/4}* Yeah, why not.\n* It'll be fun, I think.",
+         "<25>{#p/kidd}{#f/4}* Uh...\n* I don't know...",
+         '<25>{#p/asriel2}{#f/15}* Well, did you know Undyne likes Dr. Alphys?',
+         '<25>* I happen to know she wants to marry her.',
+         '<25>{#p/kidd}{#f/7}* What!?\n* No way...',
+         "<25>{#p/asriel2}{#f/1}* Yeah, and that's not the only thing I know about Undyne.",
+         '<25>{#p/kidd}{#f/7}* Tell me more!',
+         '<25>{#p/asriel2}{#f/5}* Okay, okay...\n* But only if you come with $(name) and I.',
+         '<25>{#p/kidd}{#f/2}* Hmm...',
+         '<25>{#f/1}* Deal!\n* Haha.'
+      ],
+      undyne2b: [ '<25>{#p/kidd}{#f/1}* Yo, what are you waiting for?' ],
+      undyne2bx: [ "<25>{#p/kidd}{#f/1}* Let's go!" ],
+      undyne2c: [
+         '<25>{#f/3}* Hey... I know we only just met, but...',
+         "<25>{#f/4}* I don't want Undyne to hurt you...",
+         '<25>* ...',
+         "<25>{#f/2}* Why don't we stick together for a while?",
+         "<25>{#f/1}* Come on, it'll be fun!"
+      ],
+      undyne2cx: [
+         '<25>{#p/kidd}{#f/2}* Man, you shoulda SEEN her during human- chasing practice...',
+         '<25>{#f/1}* She was throwing like, a MILLION spears a second!'
+      ],
+      undyne2d: [ "<25>{#f/1}* I'm right behind you!" ],
+      undyne2dx: () => [
+         '<25>{#p/kidd}{#f/2}* And when the simulation was about to get away...',
+         '<25>{#f/1}* She CORNERED it at the FINAL moment!',
+         ...(save.flag.n.ga_asrielKidd2++ < 1
+            ? [ '<25>{#p/asriel2}{#f/6}* Good for her, I guess.', '<25>{#p/kidd}{#f/1}* Yeah!!' ]
+            : [])
+      ],
+      undyne2ex: [
+         '<25>{#p/kidd}{#f/4}* Wait...',
+         "<25>* If Undyne's not here, who's going to protect us from those baddies?",
+         '<25>{#f/8}* You know...\n* The ones who- {%}',
+         "<25>{#p/asriel2}{#f/4}* I wouldn't worry about it, kid.",
+         '<25>{#f/3}* Besides, if Undyne is as tactically skilled as you say...',
+         "<25>{#f/4}* Then clearly she must have a reason.\n* She's smart, right?",
+         "<25>{#p/kidd}{#f/4}* Yeah...\n* That's true...",
+         '<25>{#p/kidd}{#f/2}* Well, thanks for taking me along, you guys.',
+         "<25>{#p/asriel2}{#f/10}* Sure...?\n* We haven't gotten THAT far, you know...",
+         '<25>{#p/kidd}{#f/3}* Well, yeah, but like, I barely get time away from my parents, so...',
+         "<25>{#p/asriel2}{#f/8}* You have parents?\n* That's new.",
+         "<25>{#p/kidd}{#f/7}* Uh, o-of course I have parents, who doesn't??",
+         '<25>{#p/asriel2}{#f/15}* ...',
+         '<25>{#p/kidd}{#f/4}* Yo... why are you looking at me like that?',
+         '<25>{#f/8}* Did I do something wrong?'
+      ],
+      undynefinal1a: [
+         '<32>{#p/undyne}* Seven.',
+         '<32>* Seven human SOULs and this world will be transformed.',
+         '<32>{#x1}* After your SOUL is captured, the force field will be shattered.',
+         '<32>{#x2}* Monsters will finally go free.',
+         '<32>{#x3}* But first, as is customary for those who make it this far...',
+         '<32>{#x4}* I must tell you the tragic tale of our people.',
+         '<32>{#x5}* It all began long ago, when...'
+      ],
+      undynefinal1b: [ '<32>{#p/undyne}* You know what?' ],
+      undynefinal1c: [ '<32>{*}{#p/undyne}{#i/25}* SCREW IT!!{^999}' ],
+      undynefinal1d: [ '<32>{*}{#p/undyne}{#i/25}* WHY SHOULD I TELL YOU THAT STORY!!{^999}' ],
+      undynefinal1e: [ "<32>{*}{#p/undyne}{#i/25}* WHEN YOU'RE ABOUT TO DIE!!{^999}" ],
+      undynefinal1f: [ '<32>{*}{#p/undyne}{#i/25}* NGAHHHHHHHHHHHH!!!{^999}' ],
+      undynefinal1g: [
+         '<25>{#p/undyne}{#f/1}* HUMAN!',
+         "<25>* YOU'RE standing in the way of EVERYBODY's hopes and dreams!",
+         "<25>{#f/11}* Alphys's history films made me think humans were cool...",
+         '<25>{#f/16}* ...with their living spacecraft and inter- dimensional portals.',
+         '<25>{#f/4}* But YOU???'
+      ],
+      undynefinal2a: () => [
+         "<25>{#f/7}* You're just a COWARD!",
+         ...(save.data.b.f_state_kidd_betray
+            ? [ "<25>{#f/13}* ...and you didn't even bother to save your friend." ]
+            : [ '<25>* Hiding behind that kid so you could run away from me again!' ]),
+         "<25>{#f/9}* I'll admit, I was impressed...",
+         ...(save.data.n.state_foundry_doge === 2 && save.data.n.state_foundry_muffet === 2
+            ? [
+                 '<25>* The way you managed to not only get past the local ELITE squad...',
+                 '<25>{#f/10}* But BEFRIEND them???',
+                 "<25>{#f/11}* You've got cojones, punk."
+              ]
+            : [
+                 "<25>{#f/10}* The way you've managed to get through without killing anyone?",
+                 "<25>{#f/11}* Congratulations, punk.\n* You're a little nicer than the average human."
+              ]),
+         '<25>{#f/8}* ...AS IF IT ACTUALLY MATTERS!',
+         '<25>{#f/4}* You know what would be more valuable to everyone?',
+         '<25>{#f/7}* IF YOU WERE DEAD!',
+         '<25>{#f/17}* Your life is all that stands between us and our freedom!',
+         "<25>{#f/1}* Right now, I can feel everyone's minds racing together!",
+         "<25>* Everyone's been waiting their whole lives for this moment!",
+         "<25>{#f/9}* But we're not nervous at all.",
+         "<25>{#f/17}* When everyone puts their minds together, they can't lose!",
+         "<25>{#f/1}* Now, human!\n* Let's end this, right here, right now!",
+         "<25>{#f/17}* I'll show you how determined monsters can try be!",
+         "<25>{#f/1}* Step forward when you're ready!\n* Fuhuhuhu!"
+      ],
+      undynefinal2b1: [ "<25>{#f/7}* You're just a ruthless MURDERER!" ],
+      undynefinal2b1a: [ '<25>{#f/11}* Self-defense?\n* Please.' ],
+      undynefinal2b1b: [
+         "<25>{#f/11}* What? You thought I wouldn't know what you were up to in the Outlands?",
+         '<25>{#f/1}* Fuhuhu... think again.'
+      ],
+      undynefinal2b2: () => [
+         world.trueKills === 1
+            ? "<25>{#f/9}* You didn't kill that monster because you had to."
+            : "<25>{#f/9}* You didn't kill those monsters because you had to.",
+         '<25>{#f/11}* You did it because it was EASY for you.\n* Because it was FUN.',
+         '<25>{#f/16}* Do you think it was fun when I found out?'
+      ],
+      undynefinal2b2a: [
+         '<25>{#f/9}* The canine unit.\n* The local ELITE squad.\n* And many others, too...',
+         '<25>* Almost everyone I know and love, dead just like that.'
+      ],
+      undynefinal2b2b: [
+         '<25>{#f/9}* The canine unit, AND the local ELITE squad...',
+         "<25>* People I've served with for years, gone in the blink of an eye."
+      ],
+      undynefinal2b2c: [
+         '<25>{#f/9}* The local ELITE squad, who dedicated their lives to royal service...',
+         '<25>* Gone in one fell swoop.'
+      ],
+      undynefinal2b2d: [
+         '<25>{#f/9}* The canine unit, who protected that little town for years...',
+         '<25>* Gone without a trace.'
+      ],
+      undynefinal2b2e: [
+         '<26>{#f/9}* That ghost, who wanted nothing more than to fuse with their dummy...',
+         '<25>* Erased in a mere moment.'
+      ],
+      undynefinal2b2f: [
+         '<25>{#f/9}* That spider, who only wanted to protect and care for the clans...',
+         "<25>* Not only is she dead, but spiders' lives are in jeopardy."
+      ],
+      undynefinal2b2g: [
+         '<25>{#f/9}* Doge, who had a strong and unwavering sense of duty...',
+         "<25>* Even if putting her life at risk was her job, she's still dead."
+      ],
+      undynefinal2b2h: [
+         '<25>{#f/9}* That big dog, one of the kindest and sweetest dogs ever...',
+         '<25>* Eliminated before his time.'
+      ],
+      undynefinal2b2i: [
+         '<25>{#f/9}* Those two dogs, caring for each other through thick and thin...',
+         '<25>* Their love and legacy, ripped away in an instant.'
+      ],
+      undynefinal2b2j: [
+         '<25>{#f/9}* That little dog who wanted nothing more than to be pet...',
+         '<25>* Only to be met with a ruthless attack.'
+      ],
+      undynefinal2b2k: [
+         '<25>{#f/9}* Doggo, who I PERSONALLY looked after for some time...',
+         '<25>* Now dead thanks to the whims of a single human.'
+      ],
+      undynefinal2b2l: [
+         "<25>{#f/9}* That woman in the Outlands... I didn't know her, but...",
+         "<25>* She hasn't been seen since you arrived in Starton."
+      ],
+      undynefinal2b2m: [
+         '<25>{#f/9}* Every. Single. Monster. who spent their lives in the factory...',
+         '<25>* Only to have it all snatched away.'
+      ],
+      undynefinal2b2n: [
+         '<25>{#f/9}* Every. Single. Monster. who lived peacefully in Starton...',
+         '<25>* Only to meet an untimely end.'
+      ],
+      undynefinal2b2o: [
+         '<25>{#f/9}* Those monsters who spent their lives here in the factory...',
+         '<25>* Only to have it all be undone.'
+      ],
+      undynefinal2b2p: [
+         '<25>{#f/9}* Those monsters who lived peacefully in Starton...',
+         '<25>* Slaughtered in cold blood.'
+      ],
+      undynefinal2b2q: [
+         '<25>{#f/9}* One monster dead from each area thus far...',
+         "<25>{#f/13}* It's like you have some kind of per-area kill quota."
+      ],
+      undynefinal2b2r: () => [
+         world.trueKills === 1
+            ? "<25>{#f/9}* That monster in the Outlands...\n* I didn't really know them, but..."
+            : "<25>{#f/9}* Those monsters in the Outlands...\n* I didn't really know them, but...",
+         "<25>* Thanks to you, they're dead now."
+      ],
+      undynefinal2b2s: [
+         '<25>{#f/9}* Even if it was just one monster...',
+         "<25>* That's still one less SOUL that'll get to see the stars one day."
+      ],
+      // 2B2T :flushed: :flushed: :flushed:
+      undynefinal2b2t: [
+         '<25>{#f/9}* At least two monsters left home for the last time today.',
+         '<25>* Thanks to you, their families will never see them again.'
+      ],
+      undynefinal2b3: [
+         "<25>{#f/11}* Do you think that's FUN?",
+         '<25>* ...',
+         '<25>{#f/17}* Well guess what, punk.',
+         '<25>* Your time is up.',
+         '<25>{#f/4}* All the pain you inflicted on the fallen...',
+         "<25>{#f/7}* Every hope, every dream you've turned to dust...",
+         "<25>{#f/1}* This hero's gonna send it all right back through her spear!",
+         '<25>{#f/4}* NGAHHH!!!',
+         "<25>{#f/5}* I'll show you how determined monsters truly are!",
+         "<25>{#f/17}* Come on!\n* Step forward and let's end this!"
+      ],
+      undynefinal2c1: [ '<32>* ...', '<32>* Forget it.' ],
+      undynefinal2c2: [
+         '<25>{#f/16}{#x1}* Look.',
+         "<25>* Papyrus didn't come to his meeting today.",
+         '<25>{#f/19}* ...',
+         '<25>{#x2}* Say what you want about him.',
+         "<25>{#f/18}* He's weird, he's naive, he's self-absorbed...",
+         '<25>{#f/20}{#x3}* But Papyrus has NEVER missed a meeting.',
+         '<25>{#f/18}{#x4}* And no matter what time you call him on the phone...',
+         '<25>{#f/20}{#x5}* He ALWAYS answers within the first two rings.',
+         '<25>* ...',
+         "<25>{#f/18}{#x6}* But now he's gone.",
+         "<25>{#f/22}{#x7}* And his brother isn't around, either.",
+         '<25>* ...',
+         '<25>{#f/18}* What did you do to him?',
+         '<25>{#f/11}{#x8}* What did you DO TO HIM?',
+         '<25>{#f/16}{#x9}* Papyrus, who I have trained every day...',
+         "<25>{#f/19}* Even though I KNOW he's too goofy to ever hurt anyone...",
+         '<25>* ...',
+         '<25>{#f/16}{#x10}* Go ahead.\n* Prepare however you want.',
+         '<25>{#f/20}* But when you step forward...',
+         '<25>{#f/11}{#x11}* I will KILL you.'
+      ],
+      undynefinal3: () => [
+         ...(save.data.n.state_starton_papyrus === 1
+            ? [ '<25>{#p/undyne}{#f/21}* Alright, then.', '<25>{#f/19}* ...' ]
+            : world.trueKills > 1
+            ? [ '<25>{#p/undyne}{#f/11}* You asked for it, punk.', '<25>{#f/9}* Ready or not...' ]
+            : [ "<25>{#p/undyne}{#f/1}* That's it, then...!", '<25>{#f/17}* No more running away!' ])
+      ],
+      undynefinal3x: [ '<25>{#f/7}{*}* HERE I COME!!!!!!!{#x1}{^999}' ],
+      undynehouse1: [ "<32>{#p/narrator}* It's locked." ],
+      undynehouse2: [ "<32>{#p/narrator}* It's literally on fire.\n* You're not getting in there." ],
+      walktext: {
+         bird: () => [
+            '<25>{#p/kidd}{#f/4}* Dead end...',
+            world.genocide
+               ? '<25>{#f/3}* He must be on the other side of the gap by now, haha.'
+               : '<25>{#f/3}* The bird must be busy right now, haha.'
          ],
-         b: [ 'COOLSKELETON95', 'COOLSKELETON95', '_K1ll3rMann3qu1n_', 'ALPHYS', 'lazybones.', '(Unknown)' ]
+         birdx: [ '<32>{#p/narrator}* ...but nobody came.' ],
+         path1: () =>
+            save.data.n.state_foundry_muffet === 1
+               ? [
+                    "<25>{#p/kidd}{#f/8}* I feel like I'm gonna puke...",
+                    save.data.n.state_foundry_kidddeath > 5
+                       ? '<25>* We killed so many monsters...'
+                       : save.data.n.state_foundry_kidddeath > 1
+                       ? '<25>* We killed other monsters...'
+                       : '<25>* We killed a monster...'
+                 ]
+               : [
+                    '<25>{#p/kidd}{#f/1}* Did I ever tell you about how we got shuttle pilot lessons!?',
+                    '<25>{#p/kidd}{#f/7}* It was EPIC!'
+                 ],
+         path2: () =>
+            save.data.n.state_foundry_muffet === 1
+               ? [
+                    save.data.b.f_state_kidd_fight
+                       ? '<25>{#p/kidd}{#f/4}* I mean, you TOLD me to fight...'
+                       : '<25>{#p/kidd}{#f/4}* I mean, you did ALL the attacking...',
+                    '<25>{#p/kidd}{#f/8}* But did you really...\n* ...m-mean to do...\n* ...that...?'
+                 ]
+               : [
+                    '<25>{#p/kidd}{#f/2}* One day, that short skeleton and his brother subbed in...',
+                    '<25>{#p/kidd}{#f/2}* And, this is a secret, but...',
+                    '<25>{#f/1}* They let me fly around the outpost all by MYSELF!!'
+                 ],
+         path3: () =>
+            save.data.n.state_foundry_muffet === 1
+               ? [
+                    '<25>{#p/kidd}{#f/4}* I never wanted to hurt anyone, I just...\n* I...',
+                    '<25>{#p/kidd}{#f/8}* I just wanna wake up...\n* Please... let it all be a bad dream...'
+                 ]
+               : [
+                    "<25>{#p/kidd}{#f/1}* Maybe one day I'll be a real pilot, with my own starship.",
+                    "<25>{#p/kidd}{#f/1}* It'd have FLAMES painted on the side, and HUGE wings, and...",
+                    "<25>{#p/kidd}{#f/6}* Man, that'd be so cool..."
+                 ],
+         path4: () =>
+            save.data.n.state_foundry_muffet === 1
+               ? [ '<25>{#p/kidd}{#f/8}* I...', '<25>{#f/8}* I...', "<25>{#f/5}* I'm just... \n* ...gonna be quiet." ]
+               : [
+                    '<25>{#p/kidd}{#f/2}* We could go anywhere in the universe, dude...',
+                    '<25>{#p/kidd}{#f/1}* And the best part?\n* No more school, like, EVER!'
+                 ],
+         path5: [ '<25>{#p/kidd}{#f/4}* Wait...' ],
+         path6: () =>
+            save.data.n.state_foundry_muffet === 1
+               ? [
+                    "<25>{#p/kidd}{#f/8}* You can't get over that gap alone, dude...",
+                    '<25>{#p/kidd}{#f/8}* ...',
+                    '<25>{#p/kidd}{#f/5}* ...let me help.'
+                 ]
+               : [
+                    '<25>{#p/kidd}{#f/2}* You sure you can get across that gap?',
+                    '<25>{#p/kidd}{#f/1}* Yo, let me help you!'
+                 ],
+         path7: () =>
+            save.data.n.state_foundry_muffet === 1
+               ? [ '<25>{#p/kidd}{#f/8}* Climb on.' ]
+               : [ '<25>{#p/kidd}{#f/1}* Climb on!' ],
+         path8: () =>
+            save.data.n.state_foundry_muffet === 1
+               ? [
+                    '<25>{#p/kidd}{#f/4}* ...\n* Well...',
+                    '<25>{#f/8}* If you never see me again...\n* Tell my parents...',
+                    "<25>{#f/5}* ...\n* They're better off without me."
+                 ]
+               : [ "<25>{#p/kidd}{#f/1}* Don't worry, dude!\n* I always find my own way around!" ],
+         prechase: [
+            '<25>{#p/kidd}{#f/4}* Hey... uh...\n* This place gives me the creeps.',
+            '<25>{#f/3}* Can we turn around now?'
+         ],
+         rescue1: [
+            "<25>{#p/kidd}{#f/7}* Undyne, please!\n* They're my friend!",
+            "<32>{#p/undyne}* Go home, kid.\n* You don't belong with them."
+         ],
+         rescue2: [ '<25>{*}{#p/kidd}{#f/8}* Undyne...{#x1}{^20}{%}' ],
+         rescue3: [
+            "<25>{*}{#p/kidd}{#f/13}* I promise, I... I-I'll come back for you!{^20}{%}",
+            '<25>{*}{#p/kidd}{#f/13}* Stay safe, okay?{^20}{%}'
+         ],
+         snailcom: [
+            '<25>{#p/kidd}{#f/9}* Napstablook and I played Thundersnail here one time...',
+            '<25>* Have you ever...?',
+            '<25>{#p/asriel2}{#f/10}* Um... no?',
+            '<25>{#f/4}* Not in this timeline, anyway.',
+            '<25>{#p/kidd}{#f/9}* Timeline?'
+         ],
+         trashcom: [
+            '<25>{#p/asriel2}{#f/13}* Oh, hey...\n* This is where we...',
+            '<25>{#f/13}* Where you...',
+            '<25>{#f/15}* ...',
+            '<25>{#f/16}* Oh, $(name)...',
+            '<25>{#p/kidd}{#f/9}* ...?',
+            "<25>{#p/asriel2}{#f/6}* It's nothing.",
+            "<25>{#f/7}* Just a little reminder, that's all.",
+            '<25>{#p/kidd}{#f/9}* Oh...'
+         ],
+         undynecom: [
+            "<25>{#p/kidd}{#f/11}* Oh, it's...\n* This is Undyne's house...!",
+            "<25>{#p/asriel2}{#f/8}* Thankfully, Undyne's not here right now.",
+            '<25>{#f/6}* If all goes to plan, she never will be again.'
+         ]
       },
-      napcomputer4: {
-         a: [ 'DJ Spectre.kwac', 'Spooktune Mashup.kwac' ],
-         b: [ 'NAPSTABLOOK22', 'NAPSTABLOOK22' ]
-      }
+      watercooler1: [
+         "<32>{#p/narrator}* It's a cooler full of electro- dampening fluid.",
+         choicer.create('* (Get a cup?)', 8, 7, 'Yes', 'No')
+      ],
+      watercooler2a: [ '<32>{#p/human}* (You now hold a cup of the electro-dampening fluid.)' ],
+      watercooler2b: [ '<32>{#p/human}* (You let the cooler be.)' ],
+      watercooler3: [ '<32>{#p/narrator}* You already have a cup.' ]
    },
 
    b_group_moldsmalMoldbygg1: [ "<32>{#p/story}* It's a gelatin festival!" ],
    b_group_moldsmalMoldbygg2a: () =>
-      world.goatbro ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Gelata is all alone now...' ],
+      world.azzie ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Gelata is all alone now...' ],
    b_group_moldsmalMoldbygg2b: () =>
-      world.goatbro ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Gelatini now blorbs solo.' ],
+      world.azzie ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Gelatini now blorbs solo.' ],
    b_group_moldsmalMoldbygg2c: () =>
-      world.goatbro ? [ '<32>{#p/asriel2}* One left.' ] : [ "<32>{#p/story}* Gelatini still hasn't made a sound." ],
+      world.azzie ? [ '<32>{#p/asriel2}* One left.' ] : [ "<32>{#p/story}* Gelatini still hasn't made a sound." ],
    b_group_woshuaMoldbygg2: [
       '<32>{#p/story}* Skrubbington straddles up.\n* Much to their dismay, Gelata is also here...'
    ],
    b_group_woshuaMoldbygg2a: () =>
-      world.goatbro ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Gelata is all alone now...' ],
+      world.azzie ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Gelata is all alone now...' ],
    b_group_woshuaMoldbygg2b: () =>
-      world.goatbro
+      world.azzie
          ? [ '<32>{#p/asriel2}* One left.' ]
          : [ '<32>{#p/story}* Skrubbington no longer has a janitorial staff.' ],
 
    b_opponent_woshua: {
       tweet: 'tweet',
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [
                  '<32>{#p/asriel2}* Skrubbington, the clean freak.\n* Has a mental breakdown if even one speck of dirt gets loose.'
               ]
@@ -3672,7 +3532,11 @@ const text = {
               ],
       name: '* Skrubbington',
       status1: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Skrubbington.' ] : [ '<32>{#p/story}* Skrubbington strolls in.' ],
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Skrubbington.' ]
+            : world.monty
+            ? [ "<32>{#p/kidding}* Skrubby's here!" ]
+            : [ '<32>{#p/story}* Skrubbington strolls in.' ],
       idleTalk1a: [ '<08>{~}Skrub u SOUL' ],
       idleTalk1b: [ '<08>{~}Skrub u hands' ],
       idleTalk1c: [ '<08>{~}Skrub u face' ],
@@ -3685,12 +3549,30 @@ const text = {
       cleanTalk: [ '<08>{~}Green means clean' ],
       jokeTalk1: [ "<08>{~}NO. THAT JOKE'S TOO.. DIRTY" ],
       jokeTalk2: [ '<08>{~}EUGH..' ],
-      randStatus1: [ '<32>{#p/story}* Skrubbington is friends with a little bird.' ],
-      randStatus2: [ '<32>{#p/story}* Skrubbington is rinsing off a saucer.' ],
-      randStatus3: [ '<32>{#p/story}* Skrubbington is looking for some good clean fun.' ],
-      randStatus4: [ '<32>{#p/story}* Smells like detergent.' ],
-      randStatus5: [ '<32>{#p/story}* Skrubbington wonders if stardust is sanitary.' ],
-      hurtStatus: [ '<32>{#p/story}* Skrubbington is revolted at its own wounds.' ],
+      randStatus1: () =>
+         world.monty
+            ? [ '<32>{#p/kidding}* Look at the little bird!' ]
+            : [ '<32>{#p/story}* Skrubbington is friends with a little bird.' ],
+      randStatus2: () =>
+         world.monty
+            ? [ "<32>{#p/kidding}* You should've SEEN when it tried to clean my school lunch off." ]
+            : [ '<32>{#p/story}* Skrubbington is rinsing off a saucer.' ],
+      randStatus3: () =>
+         world.monty
+            ? [ '<33>{#p/kidding}* We should go spacesuit-shining with this one.' ]
+            : [ '<32>{#p/story}* Skrubbington is looking for some good clean fun.' ],
+      randStatus4: () =>
+         world.monty
+            ? [ '<32>{#p/kidding}* Squeaky clean?\n* This is gonna be FREAKY clean.' ]
+            : [ '<32>{#p/story}* Smells like detergent.' ],
+      randStatus5: () =>
+         world.monty
+            ? [ '<32>{#p/kidding}* You do NOT wanna get dirty around this one, dude.' ]
+            : [ '<32>{#p/story}* Skrubbington wonders if stardust is sanitary.' ],
+      hurtStatus: () =>
+         world.monty
+            ? [ '<32>{#p/kidding}* Is... everything okay?' ]
+            : [ '<32>{#p/story}* Skrubbington is revolted at its own wounds.' ],
       jokeText1: [ '<32>{#p/narrator}* You tell a joke about a rusty piece of space junk.' ],
       jokeText2: [ '<32>{#p/narrator}* You tell a joke about polluted alien worlds.' ],
       jokeText3: [ '<32>{#p/narrator}* You tell a joke about two starships that got stuck in a trash barge.' ],
@@ -3702,36 +3584,57 @@ const text = {
       cleanText2: [ '<32>{#p/narrator}* Skrubbington continues cleaning.' ]
    },
    b_opponent_fakemoldsmal: {
-      status1: [ '<32>{#p/story}* Gelatini appears?' ],
       act_check: [ '<32>{#p/story}* GELATINI - ATK 6 DEF 0\n* Not a squorch to be heard.' ],
       name: '* Gelatini',
       smalTalk: [ '<08>{~}...' ],
-      fakeStatus1: [ "<32>{#p/story}* Gelatini isn't moving." ],
-      fakeStatus2: [ '<32>{#p/story}* Gelatini is a perfectly tempered gelatin with no flaws.' ],
-      fakeStatus3: [ "<32>{#p/story}* It's Gelatini's quiet time." ],
-      fakeStatus4: [ '<32>{#p/story}* Smells like a jell-o store.' ],
+      fakeStatus1: () =>
+         world.monty
+            ? [ '<32>{#p/kidding}* Do Gelatinis always sit this still?' ]
+            : [ "<32>{#p/story}* Gelatini isn't moving." ],
+      fakeStatus2: () =>
+         world.monty
+            ? [ "<32>{#p/kidding}* Something's off with that Gelatini..." ]
+            : [ '<32>{#p/story}* Gelatini is a perfectly tempered gelatin with no flaws.' ],
+      fakeStatus3: () =>
+         world.monty
+            ? [ '<32>{#p/kidding}* Are Gelatinis always this quiet?' ]
+            : [ "<32>{#p/story}* It's Gelatini's quiet time." ],
+      fakeStatus4: () =>
+         world.monty ? [ '<32>{#p/kidding}* This seems kinda weird.' ] : [ '<32>{#p/story}* Smells like a jell-o store.' ],
       act_imitate: [ '<32>{#p/narrator}* You approach Gelatini.\n* Suddenly...!' ],
       act_flirt: [ '<32>{#p/narrator}* You wiggle your hips.\n* Suddenly...!' ],
       act_slap: [ '<32>{#p/narrator}* You give Gelatini a big slap.\n* Suddenly...!' ]
    },
    b_opponent_moldbygg: {
-      status1: [ '<32>{#p/story}* Gelata appears!' ],
+      status1: () => (world.monty ? [ '<32>{#p/kidding}* Woah!' ] : [ '<32>{#p/story}* Gelata appears!' ]),
       act_check: [ '<32>{#p/story}* GELATA - ATK 18 DEF 18\n* One size greater than mold-average.' ],
       name: '* Gelata',
       idleTalk1: [ '<08>{~}Guoooh!' ],
       idleTalk2: [ '<08>{~}\x00*Slime sounds*' ],
       idleTalk3: [ '<08>{~}Roar.' ],
       idleTalk4: [ '<08>{~}\x00*Chaste wiggle*' ],
-      randStatus1: [ '<32>{#p/story}* Gelata wants to carry you.' ],
-      randStatus2: [ '<32>{#p/story}* Gelata wobbles anxiously.' ],
-      randStatus3: [ '<32>{#p/story}* Gelata mills about nearby.' ],
-      randStatus4: [ '<32>{#p/story}* Smells like a jell-o store.' ],
-      hurtStatus: [ '<32>{#p/story}* Gelata has seen better days.' ],
+      randStatus1: () =>
+         world.monty ? [ '<32>{#p/kidding}* What does it want?' ] : [ '<32>{#p/story}* Gelata wants to carry you.' ],
+      randStatus2: () =>
+         world.monty
+            ? [ "<32>{#p/kidding}* I wonder if it's possible to hug a slime mold." ]
+            : [ '<32>{#p/story}* Gelata wobbles anxiously.' ],
+      randStatus3: () =>
+         world.monty ? [ '<32>{#p/kidding}* So icky... I love it!' ] : [ '<32>{#p/story}* Gelata mills about nearby.' ],
+      randStatus4: () =>
+         world.monty ? [ '<32>{#p/kidding}* This seems kinda slimy.' ] : [ '<32>{#p/story}* Smells like a jell-o store.' ],
+      hurtStatus: () =>
+         world.monty
+            ? [ "<32>{#p/kidding}* Gelata isn't looking good..." ]
+            : [ '<32>{#p/story}* Gelata has seen better days.' ],
       act_handshake: [
          '<32>{#p/narrator}* You offer a handshake.\n* Gelata engulfs you in slime.\n* Your SPEED decreased.'
       ],
-      act_sit: [ '<32>{#p/narrator}* You sit on top of Gelata.\n* Gelata seems enthusiastic about its new reality.' ],
-      distanceStatus: [ '<32>{#p/story}* Gelata seems happy with your presence.' ],
+      act_sit: [ '<32>{#p/narrator}* You sit on top of Gelata.\n* Gelata now feels that it has served its purpose.' ],
+      distanceStatus: () =>
+         world.monty
+            ? [ '<32>{#p/kidding}* Can I come sit too!?' ]
+            : [ '<32>{#p/story}* Gelata seems happy with your presence.' ],
       act_flirt: [
          '<32>{#p/narrator}* You wiggle your hips.\n* Gelata does a tornado spin.\n* A meaningful conversation...?'
       ]
@@ -3859,16 +3762,30 @@ const text = {
    },
    b_opponent_radtile: {
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Radtile, the perfectionist crocodile. Funny, considering how imperfect he is.' ]
             : [ '<32>{#p/story}* RADTILE - ATK 24 DEF 12\n* Habitual self-mirror-checker?' ],
       name: '* Radtile',
       status1: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Radtile.' ] : [ '<32>{#p/narrator}* Radtile makes an impression!' ],
-      randStatus1: [ '<32>{#p/narrator}* Radtile adjusts his cap.' ],
-      randStatus2: [ '<32>{#p/narrator}* Radtile checks his mirror.' ],
-      randStatus3: [ '<32>{#p/narrator}* Radtile is focused on self- improvement.' ],
-      randStatus4: [ '<32>{#p/narrator}* Smells like atelophobia.' ],
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Radtile.' ]
+            : world.monty
+            ? [ '<32>{#p/kidding}* Not this guy...' ]
+            : [ '<32>{#p/story}* Radtile makes an impression!' ],
+      randStatus1: () =>
+         world.monty
+            ? [ "<32>{#p/kidding}* That sure is an interesting hat he's got there." ]
+            : [ '<32>{#p/story}* Radtile adjusts his cap.' ],
+      randStatus2: () =>
+         world.monty
+            ? [ "<32>{#p/kidding}* Everybody just loves Raddy's little mirror." ]
+            : [ '<32>{#p/story}* Radtile checks his mirror.' ],
+      randStatus3: () =>
+         world.monty
+            ? [ "<32>{#p/kidding}* He's a handful, this one..." ]
+            : [ '<32>{#p/story}* Radtile is focused on self- improvement.' ],
+      randStatus4: () =>
+         world.monty ? [ '<32>{#p/kidding}* He seems scared.' ] : [ '<32>{#p/story}* Smells like atelophobia.' ],
       idleTalk1: [ '<08>{~}How do I look?' ],
       idleTalk2: [ '<08>{~}How do I sound?' ],
       idleTalk3: [ '<08>{~}How do I smell?' ],
@@ -3883,51 +3800,61 @@ const text = {
       complimentPostInsultTalk1: [ '<08>{~}Yeah, yeah.' ],
       complimentPostInsultTalk2: [ '<08>{~}So you say.' ],
       complimentPostInsultTalk3: [ '<08>{~}Meh.' ],
-      complimentPostInsultStatus: [ "<32>{#p/narrator}* Radtile isn't having it." ],
+      complimentPostInsultStatus: () =>
+         world.monty
+            ? [ "<32>{#p/kidding}* Yeah, I don't think that's gonna work now, dude..." ]
+            : [ "<32>{#p/story}* Radtile isn't having it." ],
       flirtTalk1: [ '<08>{~}Woah, hey, hold on now..' ],
       flirtTalk2: [ '<08>{~}Eheh..' ],
-      flirtTalk3: [ '<08>{~}Simmer down, G..' ],
-      complimentStatus: [ "<32>* Radtile won't take compliments from someone who hasn't checked him yet." ],
+      flirtTalk3: [ '<08>{~}Simmer down, there..' ],
+      complimentStatus: () =>
+         world.monty
+            ? [ "<32>{#p/kidding}* He doesn't trust compliments easily, haha." ]
+            : [ "<32>{#p/story}* Radtile won't take compliments from someone who hasn't checked him yet." ],
       checkTalk: [ '<08>{~}Yes, yes, study me.' ],
-      realTalk1: [ '<08>{~}You sure?' ],
-      realTalk2: [ '<08>{~}You mean that?' ],
-      realTalk3: [ '<08>{~}Really?' ],
-      realStatus: [ '<32>{#p/narrator}* Radtile\'s confidence is growing, but he\'s not quite "there" yet.' ],
-      realTalkX1: [ '<08>{~}Okay, I believe you.' ],
-      realTalkX2: [ "<08>{~}Wow, that's a relief." ],
-      realTalkX3: [ '<08>{~}Alright then.' ],
+      realTalk1: [ '<08>{~}You sure?\nOkay, I believe you..' ],
+      realTalk2: [ "<08>{~}You mean that?\nThat's a relief.." ],
+      realTalk3: [ '<08>{~}Really?\nPhew..' ],
+      realStatus: () =>
+         world.monty
+            ? [ '<32>{#p/kidding}* You did it!\n* ...can we leave now?' ]
+            : [ "<32>{#p/narrator}* Radtile's worries disappear." ],
       realTalkY1: [ '<08>{~}Yeah, I guess you could say I feel better.' ],
       realTalkY2: [ '<08>{~}Yeah, I guess I needed that.' ],
       realTalkY3: [ '<08>{~}Yeah, I guess I should say thanks.' ],
       shockTalk1: [ '<08>{~}..\nOkay.' ],
-      shockStatus: [ '<32>{#p/narrator}* Radtile is not amused.' ],
-      realStatusX: [ "<32>{#p/narrator}* Radtile's worries disappear." ],
+      shockStatus: () => (world.monty ? [ '<32>{#p/kidding}* Uh...' ] : [ '<32>{#p/narrator}* Radtile is not amused.' ]),
       act_insult: [ '<32>{#p/narrator}* You insult Radtile.' ],
       act_flirt: [ '<32>{#p/narrator}* You flirt with Radtile.' ],
       insultTalk1: [ '<08>{~}Eh, knew it.' ],
       insultTalk2: [ '<08>{~}Figures.' ],
       insultTalk3: [ '<08>{~}Of course.' ],
-      insultStatus: [ '<32>{#p/narrator}* Radtile\'s just "too cool" to care.' ],
+      insultStatus: () =>
+         world.monty ? [ '<32>{#p/kidding}* Dude...' ] : [ '<32>{#p/narrator}* Radtile\'s just "too cool" to care.' ],
       checkPostInsultTalk: [ '<08>{~}Taking another look, are we?' ],
-      checkPostInsultStatus: [ '<32>{#p/narrator}* Radtile gives you another chance.' ],
-      hurtStatus: [ "<32>{#p/narrator}* Radtile's teeth are falling out." ]
+      checkPostInsultStatus: () =>
+         world.monty
+            ? [ "<32>{#p/kidding}* We're going in circles, man!" ]
+            : [ '<32>{#p/narrator}* Radtile gives you another chance.' ],
+      hurtStatus: () =>
+         world.monty ? [ '<32>{#p/kidding}* This is awkward.' ] : [ "<32>{#p/narrator}* Radtile's teeth are falling out." ]
    },
    b_opponent_doge: {
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Doge, the callous dog.\n* Cares only for her work.' ]
             : [ '<32>{#p/story}* DOGE - ATK 14 DEF 10\n* Pronounced "dohj." Soft j.\n* Member of the ELITE squad.' ],
       act_flirt: () => [
          '<32>{#p/narrator}* You said something sickly sweet about Doge.',
-         ...(world.goatbro
-            ? [ '<32>* Doge ignores your attempts at flattery.', '<32>{#p/asriel2}* Really...' ]
+         ...(world.azzie
+            ? [ '<32>* Doge ignores your attempts at flattery.' ]
             : battler.volatile[0].sparable
             ? [ '<32>* Doge, having given up, is too distracted to hear you.' ]
             : [ '<32>* Doge gives a modest smile, then returns her facade.' ])
       ],
       act_talk: () => [
          '<32>{#p/narrator}* You spoke to Doge about your travels on the outpost.',
-         ...(world.goatbro
+         ...(world.azzie
             ? [ '<32>{#p/narrator}* Doge pays no attention to your idle dialogue.' ]
             : battler.volatile[0].sparable
             ? [ '<32>* Doge, having given up, is too distracted to hear you.' ]
@@ -3949,20 +3876,18 @@ const text = {
          '<32>{#p/narrator}* You throw the spanner.\n* Doge intercepts your throw, launching it back at you.',
          '<32>* The spanner hits you directly in the head...',
          '<32>{#p/story}* SPEED down!',
-         ...(world.goatbro && save.flag.n.ga_asrielSpanner++ < 1
-            ? [ "<32>{#p/asriel2}* Maybe don't try that again." ]
-            : [])
+         ...(world.azzie && save.flag.n.ga_asrielSpanner++ < 1 ? [ "<32>{#p/asriel2}* Maybe don't try that again." ] : [])
       ],
       fetchTextEpic: [
          '<32>{#p/narrator}* You throw the spanner.\n* Doge, inspired, picks it up and brings it back to you.'
       ],
       fetchTextGarb: [ '<32>{#p/narrator}* You throw the spanner.\n* Doge, exhausted, simply ignores it.' ],
       flirtStatus: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Doge.' ]
             : [ '<32>{#p/story}* Doge wonders why a human child would flirt with her.' ],
       hurtStatus: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ '<32>{#p/story}* Doge is going to collapse.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ '<32>{#p/story}* Doge is going to collapse.' ],
       name: '* Doge',
       petTalkPost: () => [ '<11>{~}Ah...' ],
       petText: [
@@ -3973,7 +3898,7 @@ const text = {
          '<32>* Doge is no longer interested in fighting you.'
       ],
       petTextEarly: [ '<32>{#p/narrator}* You try to pet Doge.', "<32>* She can't be reached yet..." ],
-      petTextGeno: [ '<32>{#p/narrator}* Doge does not care about your pets.' ],
+      petTextGeno: [ '<32>{#p/narrator}* Doge does not care for your attempts at affection.' ],
       petTextLate: [ '<32>{#p/narrator}* You try to pet Doge.', '<32>* You missed your chance...' ],
       petTextPost1: [
          '<32>{#p/narrator}* You try to pet Doge again.',
@@ -3986,66 +3911,75 @@ const text = {
       petTextPost6: [ '<32>{#p/narrator}* You pet Doge.', '<32>* What else is new?' ],
       petTextPost7: [ '<32>{#p/narrator}* You pet Doge...' ],
       petTextSus: [ '<32>{#p/narrator}* As much as she needs it, Doge is just too ancy to be pet.' ],
-      status1: () => (world.goatbro ? [ '<32>{#p/asriel2}* Doge.' ] : [ '<32>{#p/story}* Doge struts towards you.' ]),
+      status1: () => (world.azzie ? [ '<32>{#p/asriel2}* Doge.' ] : [ '<32>{#p/story}* Doge struts towards you.' ]),
       talkStatus: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Doge.' ] : [ '<32>{#p/story}* Doge ponders the meaning of your words.' ],
-      turnStatus1: [ '<32>{#p/narrator}* Doge gazes down at you.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Doge.' ] : [ '<32>{#p/story}* Doge ponders the meaning of your words.' ],
+      turnStatus1: [ '<32>{#p/story}* Doge gazes down at you.' ],
       turnStatus2: () =>
-         save.data.b.oops
-            ? [ '<32>{#p/narrator}* Doge needs a good washdown.' ]
-            : [ '<32>{#p/narrator}* Doge needs a good washdown.\n* Maybe you can provide it?' ],
+         world.dead_dog && save.data.n.state_starton_lesserdog === 2
+            ? [ '<32>{#p/story}* Doge fiddles with her spear.' ]
+            : [ '<32>{#p/story}* Doge needs a good washdown.' ],
       turnStatus3: () =>
-         battler.volatile[0].vars.bathe
-            ? [ '<32>{#p/narrator}* Doge is dripping wet.' ]
-            : [ "<32>{#p/narrator}* Doge's hygiene remains unchanged, much to her dismay." ],
-      turnStatus4: () =>
-         battler.volatile[0].vars.bathe
-            ? save.data.b.oops
-               ? [ '<32>{#p/narrator}* Doge seeks adventure.' ]
-               : [ "<32>{#p/narrator}* Doge seeks adventure.\n* Maybe there's a way you can take her on one?" ]
-            : [ '<32>{#p/narrator}* Doge is thinking about work.' ],
-      turnStatus5: () =>
-         battler.volatile[0].vars.walk
-            ? [ '<32>{#p/narrator}* Doge feels respected.' ]
+         world.dead_dog && save.data.n.state_starton_lesserdog === 2
+            ? [ '<32>{#p/story}* Doge double-checks her stance.' ]
             : battler.volatile[0].vars.bathe
-            ? [ '<32>{#p/narrator}* Doge feels betrayed.' ]
-            : [ '<32>{#p/narrator}* Doge remembers an old colleague fondly.' ],
+            ? [ '<32>{#p/story}* Doge is dripping wet.' ]
+            : [ "<32>{#p/story}* Doge's hygiene remains unchanged, much to her dismay." ],
+      turnStatus4: () =>
+         world.dead_dog && save.data.n.state_starton_lesserdog === 2
+            ? [ '<32>{#p/story}* Doge thinks of her colleagues.' ]
+            : battler.volatile[0].vars.bathe
+            ? [ '<32>{#p/story}* Doge seeks adventure.' ]
+            : [ '<32>{#p/story}* Doge is thinking about work.' ],
+      turnStatus5: () =>
+         world.dead_dog && save.data.n.state_starton_lesserdog === 2
+            ? [ '<32>{#p/story}* Doge thinks of her friends.' ]
+            : battler.volatile[0].vars.walk
+            ? [ '<32>{#p/story}* Doge feels respected.' ]
+            : battler.volatile[0].vars.bathe
+            ? [ '<32>{#p/story}* Doge feels betrayed.' ]
+            : [ '<32>{#p/story}* Doge remembers an old colleague fondly.' ],
       turnStatus6: () =>
-         battler.volatile[0].vars.walk
-            ? [ '<32>{#p/narrator}* Smells like burnout.' ]
-            : [ '<32>{#p/narrator}* Smells like disloyalty.' ],
+         world.dead_dog && save.data.n.state_starton_lesserdog === 2
+            ? [ '<32>{#p/story}* Doge hides her emotions.' ]
+            : battler.volatile[0].vars.walk
+            ? [ '<32>{#p/story}* Smells like burnout.' ]
+            : [ '<32>{#p/story}* Smells like disloyalty.' ],
       turnStatus7: () =>
          battler.volatile[0].vars.walk
-            ? [ '<32>{#p/narrator}* Doge seeks affection.' ]
-            : [ '<32>{#p/narrator}* Doge takes a deep breath.' ],
+            ? [ '<32>{#p/story}* Doge seeks affection.' ]
+            : [ '<32>{#p/story}* Doge takes a deep breath.' ],
       turnStatus8: () =>
          battler.volatile[0].vars.walk
-            ? [ '<32>{#p/narrator}* Doge could use a little love.' ]
-            : [ '<32>{#p/narrator}* Doge is getting stressed out.' ],
+            ? [ '<32>{#p/story}* Doge could use a little love.' ]
+            : [ '<32>{#p/story}* Doge is getting stressed out.' ],
       turnStatus9: () =>
          battler.volatile[0].vars.walk
-            ? save.data.b.oops
-               ? [ '<32>{#p/narrator}* Doge just wants to be pet.' ]
-               : [
-                    '<32>{#p/narrator}* Doge just wants to be pet.\n* I think now would be a good time to show her some love...'
-                 ]
-            : [ '<32>{#p/narrator}* Doge is ready to give up.' ],
+            ? [ '<32>{#p/story}* Doge just wants to be pet.' ]
+            : [ '<32>{#p/story}* Doge is ready to give up.' ],
       turnStatus10: () =>
          battler.volatile[0].vars.pet
-            ? [ '<32>{#p/narrator}* Doge is satisfied.' ]
-            : [ '<32>{#p/narrator}* Doge kneels down before you in surrender.' ],
+            ? [ '<32>{#p/story}* Doge is satisfied.' ]
+            : [ '<32>{#p/story}* Doge kneels down before you in surrender.' ],
       turnTalk1: () =>
-         world.goatbro ? [ "<11>{~}I know what you've been doing." ] : [ '<11>{~}Undyne warned us about your arrival.' ],
+         world.azzie || (world.dead_dog && save.data.n.state_starton_lesserdog === 2)
+            ? [ "<11>{~}I know what you've been doing." ]
+            : [ '<11>{~}Undyne warned us about your arrival.' ],
       turnTalk2: () =>
-         world.goatbro
+         world.azzie || (world.dead_dog && save.data.n.state_starton_lesserdog === 2)
             ? [ '<11>{~}The canine unit...', '<11>{~}You killed them all.' ]
             : [
                  "<11>{~}Thanks to her, I've been on extended patrol.",
                  '<11>{~}And let me tell you, this is a dirty place.'
               ],
       turnTalk3: () =>
-         world.goatbro
-            ? [ '<11>{~}You two could have surrendered at any moment...', '<11>{~}Yet you chose violence.' ]
+         world.azzie || (world.dead_dog && save.data.n.state_starton_lesserdog === 2)
+            ? [
+                 world.azzie
+                    ? '<11>{~}You two could have surrendered at any moment...'
+                    : '<11>{~}You could have surrendered at any moment...',
+                 '<11>{~}Yet you chose violence.'
+              ]
             : battler.volatile[0].vars.bathe
             ? [ '<11>{~}Ah, that feels much better.' ]
             : [
@@ -4054,13 +3988,13 @@ const text = {
                  '<11>{~}So much for my needs.'
               ],
       turnTalk4: () =>
-         world.goatbro
+         world.azzie || (world.dead_dog && save.data.n.state_starton_lesserdog === 2)
             ? [ '<11>{~}Truth is, on my first day as a guard...', "<11>{~}I was skeptical of Undyne's view on humans." ]
             : battler.volatile[0].vars.bathe
             ? [ '<11>{~}Human, do you mind?', '<11>{~}There is still water stuck in my hair.' ]
             : [ '<11>{~}When I first joined the ELITE squad...', "<11>{~}I thought I'd be respected." ],
       turnTalk5: () =>
-         world.goatbro
+         world.azzie || (world.dead_dog && save.data.n.state_starton_lesserdog === 2)
             ? [ "<11>{~}But after what you've done...", "<11>{~}There's no more doubt in my mind." ]
             : battler.volatile[0].vars.walk
             ? [ '<11>{~}Well now, nothing beats a nice walk.' ]
@@ -4076,10 +4010,16 @@ const text = {
               ]
             : [ '<11>{~}Now I understand why that dummy called it quits.' ],
       turnTalk6: () =>
-         world.goatbro
+         world.azzie
             ? [
                  '<11>{~}And you, Asriel... a traitor to your own kind...',
                  '<11>{~}It is hard to believe you were once to be our king.'
+              ]
+            : world.dead_dog && save.data.n.state_starton_lesserdog === 2
+            ? [
+                 '<12>{~}Doggo was the newest recruit to the canines.',
+                 '<11>{~}Some saw his blindness as a weakness...',
+                 '<11>{~}But he had so much promise.'
               ]
             : battler.volatile[0].vars.walk
             ? [ '<11>{~}Just how much stamina do you have?' ]
@@ -4091,30 +4031,48 @@ const text = {
                  '<11>{~}...\nDo not tell her I said that.'
               ],
       turnTalk7: () =>
-         world.goatbro
+         world.azzie
             ? [
                  '<11>{~}Is this really the fate that befalls us?',
                  '<11>{~}Our former prince and his human partner...',
                  '<11>{~}...on a mission to kill us all?'
               ]
+            : world.dead_dog && save.data.n.state_starton_lesserdog === 2
+            ? [
+                 "<11>{~}Canis Minor was Canis Major's underling.",
+                 '<11>{~}Its unique perspective helped in unexpected ways...',
+                 '<11>{~}Even if it was often mis- understood.'
+              ]
             : battler.volatile[0].vars.walk
             ? [ '<11>{~}Clearly more than I antici- pated.' ]
             : [ '<11>{~}(Sigh...)' ],
       turnTalk8: () =>
-         world.goatbro
+         world.azzie
             ? [ '<11>{~}Well, after all is said and done...', "<11>{~}I can't decide which of you is worse." ]
+            : world.dead_dog && save.data.n.state_starton_lesserdog === 2
+            ? [
+                 '<12>{~}Dogamy and Dogaressa, a duo of dilligence.',
+                 '<11>{~}Before they met, they often misbehaved.',
+                 '<11>{~}But once together, they could do anything.'
+              ]
             : battler.volatile[0].vars.walk
             ? [ '<11>{~}Human, I...' ]
             : [ '<11>{~}This battle is really dragging on.' ],
       turnTalk9: () =>
-         world.goatbro
+         world.azzie
             ? // gotta love that charlie jade reference-
               [ '<11>{~}They say reality is often disap- pointing.', '<11>{~}But this, I did not expect.' ]
+            : world.dead_dog && save.data.n.state_starton_lesserdog === 2
+            ? [
+                 '<11>{~}Canis Major was there when the canine unit was formed.',
+                 '<11>{~}Like Canis Maximus before it, it led the unit well.',
+                 "<11>{~}Now there's nobody left to lead."
+              ]
             : battler.volatile[0].vars.walk
             ? [ '<11>{~}I cannot keep this up... I...' ]
             : [ '<11>{~}You know... I...' ],
       turnTalk10: () =>
-         world.goatbro
+         world.azzie
             ? [ '<11>{~}...', '<11>{~}Die, now.' ]
             : battler.volatile[0].vars.pet
             ? [ '<11>{~}(Blushes)', '<11>{~}You are a... kind human...' ]
@@ -4153,12 +4111,14 @@ const text = {
          '<32>{#p/narrator}* You made a little small talk with Muffet.',
          ...(world.genocide
             ? [ '<32>{#p/narrator}* She gives you the nasty silent teatment...' ]
-            : [ '<32>{#p/narrator}* She replies in kind...' ]),
+            : battler.volatile[0].vars.pay
+            ? [ '<32>{#p/narrator}* She replies in kind...' ]
+            : [ "<32>{#p/narrator}* She doesn't seem interested..." ]),
          '<32>{#p/kidding}* Yo, what are you guys talking about?'
       ],
       appeaseText: [
          '<33>{#p/narrator}* You make an appeal to Muffet...',
-         '<32>* Muffet is once again intrigued.',
+         '<32>* Muffet is once again interested.',
          "<32>* You mention how Doge was mistreated, and that Undyne's lack of care is clear.",
          '<32>* As such, you suggest that trusting Undyne would mean putting spider clans at risk.',
          '<32>* Again, she starts considering the situation...',
@@ -4179,7 +4139,7 @@ const text = {
       ],
       counterText: [
          '<32>{#p/narrator}* You try to counter Muffet...',
-         '<32>* Muffet is intrigued.',
+         '<32>* Muffet is interested.',
          '<32>* Her ears open, you propose that a deal with the ELITE squad is flimsy.',
          '<32>* You point out that one of their ranks already failed to capture you.',
          '<32>* She begins to carefully think everything over...',
@@ -4193,7 +4153,7 @@ const text = {
       counterTextLate: [ '<32>{#p/narrator}* You try to counter Muffet...', "<32>* But she's already made up her mind." ],
       counterTextPost: [ '<32>{#p/narrator}* Muffet has already heard your argument.' ],
       name: '* Muffet',
-      payTalkPost: () => [ "<11>{~}That's very kind, but we already have more than enough~" ],
+      payTalkPost: [ "<11>{~}That's very kind, but we already have more than enough~" ],
       payText: [
          '<32>{#p/narrator}* You attempt to pay Muffet.',
          '<32>* Muffet takes the money...',
@@ -4218,9 +4178,7 @@ const text = {
       turnStatus2: () =>
          world.genocide
             ? [ '<32>{#p/kidding}* Something feels wrong...' ]
-            : save.data.b.oops
-            ? [ '<32>{#p/kidding}* Money... hmm...' ]
-            : [ '<32>{#p/kidding}* Money... hmm...\n* Yo, what if you made a better counter offer?' ],
+            : [ "<32>{#p/kidding}* So it's a business thing..." ],
       turnStatus3: () =>
          world.genocide
             ? [ "<32>{#p/kidding}* Yo...\n* She REALLY doesn't like you..." ]
@@ -4243,9 +4201,7 @@ const text = {
          world.genocide
             ? [ "<32>{#p/kidding}* I don't like what she's saying about you, dude..." ]
             : battler.volatile[0].vars.counter
-            ? save.data.b.oops
-               ? [ '<32>{#p/kidding}* Fellow spiders...?' ]
-               : [ "<32>{#p/kidding}* Fellow spiders...?\n* Hey wait, that's something you can appease her with!" ]
+            ? [ '<32>{#p/kidding}* Fellow spiders...?' ]
             : [ '<32>{#p/kidding}* Uh...' ],
       turnStatus7: () =>
          world.genocide
@@ -4269,9 +4225,7 @@ const text = {
          world.genocide
             ? [ "<32>{#p/kidding}* Yo, I'm here too, you know..." ]
             : battler.volatile[0].vars.appease
-            ? save.data.b.oops
-               ? [ "<32>{#p/kidding}* Hey, I've got money!\n* Let's use it, dude!" ]
-               : [ "<32>{#p/kidding}* Hey, I've got money!\n* Let's use it, dude!\n* Let's pay our way out!" ]
+            ? [ "<32>{#p/kidding}* Hey, I've got money!\n* Let's use it, dude!" ]
             : [ '<32>{#p/kidding}* Someone, anyone...' ],
       turnStatus11: () =>
          world.genocide
@@ -4316,7 +4270,7 @@ const text = {
                  "<11>{~}I don't have to feel bad about feeding my pet!"
               ]
             : battler.volatile[0].vars.counter
-            ? [ '<11>{~}Hm, a better deal would be nice...' ]
+            ? [ '<11>{~}A better deal would be nice...' ]
             : [ '<11>{~}Where are you, my pet~', "<11>{~}It's time to eat~" ],
       turnTalk5: () =>
          world.genocide
@@ -4437,7 +4391,7 @@ const text = {
                  "<32>{#p/narrator}* Undyne's ATTACK down!\n* Undyne's DEFENSE down!"
               ],
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ "<32>{#p/asriel2}* Undyne the Undying.\n* Shouldn't you be attacking her or something?" ]
             : [ '<32>{#p/story}* UNDYNE - ATK 50 DEF 20\n* The heroine that NEVER gives up.' ],
       name: () => (world.genocide ? '* Undyne the Undying' : '* Undyne'),
@@ -4667,7 +4621,9 @@ const text = {
       turnTalkB8a: () =>
          save.data.n.state_starton_papyrus === 1
             ? [
-                 '<20>{#p/undyne}{#e/undyne/11}With him gone...',
+                 world.trueKills > 10
+                    ? '<20>{#p/undyne}{#e/undyne/11}With him and so many others gone...'
+                    : '<20>{#p/undyne}{#e/undyne/11}With him gone...',
                  "<20>{#p/undyne}{#e/undyne/2}The only mercy YOU'RE going to get...",
                  '<20>{#p/undyne}{#e/undyne/1}...is a quick death at the end of MY spear!'
               ]
@@ -4675,7 +4631,9 @@ const text = {
       turnTalkB8b: () =>
          save.data.n.state_starton_papyrus === 1
             ? [
-                 '<20>{#p/undyne}{#e/undyne/11}With him gone...',
+                 world.trueKills > 10
+                    ? '<20>{#p/undyne}{#e/undyne/11}With him and so many others gone...'
+                    : '<20>{#p/undyne}{#e/undyne/11}With him gone...',
                  "<20>{#p/undyne}{#e/undyne/2}The only mercy YOU'RE going to get...",
                  '<20>{#p/undyne}{#e/undyne/1}...is a quick death at the end of MY spear!'
               ]
@@ -4685,7 +4643,12 @@ const text = {
             ? [
                  '<20>{#p/undyne}{#e/undyne/11}You know, punk...',
                  "<20>{#p/undyne}{#e/undyne/2}It's rude to interrupt people when they're monologuing.",
-                 "<20>{#p/undyne}{#e/undyne/2}...\nYou're going to pay for what you did to him."
+                 ...(world.trueKills > 10
+                    ? [
+                         "<20>{#p/undyne}{#e/undyne/11}...\nYou're going to pay for what you did to him...",
+                         "<20>{#p/undyne}{#e/undyne/2}...and all the other monsters you've slaughtered."
+                      ]
+                    : [ "<20>{#p/undyne}{#e/undyne/2}...\nYou're going to pay for what you did to him." ])
               ]
             : [
                  '<20>{#p/undyne}{#e/undyne/1}So, you think you can just stand there and block all my spears, huh?',
@@ -4695,7 +4658,7 @@ const text = {
       turnTalkC2: () =>
          save.data.n.state_starton_papyrus === 1
             ? [
-                 '<20>{#p/undyne}{#e/undyne/2}Alphys told me humans can be determined...',
+                 '<20>{#p/undyne}{#e/undyne/2}Now, Alphys told me humans can be determined...',
                  '<20>{#p/undyne}{#e/undyne/1}Feh.\nDetermination will only get you so far.'
               ]
             : [
@@ -4704,7 +4667,7 @@ const text = {
               ],
       turnTalkC3: () =>
          save.data.n.state_starton_papyrus === 1
-            ? [ '<20>{#p/undyne}{#e/undyne/1}And you know what?', "<20>{#e/undyne/0}I'm determined, too!" ]
+            ? [ '<20>{#p/undyne}{#e/undyne/1}But you know what?', "<20>{#e/undyne/1}I'm determined, too!" ]
             : [ "<20>{#p/undyne}{#e/undyne/1}But I'm determined, too!" ],
       turnTalkC4: [ '<20>{#p/undyne}{#e/undyne/6}Determined to end this RIGHT NOW!!' ],
       turnTalkC5: [ '<20>{#p/undyne}{#e/undyne/7}...RIGHT NOW!' ],
@@ -4741,11 +4704,9 @@ const text = {
       determination2: [ '<20>{#p/undyne}{#e/undyne/32}...pathetic.' ],
       determination3: [ "<20>{#p/undyne}{#e/undyne/32}You're going to have to try harder than that!" ],
       determination4: [ '<20>{#p/undyne}{#e/undyne/34}S-see how strong we are when we believe in ourselves?' ],
-      determination5: [ '<20>{#p/undyne}{#e/undyne/35}H... heh...' ],
-      determination6: [ '<20>{#p/undyne}{#e/undyne/34}Had enough yet?' ],
-      determination7: [ '<20>{#p/undyne}{#e/undyne/35}...' ],
-      determination8: [ "<20>{#p/undyne}{#e/undyne/35}...I won't...\n...\ngive up..." ],
-      determination9: [ '<20>{#p/undyne}{#e/undyne/35}...' ],
+      determination5: [ '<20>{#p/undyne}{#e/undyne/35}H... heh...', '<20>{#e/undyne/34}Had enough yet?' ],
+      determination6: [ '<20>{#p/undyne}{#e/undyne/34}...' ],
+      determination7: [ '<20>{#p/undyne}{#e/undyne/35}...I won\'t...\n...\ngive up...' ],
       death5: [
          '<20>{*}{#p/undyne}...',
          '<20>{*}Ha...\nHa...',
@@ -4757,11 +4718,13 @@ const text = {
       death6: [
          '<20>{*}{#p/undyne}{#e/undyne/32}No...\nNo!',
          '<20>{*}{#e/undyne/32}Not yet!',
-         "<11>{*}{#e/undyne/34}I won't die!"
+         "<20>{*}{#e/undyne/34}I won't die!"
       ],
       death7: [ '<20>{#p/undyne}{*}{#i/60}{@random:1.1,1.1}NGAHHHHHHHH!!!{^10}{%}' ],
-      death8: [ "<20>{#p/undyne}{*}{#i/80}{@random:1.1,1.1}I WON'T DIE!{^15}{%}" ],
-      death9: [ "<20>{#p/undyne}{*}{#i/100}{@random:1.1,1.1}I {^10}WON'T{^30}{%}" ],
+      death8a: [ "<20>{#p/undyne}{*}{#i/80}{#v/1}{@random:1.1,1.1}I WON'T DIE!{^15}{%}" ],
+      death8b: [ "<20>{#p/undyne}{*}{#i/80}{#v/2}{@random:1.1,1.1}I WON'T DIE!{^15}{%}" ],
+      death8c: [ "<20>{#p/undyne}{*}{#i/80}{#v/3}{@random:1.1,1.1}I WON'T DIE!{^15}{%}" ],
+      death9: [ "<20>{#p/undyne}{*}{#i/100}{#v/4}{@random:1.1,1.1}I{^10} WON'T{^30}{%}" ],
       deterStatus1: [ '<32>{#p/story}* Undyne is smiling as if nothing is wrong.' ],
       deterStatus2: [ "<32>{#p/story}* Undyne's body is wavering." ],
       deterStatus3: [ "<32>{#p/story}* Undyne's body is losing its shape." ],
@@ -4786,7 +4749,7 @@ const text = {
       pleadText4: [ "<32>{#p/narrator}* You told Undyne you didn't want to fight.\n* She laughs." ],
       pleadText5: [ "<32>{#p/narrator}* You told Undyne you didn't want to fight.\n* She looks confused..." ],
       pleadText6: [ "<32>{#p/narrator}* You told Undyne you didn't want to fight.\n* She's not paying attention." ],
-      genoCutscene1: [ '<08>{#p/kidding}{#e/kidd/0}...', '<08>{#e/kidd/1}H... huh?', '<08>{#e/kidd/1}What is- {%}' ],
+      genoCutscene1: [ '<08>{#p/kidding}{#e/kidd/0}...', '<08>{#e/kidd/1}H... huh?', '<08>{*}{#e/kidd/1}What is- {%}' ],
       genoCutscene2: [ '<08>{#p/kidding}{#e/kidd/3}UNDYNE!!!', '<08>{#e/kidd/4}I...!' ],
       genoCutscene3: [ '<20>{#p/undyne}{#e/undyne/1}Kid...?' ],
       genoCutscene3x: [
@@ -4991,14 +4954,27 @@ const text = {
          description: 'It is said this pendant was worn by Erogot himself.',
          name: 'Artifact'
       },
-      drop: [ '<32>{#p/human}* (You threw away the artifact.)', '<32>{#p/narrator}* How could you.' ],
+      drop: () => [
+         '<32>{#p/human}* (You threw away the artifact.)',
+         ...(game.room === 's_secret'
+            ? save.data.b.s_state_papsink
+               ? "<32>{#p/narrator}* ...the dog stops dancing for a moment, even if you can't tell."
+               : "<32>{#p/narrator}* ...but dog stops sighing for a moment, even if you can't tell."
+            : '<32>{#p/narrator}* How could you.')
+      ],
       info: [ '<32>{#p/narrator}* It is said this pendant was worn by Erogot himself.' ],
       name: 'Legendary Artifact',
       use: () => [
          '<32>{#p/human}* (You used the artifact...)',
-         ...(battler.active && battler.target.opponent.metadata.reactArtifact
+         ...(battler.active && battler.target?.opponent.metadata.reactArtifact
             ? []
-            : [ '<32>{#p/human}* (Nothing happened.)' ])
+            : [
+                 game.room === 's_secret'
+                    ? save.data.b.s_state_papsink
+                       ? '<32>{#p/narrator}* The dog dances even harder!'
+                       : '<32>{#p/narrator}* The dog sighs even deeper.'
+                    : '<32>{#p/human}* (Nothing happened.)'
+              ])
       ]
    },
    i_astrofood: {
@@ -5070,7 +5046,7 @@ const text = {
    },
    i_rations: {
       battle: {
-         description: 'Standard-issue rations.\n* Great for emergencies.',
+         description: 'Standard-issue rations.\nGreat for emergencies.',
          name: 'Rations'
       },
       drop: [ '<32>{#p/human}* (You threw away the Rations.)' ],
@@ -5598,46 +5574,83 @@ const text = {
       },
       f_battle: {
          name: 'Foundry - Bridge',
-         text: [ '<32>{#p/human}* (Distant as it may be, the starlight glimmers, filling you with determination.)' ]
+         text: () =>
+            save.data.n.state_foundry_undyne > 0
+               ? [ '<32>{#p/human}* (The starlight grows ever further, filling you with determination.)' ]
+               : [ '<32>{#p/human}* (Distant as it may be, the starlight glimmers, filling you with determination.)' ]
       },
       f_hub: {
          name: 'Foundry - Quiet Area',
-         text: [
-            '<32>{#p/human}* (A short reprieve in the ongoing chaos...)',
-            '<32>{#p/human}* (It fills you with determination.)'
-         ]
+         text: () =>
+            save.data.n.plot_date < 2.1
+               ? save.data.n.plot < 48
+                  ? [
+                       '<32>{#p/human}* (A short reprieve in the ongoing chaos...)',
+                       '<32>{#p/human}* (It fills you with determination.)'
+                    ]
+                  : save.data.n.state_foundry_undyne > 0
+                  ? [
+                       '<32>{#p/human}* (The silence is deafening...)',
+                       '<32>{#p/human}* (But it fills you with determination.)'
+                    ]
+                  : [ '<32>{#p/human}* (The chaos has come to an end, filling you with determination.)' ]
+               : save.data.n.exp > 0
+               ? [
+                    '<32>{#p/human}* (In with the steam comes the bitter scent of betrayal.)',
+                    '<32>{#p/human}* (It fills you with determination.)'
+                 ]
+               : [
+                    '<32>{#p/human}* (In with the steam comes the sweet scent of friendship.)',
+                    '<32>{#p/human}* (It fills you with determination.)'
+                 ]
       },
       f_lobby: {
          name: 'Foundry - Dark Zone',
-         text: [ '<32>{#p/human}* (Wandering deeper into the factory fills you with determination.)' ]
+         text: () =>
+            save.data.n.plot < 39
+               ? [ '<32>{#p/human}* (Wandering deeper into the factory fills you with determination.)' ]
+               : save.data.n.state_foundry_muffet === 1
+               ? [ '<32>{#p/human}* (Thinking of the friends you corrupted along the way fills you with determination.)' ]
+               : save.data.b.f_state_kidd_betray
+               ? [ '<32>{#p/human}* (Thinking of the friends you betrayed along the way fills you with determination.)' ]
+               : [ '<32>{#p/human}* (Thinking of the friends you made along the way fills you with determination.)' ]
       },
       f_prechase: {
-         name: 'Foundry - Ferry',
-         text: [
-            '<32>{#p/human}* (Pylon puzzles, signal stars, and freaky ferries...)',
-            '<32>{#p/human}* (These fill you with determination.)'
-         ]
+         name: 'Foundry - Crossing',
+         text: () =>
+            save.data.n.plot < 48
+               ? [
+                    '<32>{#p/human}* (Pylon puzzles, signal stars, and vintage vents...)',
+                    '<32>{#p/human}* (These fickle frivolities fill you with determination.)'
+                 ]
+               : [
+                    '<32>{#p/human}* (A bridge now sits amidst the surroundings.)',
+                    '<32>{#p/human}* (This development fills you with determination.)'
+                 ]
       },
       f_sans: {
          name: 'Foundry - Checkpoint',
-         text: [
-            '<32>{#p/human}* (The hot, damp steam emitted by these vents...)',
-            '<32>{#p/human}* (It fills you with determination.)'
-         ]
+         text: () =>
+            world.dead_skeleton
+               ? [
+                    '<32>{#p/human}* (Somehow, the steam emitted by these vents is unsettling.)',
+                    '<32>{#p/human}* (Nonetheless, it fills you with determination.)'
+                 ]
+               : [ '<32>{#p/human}* (The hot, damp steam emitted by these vents fills you with determination.)' ]
       },
       f_shyren: {
          name: 'Foundry - Vending Machine',
          text: () =>
             save.data.b.killed_shyren
-               ? [
-                    '<32>{#p/human}* (A sad stillness permeates the air.)',
-                    '<32>{#p/human}* (It fills you with determination...)'
-                 ]
+               ? [ '<32>{#p/human}* (A sad stillness permeates the air, filling you with determination.)' ]
                : [ '<32>{#p/human}* (The sound of music fills you with determination.)' ]
       },
       f_tunnel: {
          name: 'Foundry - Tunnel',
-         text: [ '<32>{#p/human}* (Getting lost amongst the trash fills you with determination.)' ]
+         text: () =>
+            save.data.n.plot < 42.1
+               ? [ '<32>{#p/human}* (Getting lost amongst the trash fills you with determination.)' ]
+               : [ '<32>{#p/human}* (Getting lost amongst the trash fills you with determination.)' ]
       }
    }
 };

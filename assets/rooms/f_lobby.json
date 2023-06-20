@@ -1,1 +1,389 @@
-{"$schema":"./room.schema.json","background":"below","preload":["amFactory","amFactoryEmpty","idcMoonCutscene1","idcMoonCutscene2","idcMoonCutscene3","idcMoonCutscene4","idcMoonCutscene5"],"layers":{"below":[{"barriers":[{"position":{"x":20,"y":120},"size":{"x":140,"y":-40}},{"position":{"x":160,"y":80},"size":{"x":40,"y":-20}},{"position":{"x":240,"y":80},"size":{"x":40,"y":-20}},{"position":{"x":280,"y":80},"size":{"x":40,"y":40}},{"position":{"x":320,"y":120},"size":{"x":20,"y":80}},{"position":{"x":280,"y":200},"size":{"x":40,"y":40}},{"position":{"x":160,"y":240},"size":{"x":120,"y":20}},{"position":{"x":160,"y":200},"size":{"x":-60,"y":40}},{"position":{"x":40,"y":200},"size":{"x":-20,"y":20}},{"position":{"x":20,"y":120},"size":{"x":-20,"y":80}}],"triggers":[{"position":{"x":200,"y":80},"size":{"x":40,"y":-20},"name":"teleport","args":["f_entrance","up","360","230"]},{"position":{"x":40,"y":215},"size":{"x":60,"y":20},"name":"teleport","args":["f_error","down","170","10"]}],"interacts":[{"position":{"x":180,"y":240},"size":{"x":80,"y":20},"name":"trivia","args":["f_backsign"]},{"position":{"x":60,"y":100},"size":{"x":60,"y":20},"name":"trivia","args":["f_lobbywindow"]}]}],"main":[{"attachments":[{"auto":true,"type":"animation","anchor":{"x":0,"y":0},"resources":"iooSavePoint","position":{"y":-10,"x":0}}],"interacts":[{"name":"save","position":{"x":-10},"size":{"x":20,"y":-10}}],"barriers":[{"position":{"x":-10},"size":{"x":20,"y":-10}}],"position":{"x":180,"y":90}},{"tags":["f_echoLobby"],"attachments":[{"type":"animation","resources":"iooFEchoflower","anchor":{"x":0,"y":1},"auto":false}],"position":{"x":260,"y":90},"barriers":[{"size":{"x":-20,"y":-5},"anchor":{"x":0,"y":-1}}],"interacts":[{"anchor":{"x":0,"y":-1},"size":{"x":-20,"y":-5},"name":"foundry","args":["npc","f_echoLobby"]}]},{"attachments":[{"type":"animation","resources":"iooFCheesetable","anchor":{"x":0,"y":1},"auto":false}],"position":{"x":300,"y":168},"tags":["f_cheesetable"],"barriers":[{"position":{"x":0,"y":0},"anchor":{"x":0,"y":-1},"size":{"x":27,"y":-5}}],"interacts":[{"size":{"x":27,"y":-5},"anchor":{"x":0,"y":-1},"name":"trivia","args":["f_cheesetable"]}]},{"attachments":[{"type":"sprite","frames":["iooFBoots"],"position":{"x":218,"y":143}}],"position":{"x":-187,"y":6},"barriers":[],"interacts":[{"position":{"x":218,"y":143},"size":{"x":18,"y":17},"name":"foundry","args":["boots"]}],"tags":["f_booties"]}]},"spawn":{"x":180,"y":150},"region":[{"x":160,"y":120},{"x":180,"y":140}],"score":{"music":"factory","gain":0.8},"neighbors":["f_error","f_entrance"]}
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "preload": [
+      "amFactory",
+      "amFactoryEmpty",
+      "avAlphys"
+   ],
+   "layers": {
+      "below": [
+         {
+            "barriers": [
+               {
+                  "position": {
+                     "x": 20,
+                     "y": 120
+                  },
+                  "size": {
+                     "x": 140,
+                     "y": -40
+                  }
+               },
+               {
+                  "position": {
+                     "x": 160,
+                     "y": 80
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": -20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 240,
+                     "y": 80
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": -20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 280,
+                     "y": 80
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 40
+                  }
+               },
+               {
+                  "position": {
+                     "x": 320,
+                     "y": 120
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 80
+                  }
+               },
+               {
+                  "position": {
+                     "x": 280,
+                     "y": 200
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 40
+                  }
+               },
+               {
+                  "position": {
+                     "x": 160,
+                     "y": 240
+                  },
+                  "size": {
+                     "x": 120,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 160,
+                     "y": 200
+                  },
+                  "size": {
+                     "x": -60,
+                     "y": 40
+                  }
+               },
+               {
+                  "position": {
+                     "x": 40,
+                     "y": 200
+                  },
+                  "size": {
+                     "x": -20,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 20,
+                     "y": 120
+                  },
+                  "size": {
+                     "x": -20,
+                     "y": 80
+                  }
+               }
+            ],
+            "triggers": [
+               {
+                  "position": {
+                     "x": 200,
+                     "y": 80
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": -20
+                  },
+                  "name": "teleport",
+                  "args": [
+                     "f_entrance",
+                     "up",
+                     "620",
+                     "250"
+                  ]
+               },
+               {
+                  "position": {
+                     "x": 40,
+                     "y": 215
+                  },
+                  "size": {
+                     "x": 60,
+                     "y": 20
+                  },
+                  "name": "teleport",
+                  "args": [
+                     "f_error",
+                     "down",
+                     "170",
+                     "10"
+                  ]
+               }
+            ],
+            "interacts": [
+               {
+                  "position": {
+                     "x": 180,
+                     "y": 240
+                  },
+                  "size": {
+                     "x": 80,
+                     "y": 20
+                  },
+                  "name": "trivia",
+                  "args": [
+                     "f_backsign"
+                  ]
+               },
+               {
+                  "position": {
+                     "x": 60,
+                     "y": 100
+                  },
+                  "size": {
+                     "x": 60,
+                     "y": 20
+                  },
+                  "name": "trivia",
+                  "args": [
+                     "f_lobbywindow"
+                  ]
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "anchor": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "resources": "iooSavePoint",
+                  "position": {
+                     "y": -10,
+                     "x": 0
+                  }
+               }
+            ],
+            "interacts": [
+               {
+                  "name": "save",
+                  "position": {
+                     "x": -10
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": -10
+                  }
+               }
+            ],
+            "barriers": [
+               {
+                  "position": {
+                     "x": -10
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": -10
+                  }
+               }
+            ],
+            "position": {
+               "x": 180,
+               "y": 90
+            }
+         },
+         {
+            "tags": [
+               "f_echoLobby"
+            ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iooFEchoflower",
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
+                  "auto": false
+               }
+            ],
+            "position": {
+               "x": 260,
+               "y": 90
+            },
+            "barriers": [
+               {
+                  "size": {
+                     "x": -20,
+                     "y": -5
+                  },
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  }
+               }
+            ],
+            "interacts": [
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": -20,
+                     "y": -5
+                  },
+                  "name": "foundry",
+                  "args": [
+                     "npc",
+                     "f_echoLobby"
+                  ]
+               }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iooFCheesetable",
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
+                  "auto": false
+               }
+            ],
+            "position": {
+               "x": 300,
+               "y": 168
+            },
+            "tags": [
+               "f_cheesetable"
+            ],
+            "barriers": [
+               {
+                  "position": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": 27,
+                     "y": -5
+                  }
+               }
+            ],
+            "interacts": [
+               {
+                  "size": {
+                     "x": 27,
+                     "y": -5
+                  },
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "name": "trivia",
+                  "args": [
+                     "f_cheesetable"
+                  ]
+               }
+            ]
+         },
+         {
+            "attachments": [
+               {
+                  "type": "sprite",
+                  "frames": [
+                     "iooFBoots"
+                  ],
+                  "position": {
+                     "x": 218,
+                     "y": 143
+                  }
+               }
+            ],
+            "position": {
+               "x": -187,
+               "y": 6
+            },
+            "interacts": [
+               {
+                  "position": {
+                     "x": 218,
+                     "y": 143
+                  },
+                  "size": {
+                     "x": 18,
+                     "y": 17
+                  },
+                  "name": "foundry",
+                  "args": [
+                     "boots"
+                  ]
+               }
+            ],
+            "tags": [
+               "f_booties"
+            ]
+         }
+      ]
+   },
+   "spawn": {
+      "x": 180,
+      "y": 150
+   },
+   "region": [
+      {
+         "x": 160,
+         "y": 120
+      },
+      {
+         "x": 180,
+         "y": 140
+      }
+   ],
+   "score": {
+      "music": "factory",
+      "gain": 0.8
+   },
+   "neighbors": [
+      "f_error",
+      "f_entrance"
+   ]
+}

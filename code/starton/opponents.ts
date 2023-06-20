@@ -3,19 +3,12 @@ import assets from '../assets';
 import { OutertaleOpponent } from '../classes';
 import content, { inventories } from '../content';
 import { events, random, renderer, speech, timer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosInventory,
-   CosmosKeyed,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosProvider,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosUtils,
-   CosmosValue
-} from '../engine';
+import { CosmosInventory } from '../engine/core';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPoint, CosmosValue } from '../engine/numerics';
+import { CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosKeyed, CosmosProvider, CosmosUtils } from '../engine/utils';
 import { battler, choicer, oops, shake, world } from '../mantle';
 import save from '../save';
 import { faces } from './bootstrap';
@@ -24,6 +17,7 @@ import text from './text';
 
 const opponents = {
    stardrake: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_stardrake && !save.data.b.s_state_chilldrake,
       assets: new CosmosInventory(
          content.ibcStardrakeChilldrakeHurt,
          content.ibcStardrakeChilldrake,
@@ -192,8 +186,9 @@ const opponents = {
                         break;
                      case 'flirt':
                         idle = false;
-                        if (!volatile.vars.heckled) {
+                        if (!volatile.vars.heckled && !save.data.b.s_state_chilldrake) {
                            save.data.b.flirt_stardrake = true;
+                           volatile.flirted = true;
                            await talk(target, ...text.b_opponent_stardrake.flirtTalk1);
                         }
                         break;
@@ -231,7 +226,7 @@ const opponents = {
             ),
          { joke: false, heckled: false, daddyissues: false },
          () =>
-            world.goatbro
+            world.azzie
                ? text.b_opponent_stardrake.genoStatus()
                : [
                     text.b_opponent_stardrake.randStatus1,
@@ -298,6 +293,7 @@ const opponents = {
          })
    }),
    jerry: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_jerry,
       assets: new CosmosInventory(content.ibcJerry, content.ibcJerryHurt),
       metadata: { arc: true },
       exp: 1,
@@ -363,25 +359,9 @@ const opponents = {
                case 'act':
                   switch (choice.act) {
                      case 'flirt':
-                        save.data.b.flirt_jerry = true;
-                        if (
-                           !volatile.sparable &&
-                           (!save.data.b.oops ||
-                              (save.data.n.kills === 0 &&
-                                 save.data.n.state_wastelands_dummy === 6 &&
-                                 save.data.n.state_wastelands_napstablook === 1 &&
-                                 save.data.b.cell_flirt &&
-                                 save.data.b.flirt_froggit &&
-                                 save.data.b.flirt_whimsun &&
-                                 save.data.b.flirt_moldsmal &&
-                                 save.data.b.flirt_loox &&
-                                 save.data.b.flirt_migosp &&
-                                 save.data.b.flirt_mushy &&
-                                 (save.data.n.plot < 19 || save.data.b.flirt_doggo) &&
-                                 (save.data.n.plot < 20.2 || save.data.b.flirt_lesserdog) &&
-                                 (save.data.n.plot < 23 || (save.data.b.flirt_dogamy && save.data.b.flirt_dogaressa)) &&
-                                 (save.data.n.plot < 28 || save.data.b.flirt_greatdog)))
-                        ) {
+                        if (!volatile.sparable && (!save.data.b.oops || world.flirt > 5)) {
+                           save.data.b.flirt_jerry = true;
+                           volatile.flirted = true;
                            volatile.sparable = true;
                            idle = false;
                            save.data.b.spared_jerry = true;
@@ -433,7 +413,7 @@ const opponents = {
             ),
          {},
          () =>
-            world.goatbro
+            world.azzie
                ? text.b_opponent_jerry.genoStatus
                : [
                     text.b_opponent_jerry.randStatus1,
@@ -446,6 +426,7 @@ const opponents = {
       goodbye: () => new CosmosSprite({ anchor: { y: 1, x: 0 }, frames: [ content.ibcJerryHurt ] })
    }),
    mouse: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_mouse,
       assets: new CosmosInventory(
          content.ibcMouse,
          content.ibcMouseBody,
@@ -518,7 +499,6 @@ const opponents = {
                   ) {
                      world.kill();
                      battler.g += gold * 2;
-                     save.data.b.killed_mouse = true;
                      return;
                   }
                   break;
@@ -527,6 +507,7 @@ const opponents = {
                      case 'flirt':
                         idle = false;
                         save.data.b.flirt_mouse = true;
+                        volatile.flirted = true;
                         await talk(target, ...text.b_opponent_mouse.flirtTalk);
                         break;
                      case 'direct':
@@ -595,9 +576,6 @@ const opponents = {
                      break;
                   }
                case 'flee':
-                  if (choice.type === 'flee') {
-                     save.data.b.fled_mouse = true;
-                  }
                   return;
             }
             if (idle) {
@@ -625,7 +603,7 @@ const opponents = {
             remind: 0
          },
          () =>
-            world.goatbro
+            world.azzie
                ? text.b_opponent_mouse.genoStatus
                : [
                     text.b_opponent_mouse.randStatus1,
@@ -661,6 +639,7 @@ const opponents = {
          })
    }),
    doggo: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_doggo,
       assets: new CosmosInventory(
          content.ibcDoggoArms,
          content.ibcDoggoBody,
@@ -783,6 +762,7 @@ const opponents = {
                         tempWan = !volatile.vars.wan;
                         volatile.vars.wan = true;
                         save.data.b.flirt_doggo = true;
+                        volatile.flirted = true;
                         monstertext = [ text.b_opponent_doggo.flirt1 ];
                      } else {
                         humantext = text.b_opponent_doggo.sussy();
@@ -819,7 +799,7 @@ const opponents = {
          if (battler.alive.length > 0) {
             await battler.resume(async () => {
                await battler.box.size.modulate(timer, 300, { x: 150, y: 95 / 2 });
-               Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+               battler.SOUL.position.set(160);
                battler.SOUL.alpha.value = 1;
                volatile.vars.invisible = true;
                if (volatile.vars.sparedOnce) {
@@ -912,13 +892,14 @@ const opponents = {
          })
    }),
    lesserdog: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_lesserdog,
       assets: new CosmosInventory(
          content.ibcLesserBody,
          content.ibcLesserHead,
          content.ibcLesserTail,
          content.ibcLesserHurt,
          content.ibcLesserHurtHead,
-         content.ibbSpear,
+         content.ibbSword,
          content.asWhimper
       ),
       bullyable: true,
@@ -1058,6 +1039,7 @@ const opponents = {
                }
                if (choice.act === 'flirt') {
                   save.data.b.flirt_lesserdog = true;
+                  volatile.flirted = true;
                }
                break;
             case 'spare':
@@ -1070,11 +1052,6 @@ const opponents = {
                volatile.vars.hurt2 = true;
                volatile.container.objects[0].reset();
                (volatile.container.objects[0].objects[2] as CosmosSprite).reset();
-            case 'flee':
-               if (choice.type === 'flee') {
-                  save.data.b.s_state_lesserflee = true;
-                  events.fire('escape');
-               }
                battler.music?.stop();
                return;
          }
@@ -1115,7 +1092,9 @@ const opponents = {
             battler.bubbles.napstablook2,
             ...monstertext[Math.floor(random.next() * monstertext.length)]
          );
-         if (battler.hurt.includes(volatile)) {
+         if (volatile.sparable && world.genocide) {
+            statustext = [ text.b_opponent_lesserdog.statusX ];
+         } else if (battler.hurt.includes(volatile)) {
             statustext = [ text.b_opponent_lesserdog.hurtStatus() ];
          } else if (volatile.vars.mercymod > 2690) {
             statustext = [ text.b_opponent_lesserdog.status13() ];
@@ -1148,8 +1127,8 @@ const opponents = {
                await battler.resume();
             } else {
                await battler.resume(async () => {
-                  await battler.box.size.modulate(timer, 300, { x: 250, y: 45 });
-                  Object.assign(battler.SOUL.position, { x: 80, y: 160 });
+                  await battler.box.size.modulate(timer, 300, { x: 240, y: 65 });
+                  battler.SOUL.position.set(80, 160);
                   battler.SOUL.alpha.value = 1;
                   if (stick) {
                      await timer.pause(300);
@@ -1191,10 +1170,10 @@ const opponents = {
                         };
                      })
                   ]
-               }).on_legacy('tick', self => () => {
+               }).on('tick', function () {
                   const mercymod = battler.volatile[0].vars.mercymod || 0;
-                  self.size.y = mercymod / 8 + 5;
-                  self.objects[0].position.y = mercymod / -8 - 5;
+                  this.size.y = mercymod / 8 + 5;
+                  this.objects[0].position.y = mercymod / -8 - 5;
                }),
                new CosmosRectangle({
                   position: { x: 61, y: -120 },
@@ -1216,10 +1195,10 @@ const opponents = {
                         };
                      })
                   ]
-               }).on_legacy('tick', self => () => {
+               }).on('tick', function () {
                   const mercymod = (battler.volatile[0].vars.mercymod || 0) - 520;
-                  self.size.y = mercymod / 8 + 5 - 25;
-                  self.objects[0].position.y = mercymod / 8 - 5 - 25;
+                  this.size.y = mercymod / 8 + 5 - 25;
+                  this.objects[0].position.y = mercymod / 8 - 5 - 25;
                }),
                new CosmosAnimation({
                   active: true,
@@ -1241,6 +1220,7 @@ const opponents = {
          })
    }),
    dogamy: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_dogamy,
       assets: new CosmosInventory(
          content.ibbAx,
          content.ibcDogsAxe,
@@ -1279,6 +1259,7 @@ const opponents = {
          })
    }),
    dogaressa: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_dogaressa,
       assets: new CosmosInventory(
          content.ibcDogsDogaressa,
          content.ibcDogsDogaressaHurt,
@@ -1318,6 +1299,7 @@ const opponents = {
          })
    }),
    greatdog: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_greatdog,
       assets: new CosmosInventory(
          content.ibbPomWake,
          content.ibbPomSleep,
@@ -1441,6 +1423,7 @@ const opponents = {
                      break;
                   case 'flirt':
                      save.data.b.flirt_greatdog = true;
+                     volatile.flirted = true;
                      break;
                }
                break;
@@ -1510,7 +1493,7 @@ const opponents = {
                      { x: 250, y: 45 }
                   ][attackIndex]
                );
-               Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+               battler.SOUL.position.set(160);
                battler.SOUL.alpha.value = 1;
                if (stick) {
                   await timer.pause(300);
@@ -1538,6 +1521,7 @@ const opponents = {
       goodbye: () => new CosmosSprite({ active: true, anchor: { y: 1, x: 0 }, frames: [ content.ibcGreatdogSleep ] })
    }),
    papyrus: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_papyrus,
       dramatic: true,
       assets: new CosmosInventory(
          content.asBell,
@@ -1869,6 +1853,7 @@ const opponents = {
                vars.phase = 2;
                if (vars.flirted) {
                   save.data.b.flirt_papyrus = true;
+                  volatile.flirted = true;
                }
             }
          } else {
@@ -1935,7 +1920,7 @@ const opponents = {
          } else {
             await battler.resume(async () => {
                await battler.box.size.modulate(timer, 300, { x: 125, y: 65 });
-               Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+               battler.SOUL.position.set(160);
                battler.SOUL.alpha.value = 1;
                let pattern: Promise<void>;
                if (vars.phase < 2) {
@@ -2193,6 +2178,7 @@ const opponents = {
                await battler.human(...text.b_opponent_shockasgore.stickText);
                await goreyChat(...text.b_opponent_shockasgore.stickTalk);
                battler.status = text.b_opponent_shockasgore.status3;
+               save.storage.inventory.remove('spanner');
             } else {
                await goreyChat(...text.b_opponent_shockasgore.idleText);
                battler.status = text.b_opponent_shockasgore.status2;

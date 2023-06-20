@@ -1,8 +1,7 @@
 import { game } from '../core';
-import { CosmosKeyed, CosmosUtils } from '../engine';
-import { battler, calcLV, choicer, pager, world } from '../mantle';
+import { CosmosKeyed, CosmosProvider, CosmosUtils } from '../engine/utils';
+import { battler, calcLV, choicer, pager, player, world } from '../mantle';
 import save from '../save';
-import { p_papyrus } from './text-supplemental';
 
 export const edgy = () => {
    if (save.data.n.plot < 19) {
@@ -23,8 +22,45 @@ export const edgy = () => {
    }
 };
 
+export const solo = () => save.data.n.plot_date < 2 || world.trueKills > 0;
+
+const f_prespear = pager.create(
+   'limit',
+   () =>
+      save.data.n.plot < 46
+         ? [ '<18>{#p/papyrus}{#f/4}CAREFUL, THIS ROOM HAS SPECIAL SPOOKY POWERS.' ]
+         : [
+              '<18>{#p/papyrus}{#f/4}THE TIME IT TAKES TO TRAVEL ACROSS THIS ROOM...',
+              '<18>{#p/papyrus}{#f/4}...NEVER SEEMS TO BE THE SAME.',
+              "<18>{#p/papyrus}{#f/5}SOMETIMES IT'S LONG, SOMETIMES IT'S NOT...",
+              '<18>{#p/papyrus}{#f/0}AND SOMETIMES I WEAR POLKA-DOTS.',
+              ...(solo()
+                 ? []
+                 : [
+                      '<25>{#p/undyne}{#f/12}* Polka-what?',
+                      '<25>{#p/undyne}{#f/1}* Well uh, as for the length...',
+                      "<25>{#p/undyne}{#f/3}* It's probably just the spatial anomaly here.",
+                      '<18>{#p/papyrus}{#f/0}...OH!',
+                      '<25>{#p/undyne}{#f/17}* Yeah!!!',
+                      '<25>{#p/undyne}{#f/16}* But... polka dots.',
+                      '<25>{#p/undyne}{#f/8}* What does that have to do with anything!'
+                   ])
+           ],
+   () =>
+      save.data.n.plot < 46
+         ? [ '<18>{#p/papyrus}{#f/5}OBJECTS IN HALLWAY ARE FARTHER THAN THEY APPEAR.' ]
+         : [
+              '<18>{#p/papyrus}{#f/4}YES, I LITERALLY JUST SAID THAT TO MAKE IT RHYME.',
+              '<18>{#p/papyrus}{#f/9}WHAT ARE YOU GONNA DO ABOUT IT, HUH?',
+              "<18>THAT'S RIGHT.\nNOTHING!",
+              '<18>NOTHING AT ALL!',
+              ...(solo() ? [] : [ '<25>{#p/undyne}{#f/3}* Damn.' ])
+           ]
+);
+
 export default {
    a_starton: {
+      gravo: [ '<32>{#p/narrator}* It\'s a "gravometric inverter."', '<32>* Whatever that means.' ],
       cream_get: [ '<32>{#p/human}* (You got the Nice Cream.)' ],
       cream_full: [ "<32>{#p/human}* (You're carrying too much.)" ],
       bunbun: pager.create(
@@ -166,12 +202,12 @@ export default {
       ],
       doggo3: pager.create(
          'limit',
-         [ '<32>* Hello?\n* Is anybody there...?\n* No?' ],
-         [ '<32>* Are you two playing a trick on me?\n* Real funny.' ],
-         [ '<32>* Big lug?\n* Is that you?\n* Come on...' ],
-         [ "<32>* Well, it's not the tall skeleton...\n* He's too loud." ],
-         [ '<32>* Whoever you are, knock it off!!!' ],
-         [ '<32>* ...' ]
+         [ '<32>{#p/monster}* Hello?\n* Is anybody there...?\n* No?' ],
+         [ '<32>{#p/monster}* Are you two playing a trick on me?\n* Real funny.' ],
+         [ '<32>{#p/monster}* Big lug?\n* Is that you?\n* Come on...' ],
+         [ "<32>{#p/monster}* Well, it's not the tall skeleton...\n* He's too loud." ],
+         [ '<32>{#p/monster}* Whoever you are, knock it off!!!' ],
+         [ '<32>{#p/monster}* ...' ]
       ),
       drop_chip: [
          '<32>{#p/monster}* Did you just...\n* Drop the part of me I had given you?',
@@ -187,150 +223,94 @@ export default {
       genotext: {
          asriel1: () =>
             [
-               [ "<25>{#p/asriel2}{#f/5}* What are you waiting for?\n* Let's go!" ],
+               [ "<25>{#p/asriel2}{#f/5}* What are you waiting for, $(name)?\n* Let's go!" ],
                [ '<25>{#p/asriel2}{#f/6}* Come on, this way.' ]
             ][Math.min(save.flag.n.ga_asriel1++, 1)],
          asriel2: [ '<25>{*}{#p/asriel2}{#f/3}* Papyrus is just ahead.', '<25>{*}{#f/2}* Hee hee hee...' ],
          asriel3: () =>
-            [ [ "<25>{#p/asriel2}{#f/1}* Let's kill him." ], [ '<25>{#p/asriel2}{#f/1}* This never gets old.' ] ][
+            [ [ "<25>{#p/asriel2}{#f/1}* Let's kill him." ], [ '<25>{#p/asriel2}{#f/1}* This never gets old...' ] ][
                Math.min(save.flag.n.ga_asriel3++, 1)
             ],
-         asriel4: [ '<25>{#p/asriel2}{#f/5}* Howdy! {%}' ],
-         asriel5: [ '<18>{#p/papyrus}{#f/1}WHAT THE- {%}' ],
+         asriel4: [ '<25>{*}{#p/asriel2}{#f/5}* Howdy! {%}' ],
+         asriel5: [ '<18>{*}{#p/papyrus}{#f/1}WHAT THE- {%}' ],
          asriel6: () =>
             [
                [
-                  "<25>{#p/asriel2}{#f/9}* Well, that didn't exactly go as planned.",
-                  "<25>{#f/1}* Not that I'm complaining, that trashbag had it coming.",
-                  "<25>{#f/10}* Oh, I haven't told you about him yet, have I?",
-                  '<25>{#f/2}* Heh.',
-                  '<25>{#f/1}* Trust me, $(name).\n* We are FAR better off without him.'
+                  '<25>{#p/asriel2}{#f/13}* ...',
+                  "<25>{#f/16}* Golly... can't say I was expecting HIM to die so early...",
+                  '<25>{#f/3}* ...even if that trashbag had it coming from a mile away.',
+                  "<25>{#f/4}* ...trust me, $(name).\n* We're FAR better off without him around."
                ],
                [ '<25>{#p/asriel2}{#f/3}* Same outcome as last time.', '<25>{#p/narrator}* ...last time?' ],
-               [ '<25>{#p/asriel2}{#f/3}* ...' ]
+               [ '<25>{#p/asriel2}{#f/13}* ...' ]
             ][Math.min(save.flag.n.ga_asriel6++, 2)],
          asriel7: [ '<25>{#p/asriel2}{#f/3}* Lead the way.' ],
-         asriel9: [
-            "<25>{#p/asriel2}{#f/8}* (Psst, let's wait to kill him until later.)",
-            '<25>{#f/8}* (Besides, his guard will be up for now.)'
-         ],
+         asriel9: [ "<25>{#p/asriel2}{#f/8}* Psst, let's wait and see what he does." ],
          asriel10: () =>
             [
                [
-                  "<25>{#p/asriel2}{#f/3}* So that's how Papyrus reacts if you kill his brother...",
-                  '<25>{#f/3}* Intriguing.',
-                  "<25>{#f/5}* It's weird seeing him act like this, he's always so positive.",
-                  '<25>{#f/4}* Well.\n* This timeline is new, and unpredictable.',
-                  '<25>{#f/1}* Unexpected events are bound to happen.'
+                  '<25>{#p/asriel2}{#f/13}* Papyrus...',
+                  "<25>{#f/16}* I don't think I've ever seen him so defeated.",
+                  "<25>{#f/10}* Imagine calling out for a brother when he's not even alive...",
+                  '<25>{#f/3}* Oh well.\n* This timeline is new, and unpredictable.',
+                  "<25>{#f/1}* I'd like to see where it goes next, wouldn't you, $(name)?"
                ],
-               [ "<25>{#p/asriel2}{#f/8}* I don't think I'll ever get used to seeing Papyrus like that." ]
+               [ "<25>{#p/asriel2}{#f/15}* That's going to take some getting used to." ]
             ][Math.min(save.flag.n.ga_asriel10++, 1)],
-         asriel11: [
-            "<25>{#p/asriel2}{#f/5}* Hey look, it's Papyrus's sentry station!",
-            '<25>{#f/8}* You know, back when I was a star...',
-            "<25>{#f/6}* Papyrus came up with something called the 'Twinkly fan club.'",
-            '<25>{#f/9}* HAH!\n* What a joke.',
-            '<25>{#f/5}* I mean, the guy literally designed an emblem for it...',
-            '<25>{#f/5}* And painted it on his battle body!',
-            '<25>{#f/3}* Gee, he really was OBSESSED with me...'
-         ],
-         asriel11a: [
-            '<25>{#p/asriel2}{#f/4}* Remember the Twinkly fan club I mentioned?',
-            "<25>{#f/3}* Well, here's a fun fact for you...",
-            "<25>{#f/4}It actually started as one of Sans's idiotic jokes.",
-            '<25>{#f/3}* Papyrus got to talking about me one time, and Sans just said...',
-            '<25>{#f/8}* "gee papyrus, are you a member of the twinkly fan club or something?"',
-            '<25>{#f/6}* ...you can imagine how things went down after that.'
-         ],
-         asriel11b: [
-            "<25>{#p/asriel2}{#f/3}* I'd say something else about the fan club...",
-            "<25>{#f/3}* But that'd encourage more unnecessary RESETs."
-         ],
-         asriel12: [ '<25>{#p/asriel2}{#f/5}* Yoo-hoo!' ],
-         asriel14: [ "<25>{#p/asriel2}{#f/3}* Wait, something's wrong." ],
-         asriel15a: [ "<25>{#p/asriel2}{#f/8}* It's abandoned..." ],
-         asriel15b: [
-            "<25>{#f/6}* If this is abandoned, that must mean they've started evacuating.",
-            "<25>{#f/7}* And if they've done that, then Undyne must be aware of us.",
-            "<25>{#f/3}* If I had to guess, I'd say Alphys saw us and reported it to her.",
-            "<25>{#f/4}* She's got cameras everywhere, you know."
-         ],
          asriel17: () =>
             [
-               [
-                  "<25>{#p/asriel2}{#f/9}* Ha, look at him!\n* He's so mad!",
-                  '<26>{#f/1}* Oh, this is great.',
-                  "<25>{#f/5}* I can't believe I didn't try this sooner!"
-               ],
-               [ '<25>{#p/asriel2}{#f/9}* Heh.' ]
+               [ "<25>{#p/asriel2}{#f/3}* Golly, $(name)... some people just don't get it." ],
+               [ "<25>{#p/asriel2}{#f/7}* Someone's mad." ]
             ][Math.min(save.flag.n.ga_asriel17++, 1)],
-         asriel20: () =>
-            [
-               [
-                  '<25>{#p/asriel2}{#f/6}* Nice work on the puzzle.',
-                  '<25>{#f/3}* If memory serves, the married dogs are patrolling closeby...'
-               ],
-               [ '<25>{#p/asriel2}{#f/3}* Nice.' ]
-            ][Math.min(save.flag.n.ga_asriel20++, 1)],
          asriel24: () =>
-            [ [ '<25>{#p/asriel2}{#f/3}* Well then.' ], [ '<25>{#p/asriel2}{#f/6}* ...' ] ][
+            [ [ '<25>{#p/asriel2}{#f/3}* That was underwhelming.' ], [ '<25>{#p/asriel2}{#f/4}* ...' ] ][
                Math.min(save.flag.n.ga_asriel24++, 1)
             ],
          asriel26: () =>
             [
-               [ "<25>{#p/asriel2}{#f/1}* And with that out of the way, we're almost into town." ],
-               [ '<25>{#p/asriel2}{#f/1}* Good riddance.' ]
+               [
+                  "<26>{#p/asriel2}{#f/3}* Well, that's the canine unit gone.",
+                  '<26>{#p/asriel2}{#f/4}* Only one bridge between us and the town...',
+                  '<25>{#f/1}* ...stay behind me, $(name).'
+               ],
+               [ '<25>{#p/asriel2}{#f/6}* You know where to go.' ]
             ][Math.min(save.flag.n.ga_asriel26++, 1)],
          asriel28: () =>
             [
                [
-                  '<25>{#p/asriel2}{#f/6}* OK, Starton town is all yours, $(name).',
-                  '<25>* Do what you will.',
-                  "<25>{#f/7}* In the meantime, I've gotta go check on something ahead...",
+                  "<25>{#p/asriel2}{#f/6}* Okay, $(name), the town's all yours.",
+                  "<25>{#f/7}* In the meantime, I'll be off to check on some things.",
                   "<25>{#f/1}* I know you won't disappoint me."
                ],
-               [ '<25>{#p/asriel2}{#f/6}* Meet me at the edge of town.' ]
+               [ "<25>{#p/asriel2}{#f/16}* I trust you'll do the right thing." ]
             ][Math.min(save.flag.n.ga_asriel28++, 1)],
          asriel29: () =>
             [
+               save.data.b.papyrus_secret
+                  ? [
+                       '<25>{#p/asriel2}{#f/2}* Hee.\n* Hee.\n* Hee....',
+                       "<25>{#f/10}* ...wait, where's Papyrus?",
+                       '<25>{#f/10}* ...',
+                       "<25>{#f/4}* Golly, $(name), I didn't think you'd kill him THAT quickly."
+                    ]
+                  : [
+                       '<25>{#p/asriel2}{#f/2}* Hee.\n* Hee.\n* Hee....',
+                       "<25>{#f/1}* It's about time that bonehead paid the price for his mercy.",
+                       '<25>{#f/13}* Golly.\n* He wanted SO badly to forgive you.',
+                       "<25>{#f/16}* But, let's be honest with ourselves here...",
+                       "<25>{#f/1}* We've got bigger fish to fry."
+                    ],
+               [ '<25>{#p/asriel2}{#f/13}* Oh well.\n* The skeleton died for nothing again.' ],
                [
-                  '<25>{#p/asriel2}{#f/2}* Hee.\n* Hee.\n* Hee....',
-                  "<25>{#f/1}* It's about time that skeleton paid the price for his ways.",
-                  '<25>{#f/2}* Golly, he wanted SO badly to forgive us.',
-                  "<25>{#f/8}* But let's be honest with ourselves here...",
-                  "<25>{#f/1}* We've got bigger fish to fry."
-               ],
-               [ '<25>{#p/asriel2}{#f/6}* Oh well.\n* The skeleton died for nothing again.' ],
-               [
-                  "<25>{#p/asriel2}{#f/6}* You know, they say the third time's the charm...",
-                  '<25>{#f/2}* Too bad he only ever gets one.'
-               ],
-               [
-                  "<25>{#p/asriel2}{#f/6}* That's four times you've killed him now.",
-                  "<25>{#f/2}* I'm starting to think you enjoy this."
-               ],
-               [ '<25>{#p/asriel2}{#f/2}* Pfft.\n* Dead again.' ]
-            ][Math.min(save.flag.n.ga_asriel29++, 4)],
-         asriel29b: () =>
-            [
-               [
-                  '<25>{#p/asriel2}{#f/2}* Hee.\n* Hee.\n* Hee....',
-                  "<25>{#f/10}* ...wait, where's Papyrus?",
-                  '<25>{#f/10}* ...',
-                  "<25>{#f/2}* Golly, $(name), I didn't think you'd kill him THAT quickly."
-               ],
-               [ '<25>{#p/asriel2}{#f/6}* Oh well.\n* The skeleton died for nothing again.' ],
-               [
-                  "<25>{#p/asriel2}{#f/6}* You know, they say the third time's the charm...",
-                  '<25>{#f/2}* Too bad he only ever gets one.'
+                  "<25>{#p/asriel2}{#f/13}* You know, they say the third time's the charm...",
+                  '<25>{#f/16}* Too bad he only ever gets one.'
                ],
                [
                   "<25>{#p/asriel2}{#f/6}* That's four times you've killed him now.",
-                  "<25>{#f/2}* I'm starting to think you enjoy this."
+                  "<25>{#f/8}* I'm starting to think you enjoy this..."
                ],
-               [ '<25>{#p/asriel2}{#f/2}* Pfft.\n* Dead again.' ]
+               [ '<25>{#p/asriel2}{#f/15}* Again...?' ]
             ][Math.min(save.flag.n.ga_asriel29++, 4)],
-
          asriel30: () => [
             '<25>{#p/asgore1}{#f/1}* ...',
             '<25>{#f/1}* Howdy, Asriel.',
@@ -341,13 +321,13 @@ export default {
                   '<25>{#p/asriel2}{#f/6}* Talk?\n* About what?',
                   '<25>{#f/6}* Why are you even here?',
                   "<25>{#f/7}* You know you'll just die to me anyway.",
-                  '<25>{#f/5}* Speaking of which...{%15}'
+                  '<25>{#f/8}* Speaking of which... {%15}'
                ],
                [
                   "<25>{#p/asriel2}{#f/8}* Talk?\n* Don't waste my time.",
                   "<25>{#f/6}* I KNOW you're just using a hologram.",
-                  '<25>{#p/asgore1}{#f/5}* How did you- {%}',
-                  '<25>{#p/asriel2}{#f/2}* Hee hee.'
+                  '<25>{*}{#p/asgore1}{#f/5}* How did you- {%}',
+                  '<25>{#p/asriel2}{#f/1}* Hush.'
                ]
             ][Math.min(save.flag.n.ga_asriel30x, 1)]
          ],
@@ -356,27 +336,27 @@ export default {
             '<25>{#f/6}* I knew you were a coward, but this is a whole new level.'
          ],
          asriel30b: [
-            '<25>{#p/asgore1}{#f/1}* Asriel...',
-            "<25>{#f/1}* Don't you have anything better to do?",
+            "<25>{#p/asgore1}{#f/1}* Don't you have anything better to do?",
             '<25>{#p/asriel2}{#f/8}* ...',
             '<25>{#f/6}* You know my answer.',
-            '<25>{#p/asgore1}{#f/3}* Well, son- {%}',
+            '<25>{*}{#p/asgore1}{#f/3}* Well, son- {%}',
             "<25>{#p/asriel2}{#f/6}* I'm not your son.\n* I haven't BEEN your son for a LONG time.",
-            "<25>{#p/asgore1}{#f/1}* Alright, Asriel.\n* Do you realize what you're doing?",
-            "<25>{#f/3}* Don't you see how harmful it is?",
-            "<25>{#p/asriel2}{#f/6}* I've killed a few monsters, big deal.",
-            "<25>{#p/asgore1}{#f/1}* That's not what I mean.",
-            '<25>{#p/asriel2}{#f/8}* Then what do you mean?',
-            '<25>{#p/asgore1}{#f/1}* I mean the harm that it does to you.\n* The mental damage.',
-            "<25>{#p/asriel2}{#f/9}* Y...\n* You're kidding, right?",
-            "<25>{#f/1}* I...\n* I'm stronger than you seem to think, dad.",
-            '<25>{#f/7}* Oh, sorry...\n* Did I say "Dad?"\n* I meant "Asgore."',
-            '<25>{#f/6}* Forgive me.',
+            '<25>{#p/asgore1}{#f/1}* Alright, Asriel.\n* Do you realize what you are doing?',
+            '<25>{#f/3}* Do you not see how harmful it is?',
+            "<25>{#p/asriel2}{#f/6}* We've killed a few monsters, big deal.",
+            '<25>{#p/asgore1}{#f/1}* That is not what I am referring to, Asriel.',
+            '<25>{#p/asriel2}{#f/8}* Then what ARE you referring to?',
+            '<25>{#p/asgore1}{#f/1}* I mean the harm that it does to you.\n* The harm to your SOUL.',
+            '<25>{#p/asriel2}{#f/15}* Yeah, about that...',
+            '<25>{#p/asgore1}{#f/3}* If you continue down this path, nobody will be able to save you.',
+            "<25>{#p/asriel2}{#f/13}* That's what you don't understand, Dad.\n* I don't NEED saving.",
+            '<25>{#f/2}* Oh, sorry...\n* Did I say "Dad?"\n* I meant "Asgore."',
+            '<25>{#f/1}* Forgive me.',
             '<25>{#p/asgore1}{#f/3}* ...\n* Really now...',
             "<25>{#f/2}* You must reconsider what you're doing, not just for our sakes...",
             '<25>{#f/5}* But for yours!',
-            "<25>{#p/asriel2}{#f/8}* Man, don't pretend to care NOW...",
-            "<25>{#f/6}* It's OBVIOUS you're just here to waste my time.",
+            "<25>{#p/asriel2}{#f/8}* Golly, don't pretend to care NOW...",
+            "<25>{#f/7}* It's OBVIOUS you're just here to waste my time.",
             '<25>{#p/asgore1}{#f/2}* ...',
             '<25>{#p/asriel2}{#f/8}* ...',
             '<25>{#p/asgore1}{#f/13}* You must consider the gravity of your choices!',
@@ -386,36 +366,22 @@ export default {
          asriel30c: [ '<25>{*}{#p/asgore1}{#f/5}* Asriel, please!\n* You must listen to me, this has to end now!' ],
          asriel30d: () =>
             [
-               [
-                  '<25>{#p/asriel2}{#f/3}* Steady yourself, $(name).',
-                  "<26>{#f/4}* This is Undyne's domain.",
-                  '<25>{#p/asriel2}{#f/4}* ...',
-                  '<25>{#p/asriel2}{#f/1}* Now... take us in.'
-               ],
+               [ '<25>{#p/asriel2}{#f/3}* Ready yourself, $(name).', "<26>{#f/4}* This is Undyne's domain." ],
                [ '<25>{#p/asriel2}{#f/4}* Take us in.' ]
             ][Math.min(save.flag.n.ga_asriel30d++, 1)],
-         asrielX1: [
-            "<25>{#p/asriel2}{#f/3}* If you've done everything you wanted here, we can go.",
-            choicer.create('* (Follow him?)', 8, 7, 'No', 'Yes')
-         ],
-         asrielX2: [ '<25>{#p/asriel2}{#f/1}* Ready?', choicer.create('* (Follow him?)', 8, 7, 'No', 'Yes') ],
-         asrielX5: [ "<25>{#p/asriel2}{#f/3}* I'll be waiting, then." ],
-         asrielX6: [ "<25>{#p/asriel2}{#f/3}* Okay, let's go." ],
-         papyrusSolo1a: () => [
+         papyrusSolo1a: [
             '<18>{#p/papyrus}{#f/31}SANS?\nIS THAT A HUMAN?',
             "<18>{#f/5}IT IS, ISN'T IT?",
             '<18>{#f/32}NYEH...\nUNDYNE WILL FINALLY...',
-            ...(save.flag.n.ga_asrielPapyrus1++ < 1 ? [ '<25>{#p/asriel2}{#f/10}* (What is he doing??)' ] : []),
             "<18>{#p/papyrus}{#f/31}I'LL GET TO JOIN THE ROYAL GUARD...",
             "<18>{#f/5}DOESN'T THAT MAKE YOU HAPPY?",
-            ...(save.flag.n.ga_asrielPapyrus1 < 2 ? [ '<25>{#p/asriel2}{#f/10}* (Oh, how saddening...)' ] : []),
             "<25>{#p/asriel2}{#f/3}* You can't keep pretending, Papyrus.\n* He's gone.",
-            '<18>{#p/papyrus}{#f/5}BUT- {%}',
+            '<18>{*}{#p/papyrus}{#f/5}BUT- {%}',
             "<25>{#p/asriel2}{#f/3}* It's over.\n* Just give up already.",
             "<18>{#p/papyrus}{#f/6}BUT IT CAN'T BE...\nSANS, HE...",
             '<18>{#f/31}HE PROMISED...',
             '<25>{#p/asriel2}{#f/3}* Promises are made to be broken, Papyrus.',
-            '<25>{#f/4}* I thought you of all people would be smart enough to know THAT...',
+            '<25>{#f/4}* You of all people should be smart enough to know THAT...',
             '<18>{#p/papyrus}{#f/31}...',
             "<18>{#f/3}I'M SORRY.",
             '<18>{#f/3}I HAVE TO GO...'
@@ -423,95 +389,92 @@ export default {
          papyrusSolo2a: [
             '<18>{#p/papyrus}{#f/31}WELL, I JUST GOT BACK FROM UNDYNE...',
             '<18>{#f/31}SHE TELLS ME THE KING HAS AN OFFER FOR YOU.',
-            '<25>{#p/asriel2}{#f/5}* Oh?',
+            '<25>{#p/asriel2}{#f/7}* Lay it on me.',
             "<18>{#p/papyrus}{#f/3}HIS EXACT WORDS WERE 'I WANT TO SEE MY SON.'",
             '<18>{#f/7}...',
             "<18>{#f/7}I CAN'T BELIEVE THE PRINCE KILLED MY BROTHER!",
-            '<25>{#p/asriel2}{#f/8}* Actually, it was you we were trying to- {%}',
+            '<25>{#p/asriel2}{#f/8}* Actually, it was you we were trying to kill...',
             '<18>{#p/papyrus}{#f/7}ENOUGH!!',
             '<18>{#f/7}YOU BETRAYED YOUR OWN KINGDOM!\nYOUR OWN PEOPLE!',
             '<18>{#f/7}AND FOR WHAT!?',
-            "<18>{#f/7}A LONGSHOT AT GAINING 'POWER?'",
-            "<18>{#f/4}(AT LEAST, THAT'S WHAT ALPHYS SAID IT COULD BE...)",
-            "<18>{#f/7}WHATEVER!\nIT DOESN'T MATTER TO YOU, DOES IT?",
-            '<18>{#f/4}AND AS FOR YOU, HUMAN...',
+            '<18>{#f/7}A PETTY ATTEMPT AT SELF-AMUSEMENT?',
+            '<25>{#p/asriel2}{#f/1}* Sure, why not.',
+            '<18>{#p/papyrus}{#f/4}AND AS FOR YOU, HUMAN...',
             "<18>{#f/7}DON'T THINK I CAN'T SEE WHAT'S GOING ON.",
             "<18>{#f/7}IT'S OBVIOUS YOU'RE THE ONE CALLING THE SHOTS.",
-            '<25>{#p/asriel2}{#f/8}* Oh, how observant.',
+            '<25>{#p/asriel2}{#f/8}* How observant.',
             '<25>{#f/7}* Guess we should just admit defeat here and now, huh?',
             '<18>{#p/papyrus}{#f/31}...',
             '<25>{#p/asriel2}{#f/3}* Well, too bad.',
             "<25>{#f/4}* We're not coming with you, and we never will.\n* We've got other plans.",
             "<18>{#p/papyrus}{#f/4}JUST SO YOU KNOW, UNDYNE'S PROBABLY WATCHING US.",
-            '<25>{#p/asriel2}{#f/1}* And your point is?',
-            "<25>{#f/3}* ...look Papyrus, it doesn't matter what you or anyone else does.",
-            "<25>{#f/1}* One way or another, we're going to WIN.",
+            '<25>{#p/asriel2}{#f/3}* And your point is?',
+            "<25>{#f/4}* ...look Papyrus, it doesn't matter what you or anyone else does.",
+            "<25>{#f/1}* Nothing can stop us when we're together.",
             '<18>{#p/papyrus}{#f/7}UGH!!!'
          ],
          papyrusSolo3a: [
-            '<25>{#p/asriel2}{#f/5}* Howdy.',
+            '<25>{#p/asriel2}{#f/3}* Howdy.',
             '<18>{#p/papyrus}{#f/31}YOU KNOW...',
             '<18>{#f/31}I OVERHEARD UNDYNE AND ALPHYS TALKING...',
             "<18>{#f/5}AND THEY MENTIONED SOMETHING LIKE 'TURN BACK TIME?'",
-            "<18>{#f/32}I CAN'T BE SURE, BUT IT SOUNDS LIKE- {%}",
+            "<18>{*}{#f/32}I CAN'T BE SURE, BUT IT SOUNDS LIKE- {%}",
             '<25>{#p/asriel2}{#f/6}* No.',
-            '<18>{#p/papyrus}{#f/6}BUT THEY SAID YOU MIGHT BE ABLE TO- {%}',
+            '<18>{*}{#p/papyrus}{#f/6}BUT THEY SAID YOU MIGHT BE ABLE TO- {%}',
             '<25>{#p/asriel2}{#f/6}* No.',
             '<18>{#p/papyrus}{#f/31}BUT, IF YOU REALLY CAN ERASE WHAT HAPPENED...',
             '<18>{#f/5}THEN WHY NOT?',
             "<18>{#f/31}A-AND, IN THE NEXT TIMELINE... I'LL TAKE HIS PLACE.",
             "<18>{#f/3}THEN HE WOULDN'T HAVE TO DIE, RIGHT?",
-            "<25>{#p/asriel2}{#f/6}* Oh, trust me, I've already seen that timeline.",
-            "<25>{#f/6}* It's BORING.",
+            "<25>{#p/asriel2}{#f/6}* Trust me, I've already seen that timeline.",
+            "<25>{#f/7}* It's BORING.",
             '<18>{#p/papyrus}{#f/3}...',
             '<18>{#f/6}BUT WHAT IF I SHOW YOU THIS PUZZLE?',
-            '<18>{#f/32}IT MIGHT HELP WITH YOUR BOREDOM...',
-            '<25>{#p/asriel2}{#f/6}* Sure, whatever.\n* If it makes you feel better, I guess.',
+            '<18>{#f/32}IT MIGHT HELP TO ALLEVIATE YOUR BOREDOM...',
+            '<25>{#p/asriel2}{#f/15}* If it makes you feel better, I guess...',
             '<18>{#p/papyrus}OH... OH!',
             "<18>{#f/0}THAT'S GREAT!!",
             "<18>{#f/0}YOU'RE ALREADY CHANGING YOUR MIND!!",
-            '<25>{#p/asriel2}{#f/6}* ...',
+            '<25>{#p/asriel2}{#f/8}* ...',
             '<25>{#p/papyrus}{#f/6}...',
-            '<18>{#f/5}WELL, HERE ARE THE RULES OF THE- {%}',
-            '<25>{#p/asriel2}{#f/8}* We already know the rules, idiot.',
+            '<18>{*}{#f/5}WELL, HERE ARE THE RULES OF THE- {%}',
+            '<25>{#p/asriel2}{#f/7}* We already know the rules, idiot.',
             '<18>{#p/papyrus}{#f/31}OH...',
             '<18>{#f/6}UH, WELL THEN!!\nWITHOUT FURTHER ADO...',
             "<18>{#f/9}LET'S FIND OUT WHAT OUR RANDOM NUMBER WILL BE!!"
          ],
          papyrusSolo4a: [
             '<18>{#p/papyrus}{#f/3}ASRIEL.',
-            '<25>{#p/asriel2}{#f/7}* Papyrus.',
+            '<25>{#p/asriel2}{#f/6}* Papyrus.',
             '<18>{#p/papyrus}{#f/31}...',
             '<18>{#f/31}WHY?',
             '<18>{#f/31}WHY WOULD YOU DO THIS?',
             "<18>{#f/3}MONSTERS AREN'T SUPPOSED TO BE LIKE THIS...",
             "<18>{#f/5}WHERE'S YOUR LOVE?\nYOUR COMPASSION?",
             '<18>{#f/31}YOUR... MERCY...',
-            '<25>{#p/asriel2}{#f/5}* Oh, trust me...',
-            '<25>{#f/1}* I lost ALL of that a LONG time ago.',
+            '<25>{#p/asriel2}{#f/2}* Oh, you sweet stellar star child...',
+            '<25>{#f/1}* I lost those things a LONG time ago.',
             "<18>{#p/papyrus}{#f/31}BUT...\nI DON'T GET IT...",
             '<18>{#f/5}HOW CAN A MONSTER SO PURE OF HEART...',
             '<18>{#f/31}...BE TURNED SO COMPLETELY TO THE DARK SIDE?',
             '<25>{#p/asriel2}{#f/1}* You really wanna know?',
             '<18>{#p/papyrus}{#f/3}...',
             '<18>{#f/3}YES...',
-            '<25>{#p/asriel2}{#f/8}* But do you really, really wanna know?',
+            '<25>{#p/asriel2}{#f/10}* But do you really, really wanna know?',
             '<18>{#p/papyrus}{#f/31}YES.',
-            '<25>{#p/asriel2}{#f/1}* Say it louder.',
+            '<25>{#p/asriel2}{#f/3}* Say it louder.',
             '<18>{#p/papyrus}{#f/5}YES!',
-            '<26>{#p/asriel2}{#f/2}* With an exoberry on top.',
+            '<26>{#p/asriel2}{#f/1}* With an exoberry on top.',
             '<18>{#p/papyrus}{#f/7}YES!\nWITH AN EXOBERRY ON TOP, DAMMIT!',
             '<25>{#p/asriel2}{#f/1}* Hee hee hee...',
-            "<25>{#f/3}* Okay, I'll tell you.",
-            "<25>{#f/5}* In fact, it'll only take one word...",
-            '<25>{#f/1}* Alphys.',
-            '<18>{#p/papyrus}{#f/32}HUH??\nWHAT DOES SHE HAVE TO DO WITH IT?',
-            '<25>{#p/asriel2}{#f/5}* Oh, if only you knew...'
+            "<25>{#f/1}* Alright, I'll tell you.",
+            "<25>{#f/15}* In fact, it'll only take one word...",
+            '<18>{#p/papyrus}{#f/4}OH MY GOD, JUST SAY IT ALREADY...'
          ],
          papyrusSolo4b: [
-            '<25>{*}{#f/14}{@random:1.1,1.1}{@fill:#f00}* Nobody will EVER love YOU, Papyrus.',
+            '<25>{*}{#p/asriel2}{#f/14}{@random:1.1,1.1}{@fill:#f00}* $(name).',
             '<18>{#p/papyrus}{#f/8}...!',
-            '<25>{#p/asriel2}{#f/5}* Hah!\n* Hahah!\n* The look on your face!'
+            '<25>{#p/asriel2}{#f/5}* Hah!\n* Hahaha!\n* The look on your face!'
          ],
          papyrusSolo4c: [ '<18>{#p/papyrus}{#f/31}I...', '<18>{#f/3}...NO...' ],
          papyrusSolo4d: [
@@ -520,7 +483,7 @@ export default {
             "<18>{#f/7}YOU ARE THE ONE WHO'S FED ME LIE AFTER LIE.",
             '<18>{#f/9}BUT I, PAPYRUS...',
             '<18>{#f/9}FINALLY UNDERSTAND THE {@fill:#f00}REAL TRUTH{@fill:#fff}.',
-            "<25>{#p/asriel2}{#f/5}* Oh?\n* And what's that?"
+            "<25>{#p/asriel2}{#f/13}* Oh?\n* And what's that?"
          ],
          papyrusSolo4e: [ "<18>{#p/papyrus}{#f/34}YOU'RE NOT {@fill:#f00}ASRIEL{@fill:#fff}." ],
          papyrusSolo4f: [
@@ -536,16 +499,17 @@ export default {
             '<25>{#f/7}* Then prove me wrong.',
             "<25>{#f/3}* I'll let you take them on, one on one.",
             "<25>{#f/3}* If they spare you, then I'll admit I was wrong.",
-            '<25>{#f/2}* But if they kill you, which they inevitably will...',
+            '<25>{#f/4}* But if they kill you, which they inevitably will...',
             "<25>{#f/1}* You'll realize that I was right, and that Sans died for nothing.",
-            '<25>{#f/5}* How does that sound?',
+            '<25>{#f/1}* How does that sound?',
             '<18>{#p/papyrus}{#f/9}...\nI ACCEPT.',
-            '<25>{#p/asriel2}{#f/1}* Splendid.',
-            '<25>{#f/2}* See you never.'
+            '<25>{#p/asriel2}{#f/3}* Splendid.',
+            '<25>{#f/4}* See you never.'
          ]
       },
       gonezo: () =>
          world.bullied ? [ '<32>{#p/narrator}* ...but everybody ran.' ] : [ '<32>{#p/narrator}* ...but nobody came.' ],
+      doggonopoggo: [ "<32>{#p/narrator}* Looks like nobody's home." ],
       housebloc: [ "<32>{#p/narrator}* It's locked." ],
       innkeep1a: pager.create(
          'limit',
@@ -693,7 +657,7 @@ export default {
       maze4: [ '<18>{#p/papyrus}{#x3}{#f/7}NOT NOW, SANS!!' ],
       maze5: [
          "<25>{#x2}{#p/sans}* ok, i'll stop {#x1}now.",
-         "<25>{#f/4}* i mean, now that you've {#x2}lit a {@fill:#ff0}fire{@fill:#fff} under- {%}",
+         "<25>{#f/4}{*}* i mean, since you've practically {#x2}lit a {@fill:#ff0}fire{@fill:#fff} under- {%}",
          '<18>{#p/papyrus}ANYWAY, THE IDEA BEHIND THIS PUZZLE IS SIMPLE.',
          '<18>BECAUSE ALL YOU HAVE TO DO...',
          '<18>{#f/9}IS MAKE IT TO THE OTHER SIDE!!',
@@ -744,18 +708,18 @@ export default {
          '<18>{#f/4}IN ANY CASE...',
          '<18>{#f/0}I AM EXCITED FOR WHAT COMES NEXT!',
          '<18>{#f/4}A PUZZLE SO CONFOUNDING...',
-         "<18>{#f/1}EVEN GALAXIA HERSELF COULDN'T SOLVE IT!!!",
-         "<25>{#p/sans}* galaxia?\n* isn't that a character in a sci-fi novel?",
-         '<18>{#p/papyrus}{#f/1}UH...\nWELL YES, BUT- {%}',
+         "<18>{#f/1}EVEN TERRESTRIA HERSELF COULDN'T SOLVE IT!!!",
+         "<25>{#p/sans}* terrestria?\n* isn't she the oldest puzzlemaster around?",
+         '<18>{*}{#p/papyrus}{#f/1}UH...\nWELL YES, BUT- {%}',
          "<25>{#p/sans}* dang, i didn't know you thought THAT highly of me.",
          '<18>{#p/papyrus}{#f/4}WHAT.',
-         "<25>{#p/sans}* well, think about it.\n* if even a fictional character can't- {%}",
+         "<25>{#p/sans}* think about it.\n* if even SHE can't do it, then...",
          '<18>{#p/papyrus}{#f/7}{#x3}I GET THE POINT!!'
       ],
       maze11: [
          '<18>{#p/papyrus}{#f/7}SANS, WE HAVE MORE PUZZLES TO PREPARE!!',
          '<18>COME ON!',
-         '<25>{#p/sans}* heh, cya soon kid.'
+         '<25>{#p/sans}* heh, see ya soon kid.'
       ],
 
       nicecream1: [
@@ -827,12 +791,22 @@ export default {
          () => [
             "<32>{#p/monster}* Hey, kiddo!\n* I'd offer you a Nice Cream, but I'm all sold out!",
             ...(2 <= save.data.n.plot_date && save.data.n.exp <= 0
-               ? [ '<32>{#p/monster}* That fish lady bought out my entire stock...!' ]
+               ? [
+                    '<32>* That fish lady bought out my entire stock.',
+                    "<32>* Mind you, it's not the first time she's done it..."
+                 ]
                : 2 <= save.data.n.plot_date && save.data.n.plot < 68
-               ? [ '<32>{#p/monster}* That handsome skeleton got the last of my supply...!' ]
-               : [ '<32>{#p/monster}* Those cute guards ran me dry in no time...!' ])
+               ? [
+                    '<32>* That handsome skeleton got the last of my supply.',
+                    "<33>* Don't blame him, though.\n* He is pretty handsome, heheh..."
+                 ]
+               : [
+                    '<33>* Those numbered royal guard girls ran me dry.',
+                    '<32>* Apparently they found out they were like, childhood friends or something of the sort.',
+                    '<32>* Not gonna lie, though...\n* Calling them "friends" would be putting it lightly.'
+                 ])
          ],
-         [ '<32>{#p/monster}* Maybe it\'s time to start that "Nice Cream" ice cream chain I\'ve always dreamed of.' ]
+         [ '<32>{#p/monster}* Maybe it\'s time to start that "Nice Cream" franchise I\'ve always dreamed of...' ]
       ),
       npcinter: {
          s_genokid: pager.create(
@@ -888,12 +862,13 @@ export default {
                save.data.n.plot === 33
                   ? [
                        "<32>{#p/monster}{#npc/a}* Despite Sans's vast culinary knowledge, he always orders the worst burger off the menu.",
-                       ...(save.data.b.oops
-                          ? [ "<32>* It's practically fate." ]
-                          : [
+                       ...(world.dead_skeleton
+                          ? [
                                '<32>* Except for earlier today...',
-                               '<32>* ...when he ordered the SECOND worst burger off the menu.'
-                            ])
+                               '<32>* ...when he ordered the SECOND worst burger off the menu.',
+                               "<32>* That's something, right?"
+                            ]
+                          : [ "<32>* It's practically fate." ])
                     ]
                   : world.dead_skeleton
                   ? [
@@ -911,9 +886,9 @@ export default {
                     ],
             () =>
                save.data.n.plot === 33
-                  ? save.data.b.oops
-                     ? [ "<32>* Can't imagine what it'd take to change a fate like that." ]
-                     : [ '<32>* Come to think of it, a lot of weird things have happened today.' ]
+                  ? world.dead_skeleton
+                     ? [ "<32>* Come to think of it, that's not the only off-putting thing to have happened today..." ]
+                     : [ "<32>* Can't imagine what it'd take to change a fate like that." ]
                   : world.dead_skeleton
                   ? [
                        '<32>{#p/monster}{#npc/a}* I hope he shows up today.\n* Him and his brother are great at making us laugh.'
@@ -921,9 +896,9 @@ export default {
                   : [ '<32>{#p/monster}{#npc/a}* I\'ve also heard they have things called "bathrooms."' ],
             () =>
                save.data.n.plot === 33
-                  ? save.data.b.oops
-                     ? [ "<32>* Can't imagine what it'd take to change a fate like that." ]
-                     : [ '<32>* Come to think of it, a lot of weird things have happened today.' ]
+                  ? world.dead_skeleton
+                     ? [ "<32>* Come to think of it, that's not the only off-putting thing to have happened today..." ]
+                     : [ "<32>* Can't imagine what it'd take to change a fate like that." ]
                   : world.dead_skeleton
                   ? [ '<32>{#p/monster}{#npc/a}* Skeletons are cool.' ]
                   : [ '<32>{#p/monster}{#npc/a}* Humans are weird.' ]
@@ -965,7 +940,7 @@ export default {
          ),
          g_dogamy: () =>
             save.data.n.plot === 33
-               ? [ '<32>{#p/monster}{#npc/a}* Dang, I was hoping Sans came to give us a pat on the head.' ]
+               ? [ '<32>{#p/monster}{#npc/a}* Shoot, I was hoping Sans came to give us a pat on the head.' ]
                : save.data.n.state_starton_doggo === 2 && save.data.n.state_starton_greatdog === 2
                ? [ '<32>{#p/monster}{#npc/a}* Smells kinda... quiet.' ]
                : save.data.n.state_starton_doggo === 2
@@ -1033,7 +1008,7 @@ export default {
                  ]
                : [
                     '<32>{#p/monster}{#npc/a}* ...\n* ...\n* ...',
-                    '<32>* Grillbz said his new colors were recommended by the king.',
+                    '<32>* Grillbz said he found his new colors in an e-magazine.',
                     "<32>* Personally, I prefer Grillbz' natural orange color.\n* But that's just me."
                  ],
          g_punkhamster: pager.create(
@@ -1111,23 +1086,12 @@ export default {
             ],
             [ "<32>{#p/monster}{#npc/a}* I know what you're thinking.", "<32>* Don't try it." ]
          ),
-         l_kakurolady: () =>
-            save.data.b.oops || save.flag.b.s_state_wordsearch
-               ? [
-                    '<32>{#p/monster}{#npc/a}* (Cough, cough.)',
-                    '<33>* Back in school, teachers gave us spot-the-difference puzzles when they ran out of work.',
-                    '<32>* I thought they were a waste of time.\n* But look at me now...',
-                    "<33>* I'm the number-one spot-the- difference artist on the outpost!"
-                 ]
-               : ((save.flag.b.s_state_wordsearch = true),
-                 [
-                    '<32>{#p/monster}{#npc/a}* (Cough, cough.)',
-                    '<33>* Back in school, teachers gave us spot-the-difference puzzles when they ran out of work.',
-                    '<32>* I thought they were a waste of time.\n* But look at me now...',
-                    "<33>* I'm the number-one word-search creator in the entire underground!",
-                    '<32>* ...',
-                    '<33>* ...wait, what were we talking about again?'
-                 ]),
+         l_kakurolady: [
+            '<32>{#p/monster}{#npc/a}* (Cough, cough.)',
+            '<33>* Back in school, teachers gave us spot-the-difference puzzles when they ran out of work.',
+            '<32>* I thought they were a waste of time.\n* But look at me now...',
+            "<33>* I'm the number-one spot-the- difference artist on the outpost!"
+         ],
          l_librarian: pager.create('limit', () =>
             world.dead_dog || world.dead_skeleton || world.population < 10
                ? [
@@ -1148,21 +1112,14 @@ export default {
                        "<32>* Lately, though, I've had to report on something terrible...",
                        "<32>* I'm starting to second-guess my life choices."
                     ]
-                  : save.data.b.oops
-                  ? [
-                       '<32>{#p/monster}{#npc/a}* I love working the newspaper.',
-                       "<32>* There's so little to report that we just fill it with comics and games."
-                    ]
                   : [
                        '<32>{#p/monster}{#npc/a}* I love working the newspaper.',
-                       '<32>* Today, I felt like writing an optimistic article...'
+                       "<32>* There's so little to report that we just fill it with comics and games."
                     ],
             () =>
                world.dead_dog || world.dead_skeleton || world.population < 6
                   ? [ '<32>{#p/monster}{#npc/a}* Have you ever felt like your life is just running in circles?' ]
-                  : save.data.b.oops
-                  ? [ "<32>{#p/monster}{#npc/a}* Have you ever felt like you're just missing something?" ]
-                  : [ '<32>{#p/monster}{#npc/a}* The article\'s title was "Hopes and Dreams."' ]
+                  : [ "<32>{#p/monster}{#npc/a}* Have you ever felt like you're just missing something?" ]
          ),
          s_faun: pager.create(
             'limit',
@@ -1261,14 +1218,9 @@ export default {
                     '<32>{#p/monster}{#npc/a}* Ice Wolf is wondering why so many monsters are beat up.',
                     '<32>* Ice Wolf is concerned.'
                  ]
-               : save.data.b.oops
-               ? [
+               : [
                     '<32>{#p/monster}{#npc/a}* Ice Wolf is wondering why Ice Wolf is Ice Wolf when there is no ice to throw around.',
                     '<32>* Ice Wolf is confused.'
-                 ]
-               : [
-                    '<32>{#p/monster}{#npc/a}* Ice Wolf knows Ice Wolf is on the right track today.',
-                    '<32>* Ice Wolf is pleased.'
                  ]
          ),
          t_imafraidjumitebeinagang: pager.create(
@@ -1284,23 +1236,16 @@ export default {
                        "<32>{#p/monster}{#npc/a}* I'd lend you my MTT-brand toothbrush...",
                        "<32>* ...but I get the feeling you'd smash it a whole bunch."
                     ]
-                  : save.data.b.oops
-                  ? [
+                  : [
                        "<32>{#p/monster}{#npc/a}* Those MTT-brand toothbrushes are so freakin' brittle.",
                        '<32>* Thing got crushed in my hands before I could even start!'
-                    ]
-                  : [
-                       "<32>{#p/monster}{#npc/a}* There's something intriguing in the air today.",
-                       "<32>* Earlier, when I was brushing my teeth, I got this 'feeling' I can't describe..."
                     ],
             () =>
                world.dead_skeleton
                   ? [ '<32>{#p/monster}{#npc/a}* Hmm... I hope he likes green.' ]
                   : save.data.n.bully > 9
                   ? [ '<32>* Just a feeling, though.' ]
-                  : save.data.b.oops
-                  ? [ '<32>{#p/monster}{#npc/a}* Then again, it was the cheapest option...' ]
-                  : [ '<32>{#p/monster}{#npc/a}* I think it was... good?' ]
+                  : [ '<32>{#p/monster}{#npc/a}* Then again, it was the cheapest option...' ]
          ),
          t_kabakk: pager.create(
             'limit',
@@ -1316,21 +1261,12 @@ export default {
                        '<32>* ...',
                        '<32>* Respect my AUTHORITY!\n* YEAH!'
                     ]
-                  : save.data.b.oops
-                  ? [
+                  : [
                        '<32>{#p/monster}{#npc/a}* HEY!',
                        '<32>* You think you can just stand there and stare at ME?',
                        "<32>* Well, I've got some bad news for you, PAL.",
                        "<32>* I'm an officer of the LAW.",
                        '<32>* So, UH...',
-                       '<32>* Respect my AUTHORITY!\n* YEAH!'
-                    ]
-                  : [
-                       '<32>{#p/monster}{#npc/a}* HEY!',
-                       '<32>* You think you can just stand there and stare at ME?',
-                       "<32>* Well, I've got some bad news for... you...",
-                       "<32>* Hey, you don't seem so bad...",
-                       "<32>* Well, I've only got one request, PAL.",
                        '<32>* Respect my AUTHORITY!\n* YEAH!'
                     ],
             [ '<32>{#p/monster}{#npc/a}* Respect it.' ]
@@ -1341,12 +1277,7 @@ export default {
                     "<32>{#p/monster}{#npc/a}* Hey hey, why's everyone so sad around this town?",
                     '<32>* Did something happen?'
                  ]
-               : save.data.b.oops
-               ? [ "<32>{#p/monster}{#npc/a}* Hey hey, nothing's ever going to change in my life!", '<32>* Ha... ha...' ]
-               : [
-                    "<32>{#p/monster}{#npc/a}* Hey hey, why's everyone so happy around this town?",
-                    '<32>* Did something change?'
-                 ]
+               : [ "<32>{#p/monster}{#npc/a}* Hey hey, nothing's ever going to change in my life!", '<32>* Ha... ha...' ]
          ),
          t_politics: pager.create(
             'limit',
@@ -1368,7 +1299,7 @@ export default {
                        "<32>* Thaaaaaat's politics!"
                     ]
                   : [
-                       '<32>{#p/monster}{#npc/a}* This town always feels dreary.',
+                       '<32>{#p/monster}{#npc/a}* This town is always so dreary.',
                        "<32>* But, if things keep going the way they are, maybe that'll change.",
                        '<32>* Is that politics?'
                     ],
@@ -1395,30 +1326,16 @@ export default {
             () =>
                world.dead_skeleton
                   ? [ '<32>{#p/monster}{#npc/a}* ...' ]
-                  : save.data.b.oops
-                  ? [ "<32>{#p/monster}{#npc/a}* I have no idea what she's doing over there." ]
-                  : [ "<32>{#p/monster}{#npc/a}* Don't worry, I'll understand her eventually." ]
+                  : [ "<32>{#p/monster}{#npc/a}* I'll get it eventually..." ]
          ),
          t_smileguy: pager.create(
             'limit',
-            () =>
-               save.data.b.oops
-                  ? [
-                       "<32>{#p/monster}{#npc/a}* We all know things haven't gone how we'd hoped, but we smile anyway.",
-                       '<32>* Why?',
-                       '<32>* This is our reality now, so why be morose about it?'
-                    ]
-                  : [
-                       "<32>{#p/monster}{#npc/a}* We all know things haven't gone how we'd hoped, but we smile anyway.",
-                       '<32>* Why?',
-                       "<32>* We can't be sure, but it feels like something might change for the better soon..."
-                    ],
-            () =>
-               world.dead_skeleton
-                  ? [ '<32>{#p/monster}{#npc/a}* ...' ]
-                  : save.data.b.oops
-                  ? [ '<32>{#p/monster}{#npc/a}* Smile smile.' ]
-                  : [ '<32>{#p/monster}{#npc/a}* It could very well be you.' ]
+            [
+               "<32>{#p/monster}{#npc/a}* We all know things haven't gone how we'd hoped, but we smile anyway.",
+               '<32>* Why?',
+               '<32>* This is our reality now, so why be morose about it?'
+            ],
+            [ '<32>{#p/monster}{#npc/a}* Smile smile.' ]
          ),
          t_wisconsin: pager.create(
             'limit',
@@ -1428,23 +1345,15 @@ export default {
                        '<32>{#p/monster}{#npc/a}* It just feels like...',
                        '<32>* Like everything is getting worse, and worse...\n* And worse.'
                     ]
-                  : save.data.b.oops
-                  ? [
-                       '<32>{#p/monster}{#npc/a}* Everyone is always laughing and cracking jokes, trying to forget our modern crises...',
-                       '<32>* Dreariness.\n* Crowding...\n* Lack of a homeworld.',
-                       "<32>* I would join them, but I just don't feel like being funny."
-                    ]
                   : [
                        '<32>{#p/monster}{#npc/a}* Everyone is always laughing and cracking jokes, trying to forget our modern crises...',
-                       '<32>* Dreariness.\n* Crowding...\n* Lack of a homeworld.',
-                       '<32>* But deep down, something gives me hope...'
+                       '<32>* Dreariness.\n* Crowding.\n* Lack of a homeworld.',
+                       "<32>* I would join them, but I just don't feel like being funny."
                     ],
             () =>
                world.dead_dog || world.dead_skeleton
                   ? [ '<32>{#p/monster}{#npc/a}* ...' ]
-                  : save.data.b.oops
-                  ? [ "<32>{#p/monster}{#npc/a}* At least I'm not making puns." ]
-                  : [ '<32>{#p/monster}{#npc/a}* You should have hope, too.' ]
+                  : [ "<32>{#p/monster}{#npc/a}* At least I'm not making puns." ]
          ),
          t_zorren: pager.create(
             'limit',
@@ -1459,20 +1368,36 @@ export default {
                        "<32>* (Yeah, you know, uh, I don't really like you all that much.)",
                        "<32>* (There's just, something off, particularly about you.)"
                     ]
-                  : save.data.b.oops
-                  ? [
-                       "<32>{#p/monster}{#npc/a}* (Oh, hey, it's me, Zorren.)",
-                       '<32>* (You uh, got a problem with our, uh, police force, or...?)',
-                       '<32>* (No?)\n* (Hey, thanks for uh, not doing that.)',
-                       '<32>* (Psst...)\n* (Just between us, Kabakk and I built this station ourselves.)',
-                       '<32>* (Pretty cool, huh?)'
-                    ]
                   : [
-                       "<32>{#p/monster}{#npc/a}* (Oh, hey, it's me, Zorren.)",
-                       "<32>* (Y'know, you seem like someone who likes to show respect.)",
-                       '<32>* (So, thanks for, uh, doing that.)',
-                       '<32>* (Psst...)\n* (Just between us, Kabakk and I built this station ourselves.)',
-                       '<32>* (Pretty cool, huh?)'
+                       ...(save.data.b.oops
+                          ? [
+                               "<32>{#p/monster}{#npc/a}* (Oh, hey, it's me, Zorren.)",
+                               '<32>* (You uh, got a problem with our, uh, police force, or...?)',
+                               '<32>* (No?)\n* (Hey, thanks for uh, not doing that.)'
+                            ]
+                          : [
+                               "<32>{#p/monster}{#npc/a}* (Oh, hey, it's me, Zorren.)",
+                               "<32>* (Y'know, you seem like someone who likes to show respect.)",
+                               '<32>* (So, thanks for, uh, doing that.)'
+                            ]),
+                       ...(save.data.b.s_state_capstation
+                          ? []
+                          : ((save.data.b.s_state_capstation = true),
+                            [
+                               '<32>* (In fact...)',
+                               '<32>* (Here, kiddo.)\n* (Have a key, on us.)',
+                               '<32>{#s/equip}{#p/human}{#npc}* (You got the key.)',
+                               "<32>{#p/monster}{#npc/a}* (We've uh, got an armory somewhere, I think.)"
+                            ])),
+                       ...(save.data.b.oops
+                          ? [
+                               '<32>* (Psst...)\n* (Just between us, Kabakk and I built this station ourselves.)',
+                               '<32>* (Pretty cool, huh?)'
+                            ]
+                          : [
+                               '<32>* (Psst...)\n* (Just between us, Kabakk and I built this station ourselves.)',
+                               '<32>* (Pretty cool, huh?)'
+                            ])
                     ],
             () =>
                world.dead_skeleton ||
@@ -1482,7 +1407,7 @@ export default {
                   : save.data.b.oops
                   ? [ "<32>{#p/monster}{#npc/a}* (Yeah, we're not real police.)" ]
                   : [
-                       '<32>{#p/monster}{#npc/a}* (We may not be real police, but people like you are worth protecting and serving!)'
+                       '<32>{#p/monster}{#npc/a}* (We may not be real police, but people like you are worth protecting and serving.)'
                     ]
          )
       },
@@ -1492,10 +1417,7 @@ export default {
             '<32>{#p/narrator}* There are written instructions tacked onto the side...',
             '<33>* It\'s illegible chicken-scratch.\n* The only word you can make out is "zero."'
          ],
-         ctower1: () =>
-            save.data.b.s_state_mathcrash
-               ? [ '<32>{#p/narrator}* The terminal seems to have gotten glitched.' ]
-               : [ '<32>{#p/narrator}* The terminal is now in an unlocked state.' ],
+         ctower1: [ '<32>{#p/narrator}* The terminal is now in an unlocked state.' ],
          microwave0: [ '<32>{#p/human}* (You look behind the microwave...)', '<32>{#p/narrator}* Nothing useful here.' ],
          microwave1: [
             '<32>{#p/human}* (You look behind the microwave...)',
@@ -1658,7 +1580,7 @@ export default {
                ? {
                     a: 'STRONGFISH91',
                     b: 'YESTERDAY',
-                    c: 'dont you say that EVERY\nday? although its not\nlike I dont want the\nsame thing.'
+                    c: 'uh... dont you say that\nEVERY day, Papyrus?'
                  }
                : world.genocide
                ? {
@@ -1720,8 +1642,8 @@ export default {
                  save.data.b.flirt_papyrus
                     ? "<18>{#p/papyrus}{#f/5}WOWIE, YOU'RE SO EAGER TO DATE..."
                     : "<18>{#p/papyrus}{#f/5}WOWIE, YOU'RE SO EAGER TO HANG OUT WITH ME...",
-                 "<18>{#f/6}THAT YOU'RE TRYING TO GO IN MY HOUSE AHEAD OF ME!!!",
-                 "<18>{#f/9}THAT'S TRUE DEDICATION!!!"
+                 "<18>{#f/5}THAT YOU'RE TRYING TO GO IN MY HOUSE AHEAD OF ME!!!",
+                 "<18>{#f/6}THAT'S TRUE DEDICATION!!!"
               ],
       papdate1: () => [
          save.data.b.flirt_papyrus
@@ -2297,7 +2219,7 @@ export default {
       papspaghet1a: [
          '<18>{#p/papyrus}WHAT!?\nHOW DID YOU AVOID MY TRAP?',
          '<18>{#f/4}AND, MORE IMPORTANTLY...',
-         '<18>{#f/0}IS THERE ANY LEFT FOR-',
+         '<18>{#f/0}IS THERE ANY...',
          '<18>{#f/4}...WAIT.',
          "<18>{#f/0}IT'S RIGHT THERE IN YOUR ITEMS!!",
          '<18>{#f/9}WHAT WERE YOU PLANNING, HUMAN?',
@@ -2345,7 +2267,7 @@ export default {
       ),
       papyrus1: [ '<18>{#p/papyrus}SO, AS I WAS SAYING ABOUT UNDYNE...' ],
       papyrus2: [
-         '<18>{#p/papyrus}SANS!!\nOH MY GOSH!!\nIS THAT...',
+         '<18>{#p/papyrus}SANS!!\nOH MY GOD!!\nIS THAT...',
          '<18>A HUMAN!?!?',
          "<25>{#p/sans}{#f/2}* nah, it's just a human shaped hologram."
       ],
@@ -2354,21 +2276,21 @@ export default {
          '<18>{#f/4}...',
          '<18>{#f/4}WAIT...',
          "<18>{#f/7}YOU'RE LYING!!",
-         '<25>{#p/sans}{#f/2}* sorry, meant to say "hologram-shaped hu- {%}',
+         '<25>{*}{#p/sans}{#f/2}* sorry, meant to say "hologram-shaped hu- {%}',
          '<18>{#p/papyrus}{#f/0}SANS!\nWE FINALLY DID IT!',
-         "<18>UNDYNE'S GONNA...",
-         "<18>WE'RE FINALLY GONNA...",
+         '<18>{#f/0}UNDYNE HAS TO LET ME INTO THE ROYAL GUARD NOW!',
+         '<18>{#f/6}WE JUST HAVE TO...',
          '<18>{#f/6}...',
          "<18>{#f/4}I'M FORGETTING SOMETHING.",
          '<25>{#p/sans}{#f/2}* the speech, remember?',
          "<18>{#p/papyrus}{#f/4}OH, RIGHT.\n...'AHEM.'",
-         '<18>{#f/9}HUMAN! YOU SHALL NOT PASS THIS AREA!',
-         '<18>I, THE GREAT PAPYRUS, WILL STOP YOU!',
-         '<18>I WILL THEN CAPTURE YOU!',
-         '<18>YOU WILL BE DELIVERED TO THE CITADEL!',
-         '<18>THEN... THEN!!',
-         "<18>{#f/4}I'M NOT SURE WHAT'S NEXT.",
-         '<18>{#f/7}IN ANY CASE!',
+         "<18>{#f/9}HUMAN! YOU MAY THINK YOU'RE SAFE OUT HERE...",
+         '<18>{#f/9}BUT I, THE GREAT PAPYRUS, INTEND TO CHANGE THAT!',
+         "<18>{#f/4}FIRST, I'LL DAZZLE YOU WITH DR. ALPHYS' PUZZLES...",
+         '<18>{#f/4}AND THEN, WHEN YOU LEAST EXPECT IT...',
+         '<19>{#f/9}WHAM!\nCAPTURED!\nOFF TO THE CITADEL!',
+         '<18>{#f/9}OUR BATTLE WILL BE AS LEGENDARY AS THEY COME!',
+         '<18>{#f/4}IN ANY CASE...',
          '<18>{#f/9}CONTINUE... ONLY IF YOU DARE!!!'
       ],
       papyrus4: [ '<18>{#f/0}NYEH HEH HEH HEH HEH HEH HEH HEH!!!' ],
@@ -2733,7 +2655,7 @@ export default {
       sans1: [
          '{#p/darksans}* h u m a n .',
          "* d o n ' t    y o u    k n o w\n  h o w    t o    g r e e t    a\n  n e w    p a l ?",
-         '* t u r n    a r o u n d    a n d\n  s h a k e    m y    h a n d .'
+         '* t u r n    a r o u n d\n  a n d    s h a k e    m y\n  h a n d .'
       ],
       sans2: [
          "<25>{#p/sans}{#f/4}* heheh... nothin' like a good whoopee cushion.",
@@ -2816,6 +2738,7 @@ export default {
       sansbook6: [ '<32>{#p/narrator}* Inside the joke book was another quantum physics book.' ],
       sansbook7: [ "<32>{#p/narrator}* It's another joke book." ],
       sansbook8: [ "<32>{#p/narrator}* It's yet another quantum physics book." ],
+      sansbook8x: [ "<32>{#p/narrator}* It's yet another joke book." ],
       sansbook9: [ '<32>{#p/human}* (You decide not to look.)' ],
       sansinter: {
          a1: [
@@ -2828,7 +2751,7 @@ export default {
             "<25>{#f/2}* he may seem scary, but papyrus is the nicest guy you'll ever meet."
          ],
          a3: [ '<25>{#p/sans}* trust me.' ],
-         s_doggo: pager.create(
+         s_papyrus: pager.create(
             'limit',
             () =>
                edgy()
@@ -2876,20 +2799,6 @@ export default {
                edgy()
                   ? [ "<25>{#p/sans}{#f/3}* it's the least you could do." ]
                   : [ "<25>{#p/sans}{#f/2}* what?\n* haven't you ever heard of air pressure?" ]
-         ),
-         s_puzzle2: pager.create(
-            'limit',
-            () =>
-               edgy()
-                  ? [
-                       "<25>{#p/sans}* nice work, kiddo.\n* you didn't even need my help.",
-                       '<25>{#p/sans}{#f/3}* color me surprised.'
-                    ]
-                  : [
-                       "<25>{#p/sans}* nice work, kiddo.\n* you didn't even need my help.",
-                       '<25>{#f/4}* ...which is surprising, because this puzzle tends to cause headaches.'
-                    ],
-            () => (edgy() ? [ '<25>{#p/sans}{#f/0}* heh.' ] : [ "<25>{#p/sans}* you sure you'll be okay moving forward?" ])
          ),
          s_jenga: pager.create(
             'limit',
@@ -2968,6 +2877,10 @@ export default {
          [ "<32>{#p/narrator}* It's an unholy quantity of food toppings." ]
       ),
       trivia: {
+         s_secret_sign: () => [
+            '<32>{#p/narrator}* "It\'s taking a time-out."',
+            ...(world.azzie && save.flag.n.ga_asrielDog++ < 1 ? [ '<25>{#p/asriel2}{#f/15}* What.' ] : [])
+         ],
          grillflower: [
             '<32>{#p/narrator}* An odd-looking plant pot.',
             '<32>* Who knows what this neon- coloured plant is made of.'
@@ -3109,11 +3022,9 @@ export default {
             '<32>* "Sincerely, a box fan."'
          ],
          s_doghouse: () =>
-            save.data.n.plot < 28
-               ? world.genocide
-                  ? [ '<32>{#p/narrator}* A tiny doghouse.' ]
-                  : [ '<32>{#p/narrator}* What a tiny doghouse!' ]
-               : [ '<32>{#p/narrator}* It must be bigger on the inside...' ],
+            world.genocide
+               ? [ '<32>{#p/narrator}* A tiny doghouse.' ]
+               : [ '<32>{#p/narrator}* What a tiny doghouse!', '<32>{#p/narrator}* It must be bigger on the inside...' ],
          s_doghouse_sign: [ '<32>{#p/narrator}* "Woof."' ],
          s_dogs_sign: [
             '<32>{#p/narrator}* "Smell Danger Ratings"',
@@ -3121,14 +3032,19 @@ export default {
             '<32>* "Unsuspicious Smell - Puppy"\n* "{@fill:#0080ff}BLUE{@fill:#fff} Rating."\n* "Smell of rolling around."',
             '<32>* "Weird Smell - Human"\n* "{@fill:#0f0}GREEN{@fill:#fff} Rating"\n* "Destroy at all costs!"'
          ],
-         s_dogstandA: [ '<32>{#p/narrator}* "His."' ],
-         s_dogstandB: [ '<32>{#p/narrator}* "Hers."' ],
+         s_dogstandA: () =>
+            player.y > 45
+               ? [ '<32>{#p/narrator}* "His."' ]
+               : [ '<32>{#p/narrator}* Inside is a magazine for fancy haircuts.' ],
+         s_dogstandB: () =>
+            player.y > 45
+               ? [ '<32>{#p/narrator}* "Hers."' ]
+               : [ '<32>{#p/narrator}* Inside is a brochure for blunt heavy-duty weaponry.' ],
          s_dogstandC: () =>
             world.genocide
                ? [ '<32>{#p/narrator}* On the floor inside is a signed letter from Undyne about tactical retreat.' ]
                : [ '<32>{#p/narrator}* On the floor inside is a signed letter from Undyne about royal guard uniforms.' ],
          s_dogtreat: [ "<32>{#p/narrator}* Someone's been smoking these dog treats..." ],
-         s_gravo: [ '<32>{#p/narrator}* It\'s a "gravometric inverter."', '<32>* Whatever that means.' ],
          s_grillbys_beegstool: [ '<32>{#p/narrator}* A short barstool...', '<32>* Seems like the right size for Sans.' ],
          s_grillbys_drinks: [
             "<32>{#p/narrator}* It's a tray table.",
@@ -3142,33 +3058,13 @@ export default {
          s_grillbys_smolstool: () =>
             save.data.b.oops
                ? [ '<32>{#p/narrator}* There is nothing special about this barstool.' ]
-               : [ '<32>{#p/narrator}* Somehow, this barstool strikes me as being special...' ],
-         s_helipad: pager.create(
-            'limit',
-            [ '<32>{#p/narrator}* Just an old, derelict terminal, once used to direct spacecraft landings.' ],
-            [ '<32>{#p/narrator}* Just an old, derelict terminal, once used to direct spacecraft landings.' ],
-            [ "<32>{#p/story}* THE WORLD'S DESTINY." ],
-            [ '<32>{#p/narrator}* Just an old, derelict terminal, once used to direct spacecraft landings.' ]
-         ),
-         s_jenga_sign: pager.create(
-            'limit',
-            [
-               "<32>{#p/narrator}* This sign's text is barely legible.",
-               '<32>* "NOTICE: This quantum-numeric randomizer needs to be fixed."',
-               '<32>* "For now, it\'ll just show zero every time..."'
-            ],
-            [
-               "<32>{#p/narrator}* This sign's text is barely legible.",
-               '<32>* "NOTICE: This quantum-numeric randomizer needs to be fixed."',
-               '<32>* "For now, it\'ll just show zero every time..."'
-            ],
-            [ "<32>{#p/story}* THE PROJECT'S DESIGN." ],
-            [
-               "<32>{#p/narrator}* This sign's text is barely legible.",
-               '<32>* "NOTICE: This quantum-numeric randomizer needs to be fixed."',
-               '<32>* "For now, it\'ll just show zero every time..."'
-            ]
-         ),
+               : [ '<32>{#p/narrator}* Somehow, this barstool strikes me as being special... I wonder why.' ],
+         s_helipad: [ '<32>{#p/narrator}* Just an old, derelict terminal, once used to direct spacecraft landings.' ],
+         s_jenga_sign: [
+            "<32>{#p/narrator}* This sign's text is barely legible.",
+            '<32>* "NOTICE: This quantum-numeric randomizer needs to be fixed."',
+            '<32>* "For now, it\'ll just show zero every time..."'
+         ],
          s_library_window: [
             '<32>{#p/human}* (You put your hands on window.)',
             "<32>{#p/narrator}* It's as cold as ice..."
@@ -3356,7 +3252,7 @@ export default {
                '<32>{#p/human}* (You put the book back on the shelf.)'
             ]
          ),
-         s_math_sign: [ '<32>{#p/narrator}* "Warning: Dog Marriage"' ],
+         s_math_sign: [ '<32>{#p/narrator}* "Warning: Dog Justice"' ],
          s_pacing_sign: [ '<32>{#p/narrator}* "AWARE OF DOG"\n* "...pleas pet dog..."' ],
          s_phonecard: [
             "<32>{#p/narrator}* It's a note.",
@@ -3387,12 +3283,17 @@ export default {
             () => [
                '<32>{#p/narrator}* A box of bones.',
                ...(save.data.n.plot_date < 1 && save.data.n.state_starton_papyrus === 0
-                  ? [
-                       '<18>{#p/papyrus}HEY, THOSE ARE ALL THE ATTACKS I USED ON YOU.',
-                       '<18>GREAT MEMORIES, HUH?',
-                       '<18>SEEMS LIKE IT WAS ONLY YESTERDAY...',
-                       '<18>{#f/4}EVEN THOUGH IT BASICALLY JUST HAPPENED.'
-                    ]
+                  ? world.population === 0 && !world.bullied
+                     ? [
+                          '<18>{#p/papyrus}{#f/4}IF I EVER DO BATTLE WITH A HUMAN...',
+                          '<18>{#f/0}THAT BOX OF BONE ATTACKS WILL GO A LONG WAY!'
+                       ]
+                     : [
+                          '<18>{#p/papyrus}HEY, THOSE ARE ALL THE ATTACKS I USED ON YOU.',
+                          '<18>GREAT MEMORIES, HUH?',
+                          '<18>SEEMS LIKE IT WAS ONLY YESTERDAY...',
+                          '<18>{#f/4}EVEN THOUGH IT BASICALLY JUST HAPPENED.'
+                       ]
                   : [])
             ],
             [ '<32>{#p/narrator}* A box of bones.' ]
@@ -3436,23 +3337,17 @@ export default {
          s_pr_papposter: pager.create(
             'limit',
             () => [
-               "<32>{#p/narrator}* It's a flag with a menacing skull painted over it.",
+               "<32>{#p/narrator}* It's a flag with a menacing skull painted on it.",
                ...(save.data.n.plot_date < 1 && save.data.n.state_starton_papyrus === 0
                   ? [
                        "<18>{#p/papyrus}ISN'T THAT POSTER NEATO?",
                        '<18>UNDYNE FOUND IT ON A TRASH RUN.',
-                       "<18>{#f/4}SHE SAYS IT'S FROM THE HUMAN WORLD...",
-                       '<18>{#f/7}BUT THEN, WHY DOES IT LOOK LIKE MY SPECIAL ATTACK!?',
-                       '<18>{#f/6}NOBODY ON THE OUTSIDE KNOWS WHAT THAT LOOKS LIKE...',
-                       '<18>{#f/5}SO WHERE COULD IT HAVE COME FROM...?',
-                       "<18>{#f/4}I CERTAINLY DIDN'T CREATE IT.",
-                       '<18>{#f/6}SO... IT SEEMS...',
-                       '<18>{#f/5}UM...',
-                       '<18>{#f/4}WHAT WERE WE TALKING ABOUT AGAIN?'
+                       '<18>{#f/4}IT HAD A SKULL AND CROSSBONES ON IT AT FIRST...',
+                       '<18>{#f/9}BUT I THOUGHT OF SOMETHING BETTER!'
                     ]
                   : [])
             ],
-            [ "<32>{#p/narrator}* It's a flag with a menacing skull painted over it." ]
+            [ "<32>{#p/narrator}* It's a flag with a menacing skull painted on it." ]
          ),
          s_pr_paptable: pager.create(
             'limit',
@@ -3464,15 +3359,14 @@ export default {
                        '<18>A GREAT REFERENCE FOR THEORETICAL BATTLE SCENARIOS.',
                        '<18>{#f/4}BUT HOW DO I HAVE SO MANY?',
                        '<18>{#f/6}WELL, UMM...\nTHE KING GAVE THEM TO ME AS A GIFT...',
-                       '<18>{#f/5}I FEEL BAD FOR HIM THOUGH.',
-                       '<18>{#f/5}NOBODY EVER PAYS HIM BACK...'
+                       '<18>{#f/5}A GIFT I TRULY WISH I COULD REPAY HIM FOR.'
                     ]
                   : [])
             ],
             [ '<32>{#p/narrator}* A set of action figures with tacky, matching uniforms.' ]
          ),
-         s_puzzle1_sign: [ '<32>{#p/narrator}* Trigger each circuit in order.' ],
-         s_puzzle2_sign: [ '<32>{#p/narrator}* Each circuit displays a map of where to go next.' ],
+         s_puzzle1_sign: [ '<32>{#p/narrator}* Trigger each circuit in order.\n* Start at the top left.' ],
+         s_puzzle2_sign: [ '<32>{#p/narrator}* Each circuit displays a map of where to go next.\n* Start at the left.' ],
          s_puzzle3_note: [
             "<32>{#p/narrator}* It's a note from Papyrus...",
             '<23>{#p/papyrus}{#f/30}"HUMAN!! THIS PUZZLE IS NOT AS IT SEEMS."',
@@ -3484,19 +3378,15 @@ export default {
             '<23>"BUT DON\'T WORRY!"\n"I KNOW YOU CAN DO IT, HUMAN!"',
             '<23>µ - "WITH THE UTMOST FAITH,"\nµ PAPYRUS'
          ],
-         s_redbook: () =>
-            save.data.b.s_state_redbook
-               ? []
-               : ((save.data.b.s_state_redbook = true),
-                 [
-                    "<32>{#p/narrator}* It's a bookshelf.",
-                    '<32>{#p/human}* (You pick out the red book.)',
-                    "<32>{#p/narrator}* What... what is this?\n* I can't see it... it's... what the HELL?",
-                    "<32>{#p/story}* If you are reading this, then something must've gone wrong.",
-                    '<32>* The purpose of this project is only to correct mistakes, not cause more of them.',
-                    '<32>* Hopefully this chaotic thread resolves itself soon...',
-                    '<32>* My project is more forgiving than its predecessor.'
-                 ]),
+         s_redbook: [
+            "<32>{#p/narrator}* It's a bookshelf.",
+            '<32>{#p/human}* (You pick out the red book...)',
+            '<32>{#p/narrator}* "Was it worth it?"',
+            '<32>* "Was it really worth all that killing, just to read these few sacred pages of text?"',
+            '<32>* "...either that, or the newspaper lady finally went on break."',
+            '<32>* "Could be either or, really."',
+            '<32>{#p/human}* (You put the book back on the shelf.)'
+         ],
          s_sansbox: () => [
             "<32>{#p/narrator}* It's a mailbox overflowing with unread junk mail.",
             ...(save.data.b.oops ? [] : [ '<32>{#p/narrator}* Yeah, Sans never reads mail.' ])
@@ -3513,40 +3403,25 @@ export default {
             '<23>("THOROUGHLY JAPED AGAIN BY THE GREAT PAPYRUS!!!")',
             '<23>µ - "NYEH-HEH-HEH,"\nµ PAPYRUS'
          ],
-         s_telescope: pager.create(
-            'limit',
-            () => [
-               '<32>{#p/narrator}* A standard-issue CITADEL long- range telescope, circa 261X.',
-               ...(save.data.b.oops || save.data.b.s_state_chargazer || save.data.n.plot > 30.1
-                  ? [ '<32>* Stargazing in space...\n* Truly, this is some outside- the-box thinking.' ]
-                  : ((save.data.b.s_state_chargazer = true),
-                    [
-                       '<32>{#p/narrator}* ...',
-                       "<32>* Remember that stuff in Azzy's diary, back in the Outlands?",
-                       '<32>* Heh... seeing this old telescope just brings it all back, you know?',
-                       '<32>* Him and I, we had a telescope just like this.',
-                       "<32>* We'd prop it up somewhere, point it in a random direction...",
-                       "<32>* Hoping we'd find something exciting out there.",
-                       '<32>* The sad truth is, we never really found anything.',
-                       "<32>* But somehow, despite that... it didn't seem to matter to him.",
-                       '<32>* He was just happy to spend time with me...',
-                       '<32>* A fact I never realized until it was far too late.',
-                       "<32>* ...now he's...",
-                       '<32>{#p/human}* (You hear a long sigh...)',
-                       "<32>{#p/narrator}* Sorry, kid.\n* I don't mean to burden you with my stupid problems.",
-                       "<32>* Let's just keep exploring the town, okay?"
-                    ]))
-            ],
-            [
-               '<32>{#p/narrator}* A standard-issue CITADEL long- range telescope, circa 261X.',
-               '<32>* Stargazing in space...\n* Truly, this is some outside- the-box thinking.'
-            ],
-            [ "<32>{#p/story}* THE STORYTELLER'S DREAM." ],
-            [
-               '<32>{#p/narrator}* A standard-issue CITADEL long- range telescope, circa 261X.',
-               '<32>* Stargazing in space...\n* Truly, this is some outside- the-box thinking.'
-            ]
-         ),
+         s_telescope: () => [
+            '<32>{#p/narrator}* A standard-issue CITADEL long- range telescope, circa 261X.',
+            ...(save.data.b.oops || save.data.b.s_state_chargazer || save.data.n.plot > 30.1
+               ? [ '<32>* Stargazing in space...\n* Truly, this is some outside- the-box thinking.' ]
+               : ((save.data.b.s_state_chargazer = true),
+                 [
+                    '<32>{#p/narrator}* ...',
+                    '<32>* Heh... seeing this kind of telescope brings back memories for me.',
+                    '<32>* Asriel and I... we had a telescope just like this.',
+                    "<32>* Every night, we'd point it in a random direction, hoping to see something exciting.",
+                    '<32>* The sad truth is, we never really did.',
+                    "<32>* Yet, despite that... it didn't seem to matter to him.",
+                    '<32>* He was just happy to spend his time with me.',
+                    '<32>* ...',
+                    '<32>{#p/human}* (You hear a sigh.)',
+                    "<32>{#p/narrator}* Look... I'll be alright.",
+                    "<32>* Let's just get back to what we were doing, okay?"
+                 ]))
+         ],
          s_town_camera1: [ "<32>{#p/narrator}* There's a camera hidden in these crystal pods..." ],
          s_trapnote: () =>
             [
@@ -3573,7 +3448,7 @@ export default {
          s_tree: pager.create(
             'limit',
             () =>
-               world.genocide
+               world.dead_skeleton
                   ? [
                        '<32>{#p/narrator}* This innocent tree-like structure is actually the home of a civilization.',
                        '<32>* ...at least it was, until they were all scared off and ran away.'
@@ -3583,103 +3458,68 @@ export default {
                        '<32>* On the brink of extinction, they migrated here to save their species.'
                     ],
             () =>
-               world.genocide ? [ '<32>{#p/narrator}* ...' ] : [ "<32>{#p/narrator}* Pro tip...\n* Don't shake the tree." ]
+               world.dead_skeleton
+                  ? [ '<32>{#p/narrator}* ...' ]
+                  : [ "<32>{#p/narrator}* Pro tip.\n* Don't shake the tree." ]
          ),
          doginfo: () =>
             save.data.b.oops
                ? [ '<32>{#p/narrator}* Inside is a half-empty bottle of blue fur dye.' ]
-               : [ "<32>{#p/narrator}* Inside is a bottle of blue fur dye.\n* It's half-full." ]
+               : [ "<32>{#p/narrator}* Inside is a bottle of blue fur dye. It's half-full." ]
       },
       truetext: {
-         doggo1: [ '<32>{#p/narrator}* Dog treats??', '<32>* Sheesh, you need a THERAPIST is more like it.' ],
-         doggo2: [
-            '<32>{#p/narrator}* Fetch, huh?',
-            '<32>* I wonder if you can get past the other sentries with that same trick...?'
-         ],
-         dogs1: [ '<32>{#p/narrator}* Did you really just roll around in synthetic dirt?' ],
-         dogs2: [ "<32>{#p/narrator}* That's now four sentries we've managed to cheese." ],
+         doggo1: [ '<32>{#p/narrator}* That dog needs a therapist.' ],
+         doggo2: [ "<32>{#p/narrator}* Fetch, huh?\n* Now we're getting places." ],
+         dogs1: [ '<32>{#p/narrator}* The things we do for the good of the dogs.' ],
+         dogs2: [ '<32>{#p/narrator}* The rusty spanner strikes again.' ],
          fetch: () =>
             [
-               [ '<32>{#p/narrator}* Repurposing that old wrench as a fetch toy, huh?', '<32>* What genius.' ],
-               [ '<32>{#p/narrator}* I wonder if that would work on all royal sentries...?' ],
-               [ '<32>{#p/narrator}* Jeez, this is getting STUPID.' ]
+               [ "<32>{#p/narrator}* Fetch, huh?\n* Now we're getting places." ],
+               [
+                  "<32>{#p/narrator}* That's two for two on the rusty spanner method.",
+                  '<32>{#p/narrator}* What else is new?'
+               ],
+               [ "<32>{#p/narrator}* You can't keep getting away with this." ]
             ][save.data.n.state_starton_latefetch++],
-         great1: [ '<32>{#p/narrator}* Aww, a little puppy kiss.', '<32>* So adorable...' ],
+         great1: [ "<32>{#p/narrator}* It's a proven fact that little puppy kisses are the best." ],
          great2: [
-            '<32>{#p/narrator}* The entire canine unit, beaten with nothing but a wrench and some quick thinking.',
-            "<32>* Heh.\n* That's just amazing, really."
+            '<32>{#p/narrator}* The entire canine unit, beaten with nothing but a wrench and a strong throwing arm.',
+            '<32>* The lunacy speaks for itself.'
          ],
-         great3: [ '<32>{#p/narrator}* Did... did that just happen?' ],
-         lesser1: () =>
-            save.data.b.s_state_lesserflee
-               ? [
-                    "<32>{#p/narrator}* Aw, why'd you run!\n* Canis minor is a sweet dog...",
-                    "<32>* Oh well.\n* They'll be at Grillby's later."
-                 ]
-               : [
-                    '<32>{#p/narrator}* "The neck extends infinitely into the cosmos..."',
-                    '<32>* I think I finally understand what that means.'
-                 ],
+         great3: [ '<32>{#p/narrator}* What just happened?' ],
+         lesser1: [ '<32>{#p/narrator}* Mysterious words about extending necks suddenly make a lot more sense.' ],
          lesser2: [
-            "<32>{#p/narrator}* That's two sentries we've gotten by just by playing fetch.",
-            '<32>* ...Alphys must be laughing her lab coat off right now.'
+            "<32>{#p/narrator}* That's two for two on the rusty spanner method.",
+            '<32>{#p/narrator}* What else is new?'
          ],
-         papinsult: [ '<32>{#p/narrator}* Really...' ],
          papyrus1: [
-            "<32>{#p/narrator}* If Papyrus is known for one thing, it's his spaghetti.",
-            "<32>* Did you know Papyrus's spaghetti recipe is actually a human one?",
-            '<32>* You can thank Undyne for that.'
+            '<32>{#p/narrator}* Papyrus is known for his spaghetti.',
+            "<32>* What's not as well known is that he uses a human recipe to make it.",
+            '<32>* Talk about knowing your target audience.'
          ],
          papyrus3: [
-            '<32>{#p/narrator}* Well, this is it.',
-            "<32>* You're about to face off against...",
-            '<23>{#p/papyrusnt}"THE GREAT PAPYRUS!!!"',
-            '<32>{#p/narrator}* Hehe, do you like my handsome skeleton impression?',
-            "<32>* Trust me, I've had YEARS."
+            '<32>{#p/narrator}* This is it.',
+            "<32>* You're about to face off against the greatest monster to ever see the stars."
          ],
          papyrus4: [
-            '<32>{#p/narrator}* In all seriousness, though...',
-            "<32>* Papyrus's whole life has revolved around impressing those around him.",
-            "<32>* What you're about to do...",
-            '<32>* Is be the first person to pay REAL attention to his efforts.',
-            "<32>* Well, aside from his brother.\n* But he's family, and...\n* Well, yeah."
+            '<32>{#p/narrator}* He might as well have been waiting his whole life for this moment...',
+            "<32>* If I were you, I wouldn't let it go to waste."
          ],
-         papyrus5: [
-            '<32>{#p/narrator}* Just... try not to go too hard on him, okay?',
-            '<32>* He tries so, so hard for everyone around him.\n* And sometimes, I feel like...',
-            '<32>* Nobody ever gives him anything in return for it.',
-            '<32>* So... just keep that in mind.'
-         ],
-         puzzle1: [
-            '<32>{#p/narrator}* Okay, that was impressive.\n* Or maybe just lucky.',
-            '<32>* Still, nicely done.'
-         ],
-         sans1: [
-            "<32>{#p/narrator}* It seems you've finally met the skeleton brothers.",
-            '<32>* Pretty cool, huh?',
-            "<32>* Although I've never talked to 'em, I've watched them grow up together.",
-            '<32>* ...Sans has been telling jokes like that all his life.',
-            "<32>* You'll get used to it."
-         ],
-         sans2: [ '<32>{#p/narrator}* Nyeh heh heh.' ],
+         papyrus5: [ "<32>{#p/narrator}* Don't be afraid.", "<32>* With any luck, you'll be best friends in no time..." ],
+         puzzle1: [ '<32>{#p/narrator}* Wow.\n* You actually solved it?' ],
+         sans1: [ '<32>{#p/narrator}* Oh, Papyrus...', '<32>* How I wish I was like you.' ],
          sans3: [ '<32>{#p/narrator}* You tried.' ],
-         sans4: [ '<32>{#p/narrator}* Not bad, partner.', '<32>* Have you done this before or something?' ],
-         sans5: [ '<32>{#p/narrator}* Really, Sans?', '<32>* What even was that.' ],
-         sans6: [
-            '<32>{#p/narrator}* That "puzzle..."',
-            '<32>* I could barely even bring myself to look at it...',
-            '<32>* It was like...',
-            '<32>* ...like something or someone stopped me from seeing it...'
-         ],
+         sans4: [ '<32>{#p/narrator}* Have you done this before or something?' ],
+         sans5: [ '<32>{#p/narrator}* Really, Sans?\n* That "puzzle" wasn\'t even worth looking at.' ],
+         sans6: [ '<32>{#p/narrator}* Really, Sans?\n* That "puzzle" was impossible.' ],
          sans7: [ '<32>{#p/narrator}* That was anti-climactic.' ],
-         sans8: [ "<32>{#p/narrator}* I'm just as confused as you must be." ],
+         sans8: [ "<32>{#p/narrator}* I'm just as confused as you." ],
          sans9: [ "<32>{#p/narrator}* Aw, c'mon!\n* I wanted to see that!", '<32>* ...oh well...' ],
          papdate: [
-            '<32>{#p/narrator}* What a guy...',
-            "<32>* I thought I'd have more to say, but...",
-            '<32>* His actions kinda speak for themselves, you know?',
-            '<32>* Man, I wish I could tell him face-to-face how much I adore him...',
-            "<32>* But hey, you did plenty of that for me.\n* So I'll take it as a win."
+            '<32>{#p/narrator}* So... Papyrus, huh?',
+            '<32>* Somehow I knew you two would end up as friends.',
+            '<32>* I wish I could tell him how much I adore him right now...',
+            "<32>* But hey, you did plenty of that already, so I'll take it as a win."
          ]
       },
       vegetoid: pager.create(
@@ -3716,7 +3556,7 @@ export default {
                  "<32>* You're truly disgusting...",
                  '<32>* ...',
                  '<32>{#s/equip}{#p/human}* (You lost all of your G.)',
-                 ...(world.goatbro && save.flag.n.ga_asrielXtower++ < 1 ? [ '<25>{#p/asriel2}{#f/8}* Wow, rude...' ] : [])
+                 ...(world.azzie && save.flag.n.ga_asrielXtower++ < 1 ? [ '<25>{#p/asriel2}{#f/8}* Wow, rude...' ] : [])
               ]
             : [
                  '<32>{#p/event}* Ring, ring...',
@@ -3734,46 +3574,46 @@ export default {
    },
 
    b_group_dogs: () =>
-      world.goatbro ? [ '<32>{#p/asriel2}* Dogamy and Dogaressa.' ] : [ '<32>{#p/story}* Dogi assault you!' ],
+      world.azzie ? [ '<32>{#p/asriel2}* Dogamy and Dogaressa.' ] : [ '<32>{#p/story}* Dogi assault you!' ],
    b_group_spacetopJerry: () =>
-      world.goatbro
+      world.azzie
          ? [ '<32>{#p/asriel2}* Tacky hats and fickle friends.' ]
          : [ '<32>{#p/story}* Astro Serf saunters in!\n* Jerry came too.' ],
    b_group_stardrakeSpacetop: () =>
-      world.goatbro
+      world.azzie
          ? [ '<32>{#p/asriel2}* The teenage idiot squad.' ]
          : save.data.b.s_state_chilldrake
          ? [ '<32>{#p/story}* Chilldrake and Astro Serf pose like bad guys.' ]
          : [ '<32>{#p/story}* Stardrake and Astro Serf pose like bad guys.' ],
    b_group_stardrakeSpacetop2a: () =>
-      world.goatbro
+      world.azzie
          ? [ '<32>{#p/asriel2}* One left.' ]
          : save.data.b.s_state_chilldrake
          ? [ '<32>{#p/story}* Chilldrake remains steady.' ]
          : [ '<32>{#p/story}* Stardrake remains steady.' ],
    b_group_stardrakeSpacetop2b: () =>
-      world.goatbro ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Astro Serf remains steady.' ],
+      world.azzie ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Astro Serf remains steady.' ],
    b_group_stardrakeSpacetop2c: () =>
-      world.goatbro ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Just Astro now.' ],
-   b_group_stardrakeSpacetop2d: () => (world.goatbro ? [ '<32>{#p/asriel2}* Jerry.' ] : [ '<32>{#p/story}* Jerry.' ]),
+      world.azzie ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Just Astro now.' ],
+   b_group_stardrakeSpacetop2d: () => (world.azzie ? [ '<32>{#p/asriel2}* Jerry.' ] : [ '<32>{#p/story}* Jerry.' ]),
    b_group_stardrakeSpacetopJerry: () =>
-      world.goatbro
-         ? [ '<32>{#p/asriel2}* The teenage idiot squad.\n* Plus Jerry.' ]
+      world.azzie
+         ? [ '<32>{#p/asriel2}* The teenage idiot squad.\n* Also, Jerry.' ]
          : save.data.b.spared_jerry
          ? [ '<32>{#p/story}* Jerry and friends appear!' ]
          : save.data.b.s_state_chilldrake
          ? [ '<32>{#p/story}* Astro Serf and Chilldrake confront you, sighing.\n* Jerry.' ]
          : [ '<32>{#p/story}* Astro Serf and Stardrake confront you, sighing.\n* Jerry.' ],
    b_group_stardrakeSpacetopJerry2a: () =>
-      world.goatbro
+      world.azzie
          ? [ '<32>{#p/asriel2}* Two left.' ]
          : save.data.b.s_state_chilldrake
          ? [ '<32>{#p/story}* Astro Serf and Chilldrake remain steady.' ]
          : [ '<32>{#p/story}* Astro Serf and Stardrake remain steady.' ],
    b_group_stardrakeSpacetopJerry2b: () =>
-      world.goatbro ? [ '<32>{#p/asriel2}* Two left.' ] : [ '<32>{#p/story}* Astro Serf remains steady.\n* Jerry.' ],
+      world.azzie ? [ '<32>{#p/asriel2}* Two left.' ] : [ '<32>{#p/story}* Astro Serf remains steady.\n* Jerry.' ],
    b_group_stardrakeSpacetopJerry2c: () =>
-      world.goatbro
+      world.azzie
          ? [ '<32>{#p/asriel2}* Two left.' ]
          : save.data.b.s_state_chilldrake
          ? save.data.b.spared_jerry
@@ -3785,25 +3625,26 @@ export default {
 
    b_opponent_stardrake: {
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? save.data.b.s_state_chilldrake
-               ? [ "<32>{#p/asriel2}* Chilldrake, the rebel.\n* This kid's got the right idea." ]
-               : [ '<32>{#p/asriel2}* Stardrake, the awful comedian.\n* Its dad was right.' ]
+               ? [
+                    '<32>{#p/asriel2}* Chilldrake, the teen rebel.\n* Nothing more pointless than a rebel without a cause.'
+                 ]
+               : [ '<32>{#p/asriel2}* Stardrake, the comedian.\n* Should have stayed at home...' ]
             : save.data.b.s_state_chilldrake
             ? [
                  '<32>{#p/story}* CHILLDRAKE - ATK 12 DEF 7\n* Rebels against everything!!\n* Looking for its friend Starry.'
               ]
             : [ '<32>{#p/story}* STARDRAKE - ATK 12 DEF 7\n* This teen comedian fights to keep a captive audience.' ],
-      act_flirt: () => [
-         '<32>{#p/narrator}* You make a flirtatious joke.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Really...' ] : [])
-      ],
+      act_flirt: () => [ '<32>{#p/narrator}* You make a flirtatious joke.' ],
       flirtTalk1: [ "<08>{~}You're weird." ],
       genoStatus: () =>
          save.data.b.s_state_chilldrake ? [ '<32>{#p/asriel2}* Chilldrake.' ] : [ '<32>{#p/asriel2}* Stardrake.' ],
       heckleStatus: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* It looks upset, I wonder why.' ]
+         world.azzie
+            ? save.data.b.s_state_chilldrake
+               ? [ '<32>{#p/asriel2}* Chilldrake.' ]
+               : [ '<32>{#p/asriel2}* Stardrake.' ]
             : save.data.b.s_state_chilldrake
             ? [ '<32>{#p/story}* Chilldrake is puffed up...' ]
             : [ '<32>{#p/story}* Stardrake is puffed up...' ],
@@ -3832,7 +3673,7 @@ export default {
                  '<32>* They struggle to make a retort, and slink away utterly crushed...'
               ],
       hurtStatus: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Almost dead.' ]
             : save.data.b.s_state_chilldrake
             ? [ '<32>{#p/story}* Chilldrake is flaking apart.' ]
@@ -3852,7 +3693,7 @@ export default {
       idleTalk4: () =>
          save.data.b.s_state_chilldrake
             ? [ '<08>{~}Live wild and free, I say!' ]
-            : [ '<08>{~}Oh, it\'s on.\n"Tachy-" on.' ],
+            : [ '<08>{~}Oh, it\'s on.\n"Tachy- on."' ],
       idleTalk5: () =>
          save.data.b.s_state_chilldrake
             ? [ '<08>{~}Nobody tells ME what to do!' ]
@@ -3923,7 +3764,7 @@ export default {
                  '<32>{#p/story}* JERRY - ATK 0 DEF 30\n* A born-again monster, awakened with the power of friendship!',
                  '<32>* (Yes, you heard that right.)'
               ]
-            : world.goatbro
+            : world.azzie
             ? [ '<32>{#p/asriel2}* Jerry, the sorry jerk.\n* A worthless piece of garbage, nothing more, nothing less.' ]
             : [ '<32>{#p/story}* JERRY - ATK 0 DEF 30\n* Everyone knows Jerry.\n* Makes attacks last longer.' ],
       act_flirt: () =>
@@ -3940,7 +3781,7 @@ export default {
       flirtStatus: [ "<32>{#p/story}* Jerry's redemption arc begins." ],
       flirtTalk: [ "<08>{~}I'M FREEEEE!" ],
       genoStatus: [ '<32>{#p/asriel2}* Jerry.' ],
-      hurtStatus: () => (world.goatbro ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ '<32>{#p/story}* Jerry is wounded.' ]),
+      hurtStatus: () => (world.azzie ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ '<32>{#p/story}* Jerry is wounded.' ]),
       idleTalk1: () =>
          save.data.b.spared_jerry ? [ "<08>{~}I'm so glad we're here!" ] : [ "<08>{~}Aren't you guys BORED?" ],
       idleTalk2: () =>
@@ -3979,30 +3820,22 @@ export default {
    },
    b_opponent_mouse: {
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ "<32>{#p/asriel2}* Skweakre, the forgetful mouse.\n* Doesn't know where it's going or what it's doing." ]
             : [ '<32>{#p/story}* Skweakre - ATK 16 DEF 8\n* Hungry for directions.\n* And cheese.' ],
       act_direct: [ '<32>{#p/narrator}* You pointed Skweakre in the right direction.' ],
       act_disown: [ '<32>{#p/narrator}* You told Skweakre that it deserves to be lost out here.' ],
-      act_flirt: () => [
-         '<32>{#p/narrator}* You make a flirtatious remark.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Really...' ] : [])
-      ],
+      act_flirt: [ '<32>{#p/narrator}* You make a flirtatious remark.' ],
       disowned: [ '<32>{#p/story}* Feeling betrayed, Skweakre gives up and runs away...' ],
       disownStatus: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Just kill it at this point.' ]
-            : [ '<32>{#p/story}* Skweakre is on the verge of a breakdown.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Skweakre.' ] : [ '<32>{#p/story}* Skweakre is on the verge of a breakdown.' ],
       disownTalk1: [ "<08>{~}I'm a goner, aren't I.." ],
       disownTalk2: [ "<08>{~}I'll never see town again.." ],
-      distrusted: () =>
-         world.goatbro
-            ? [ "<32>{#p/asriel2}* Tell me why you aren't just killing this thing right now?" ]
-            : [ '<32>{#p/story}* Skweakre lets out a sigh...' ],
+      distrusted: () => (world.azzie ? [ '<32>{#p/asriel2}* Skweakre.' ] : [ '<32>{#p/story}* Skweakre lets out a sigh.' ]),
       flirtTalk: [ '<08>{~}Uh.. okay?' ],
       genoStatus: [ '<32>{#p/asriel2}* Skweakre.' ],
       hurtStatus: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ '<32>{#p/story}* Skweakre is nearing demise.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ '<32>{#p/story}* Skweakre is nearing demise.' ],
       idleTalk1: [ '<08>{~}How did I get here?' ],
       idleTalk2: [ '<08>{~}My cousin lives in town..' ],
       idleTalk3: [ '<08>{~}Can you help me?' ],
@@ -4013,33 +3846,30 @@ export default {
       randStatus3: [ '<32>{#p/story}* Skweakre knows not how it has arrived at this juncture.' ],
       randStatus4: [ '<32>{#p/story}* Smells like cheese.' ],
       remindStatus: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Once more, and...' ]
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Skweakre.' ]
             : [ '<32>{#p/story}* Skweakre could still use a little more help.' ],
       remindTalk1: [ '<08>{~}Are you sure..?' ],
       remindTalk2: [ '<08>{~}Hmm..' ],
       safeStatus: () =>
-         world.goatbro ? [ "<32>{#p/asriel2}* It's vulnerable." ] : [ '<32>{#p/story}* Skweakre is on the right path.' ],
+         world.azzie ? [ "<32>{#p/asriel2}* It's vulnerable." ] : [ '<32>{#p/story}* Skweakre is on the right path.' ],
       safeTalk1: [ "<08>{~}This isn't so bad." ],
       safeTalk2: [ "<08>{~}I'll find a way, I guess.." ],
       status1: [ '<32>{#p/story}* Skweakre straddles in!' ]
    },
    b_opponent_doggo: {
       act_check: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Doggo, the clueless dog.\n* Stand still and watch him lose his mind.' ]
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Doggo, the blind dog.\n* Stand still and watch him lose his mind.' ]
             : [ '<32>{#p/story}* DOGGO - ATK 13 DEF 7\n* Easily excited by movement.\n* Hobbies include: Cuddles.' ],
-      act_flirt: () => [
-         '<32>{#p/narrator}* You flirt with Doggo.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Really...' ] : [])
-      ],
+      act_flirt: () => [ '<32>{#p/narrator}* You flirt with Doggo.' ],
       act_talk: [ '<32>{#p/story}* You talk to Doggo.' ],
       fetch: () => [
          '<32>{#p/narrator}* The dog ran to get it.\n* You played fetch for a while.',
-         ...(world.goatbro && save.flag.n.ga_asrielFetch++ < 1 ? [ '<32>{#p/asriel2}* What will THAT accomplish?' ] : [])
+         ...(world.azzie && save.flag.n.ga_asrielFetch++ < 1 ? [ '<32>{#p/asriel2}* What will that accomplish?' ] : [])
       ],
       fetchStatus: () =>
-         world.goatbro
+         world.azzie
             ? save.flag.n.ga_asrielFetch < 2
                ? [ '<32>{#p/asriel2}* That easy, huh?' ]
                : [ '<32>{#p/asriel2}* Doggo.' ]
@@ -4047,21 +3877,17 @@ export default {
       fetchTalk: [ '<11>{~}HUH!! A FUN WRENCH APPEARS!' ],
       flirt1: [ '<11>{~}(Melts)' ],
       invisStatus: () =>
-         world.goatbro
-            ? [ "<32>{#p/asriel2}* He's lost track of us." ]
-            : [ "<32>{#p/story}* Doggo can't seem to find anything." ],
+         world.azzie ? [ "<32>{#p/asriel2}* He's vulnerable." ] : [ "<32>{#p/story}* Doggo can't seem to find anything." ],
       name: '* Doggo',
       normaStatus: () =>
-         world.goatbro
-            ? [ "<32>{#p/asriel2}* Don't move on the next turn." ]
-            : [ '<32>{#p/story}* Doggo is confirming the moving object.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Doggo.' ] : [ '<32>{#p/story}* Doggo is confirming the moving object.' ],
       pet: () => [
          '<32>{#p/narrator}* You pet Doggo.',
-         ...(world.goatbro
+         ...(world.azzie
             ? [
                  [],
                  [ '<32>{#p/asriel2}* ...more?' ],
-                 [ "<32>{#p/asriel2}* (I won't lie, this is kinda funny.)" ],
+                 [ "<32>{#p/asriel2}* I won't lie, this is kinda funny." ],
                  [ '<32>{#p/asriel2}* ...' ],
                  [ '<32>{#p/asriel2}* Do you really need to do this?' ],
                  [ '<32>{#p/asriel2}* I guess you do.' ],
@@ -4076,8 +3902,7 @@ export default {
               ][Math.min(battler.volatile[0].vars.pet - 1, 13)]
             : [])
       ],
-      petStatus: () =>
-         world.goatbro ? [ "<32>{#p/asriel2}* He's vulnerable." ] : [ '<32>{#p/story}* Doggo has been pet.' ],
+      petStatus: () => (world.azzie ? [ "<32>{#p/asriel2}* He's vulnerable." ] : [ '<32>{#p/story}* Doggo has been pet.' ]),
       petTalk1: [ "<11>{~}WHAT!!!\nI'VE BEEN PET!" ],
       petTalk2: [ "<11>{~}WHERE'S THAT COMING FROM!?" ],
       petTalk3: [ "<11>{~}THERE'S NO END TO IT!!" ],
@@ -4095,34 +3920,29 @@ export default {
       query1: [ "<11>{~}Don't move an inch!" ],
       query2: [ "<11>{*}{~}It moved!! It didn't NOT move!!{^30}{%}" ],
       query3: [ '<11>{~}Will it move this time?' ],
-      status1: () => (world.goatbro ? [ '<32>{#p/asriel2}* Doggo.' ] : [ '<32>{#p/story}* Doggo blocks the way!' ]),
+      status1: () => (world.azzie ? [ '<32>{#p/asriel2}* Doggo.' ] : [ '<32>{#p/story}* Doggo blocks the way!' ]),
       sussy: () =>
-         world.goatbro
-            ? [ "<32>{#p/asriel2}* Not so fast, he's still on us." ]
-            : [ '<32>{#p/narrator}* Doggo is too suspicious of your actions.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Doggo.' ] : [ '<32>{#p/narrator}* Doggo is too suspicious of your actions.' ],
       talk1: [ "<11>{~}HUH?? WHO'S THERE?" ],
       talk2: [ '<11>{~}WHO SAID THAT??' ],
       talk3: [ '<11>{~}MYSTERIOUS VOICES ALL AROUND ME!' ]
    },
    b_opponent_lesserdog: {
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ "<32>{#p/asriel2}* Canis Minor, the ignorant dog.\n* Really doesn't know what's going on." ]
             : [ '<32>{#p/story}* CANIS MINOR - ATK 12 DEF 2\n* Wields a shiny dogger made of fido-nium.' ],
-      act_flirt: () => [
-         '<32>{#p/story}* You flirtatiously pet Canis Minor.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Really...' ] : [])
-      ],
+      act_flirt: () => [ '<32>{#p/story}* You flirtatiously pet Canis Minor.' ],
       act_talk: () => [
          '<32>{#p/story}* You send a message to Canis Minor by petting it in morse code.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* What.' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* What.' ] : [])
       ],
       fetch: () => [
          '<32>{#p/narrator}* The dog ran to get it.\n* You played fetch for a while.',
-         ...(world.goatbro && save.flag.n.ga_asrielFetch++ < 1 ? [ '<32>{#p/asriel2}* What will THAT accomplish?' ] : [])
+         ...(world.azzie && save.flag.n.ga_asrielFetch++ < 1 ? [ '<32>{#p/asriel2}* What will that accomplish?' ] : [])
       ],
       fetchStatus: () =>
-         world.goatbro
+         world.azzie
             ? save.flag.n.ga_asrielFetch < 2
                ? [ '<32>{#p/asriel2}* How is this working.' ]
                : save.flag.n.ga_asrielFetch < 3
@@ -4131,7 +3951,7 @@ export default {
             : [ '<32>{#p/story}* Canis Minor loves fetch!' ],
       fetchTalk: [ '<11>{~}(Pants fast)' ],
       hurtStatus: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Almost dead.' ]
             : [ '<32>{#p/story}* Canis Minor tucks its tail between its legs.' ],
       name: '* Canis Minor',
@@ -4150,109 +3970,112 @@ export default {
       petText1: () => [ '<32>{#p/narrator}* You barely lifted your hand and the dog got excited.' ],
       petText2: () => [
          "<32>{#p/narrator}* You lightly touched the dog.\n* It's already overexcited...",
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Dogs do love their pets.' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* Dogs do love their pets.' ] : [])
       ],
       petText3: () => [
          '<32>{#p/narrator}* You pet Canis Minor.\n* It raises its head up to meet your hand.',
-         ...(world.goatbro ? [ "<32>{#p/asriel2}* Okay, you've pet it.\n* There's really no reason to keep going." ] : [])
+         ...(world.azzie ? [ "<32>{#p/asriel2}* Okay, you've pet it.\n* There's really no reason to keep going." ] : [])
       ],
       petText4: () => [
          '<32>{#p/narrator}* You pet Canis Minor.\n* It was a good dog.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : [])
       ],
       petText5: () => [
          '<32>{#p/narrator}* You pet Canis Minor.\n* Its excitement knows no bounds.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Golly...' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* Golly...' ] : [])
       ],
       petText6: () => [
          '<32>{#p/narrator}* Critical pet!\n* Dog excitement increased.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : [])
       ],
       petText7: () => [
          '<32>{#p/narrator}* You have to jump up to pet the dog.',
-         ...(world.goatbro ? [ "<32>{#p/asriel2}* We can't do this all day." ] : [])
+         ...(world.azzie ? [ "<32>{#p/asriel2}* We can't do this all day." ] : [])
       ],
       petText8: () => [
          "<32>{#p/narrator}* You don't even reach it.\n* It gets more excited.",
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : [])
       ],
       petText9: () => [
          '<32>{#p/narrator}* There is no way to stop this madness.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : [])
       ],
       petText10: () => [
          '<32>{#p/narrator}* Canis Minor enters the realm of the stars.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : [])
       ],
       petText11: () => [
          '<32>{#p/narrator}* You call Canis Minor but it is too late.\n* It cannot hear you.',
-         ...(world.goatbro ? [ "<32>{#p/asriel2}* Okay, there.\n* It's totally out of reach now." ] : [])
+         ...(world.azzie ? [ "<32>{#p/asriel2}* Okay, there.\n* It's totally out of reach now." ] : [])
       ],
-      petText12: () => [ '<32>{#p/narrator}* ...', ...(world.goatbro ? [ '<32>{#p/asriel2}* ???' ] : []) ],
+      petText12: () => [ '<32>{#p/narrator}* ...', ...(world.azzie ? [ '<32>{#p/asriel2}* ???' ] : []) ],
       petText13: () => [
          '<32>{#p/narrator}* You can reach Canis Minor again.',
-         ...(world.goatbro ? [ "<32>{#p/asriel2}* You've GOT to be kidding me." ] : [])
+         ...(world.azzie ? [ "<32>{#p/asriel2}* You've GOT to be kidding me." ] : [])
       ],
-      petText14: () => [ '<32>{#p/narrator}* You pet Canis Minor.', ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : []) ],
+      petText14: () => [ '<32>{#p/narrator}* You pet Canis Minor.', ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : []) ],
       petText15: () => [
          "<32>{#p/narrator}* It's possible that you may have a problem.",
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : [])
       ],
       petText16: () => [
          '<32>{#p/narrator}* Canis Minor is unpettable but appreciates the attempt.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Just stop.' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* Just stop.' ] : [])
       ],
       petText17: () => [
          '<32>{#p/narrator}* Perhaps mankind was not meant to pet this much.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Please stop.' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* Please stop.' ] : [])
       ],
-      petText18: () => [ '<32>{#p/narrator}* It continues.', ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : []) ],
+      petText18: () => [ '<32>{#p/narrator}* It continues.', ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : []) ],
       petText19: () => [
          '<32>{#p/narrator}* Canis Minor is beyond your reach.',
-         ...(world.goatbro ? [ "<32>{#p/asriel2}* Okay, it's over.\n* Now kill this idiot already." ] : [])
+         ...(world.azzie ? [ "<32>{#p/asriel2}* Okay, it's over.\n* Now kill this idiot already." ] : [])
       ],
-      petText20: () => [ '<32>{#p/narrator}* Really...', ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : []) ],
-      status0: () => (world.goatbro ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Canis Minor appears.' ]),
+      petText20: () => [ '<32>{#p/narrator}* Really...', ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : []) ],
+      statusX: [ "<32>{#p/asriel2}* It's vulnerable." ],
+      status0: () => (world.azzie ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Canis Minor appears.' ]),
       status1: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Canis Minor.' ]
-            : [ '<32>{#p/story}* Canis Minor tilts its head to one side.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Canis Minor tilts its head to one side.' ],
       status2: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Canis Minor.' ]
             : [ '<32>{#p/story}* Canis Minor thinks your weapon is a dog treat.' ],
       status3: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Canis Minor.' ]
             : [ '<32>{#p/story}* Canis Minor is not really paying attention.' ],
-      status4: () => (world.goatbro ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Smells like dog chow.' ]),
+      status4: () => (world.azzie ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Smells like dog chow.' ]),
       status5: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [ '<32>{#p/story}* Canis Minor is barking excitedly.' ],
-      status6: () => (world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [ '<32>{#p/story}* Canis Minor is overstimulated.' ]),
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Canis Minor is barking excitedly.' ],
+      status6: () =>
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Canis Minor is overstimulated.' ],
       status7: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [ '<32>{#p/story}* Canis Minor shows no signs of stopping.' ],
-      status8: () => (world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [ '<32>{#p/story}* Canis Minor is lowering.' ]),
-      status9: () => (world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [ '<32>{#p/story}* Canis Minor learns to code.' ]),
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Canis Minor shows no signs of stopping.' ],
+      status8: () => (world.azzie ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Canis Minor is lowering.' ]),
+      status9: () =>
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Canis Minor learns to code.' ],
       status10: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* ...' ]
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Canis Minor.' ]
             : [ "<32>{#p/story}* Canis Minor is whining because it can't see you." ],
-      status11: () => (world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [ '<32>{#p/story}* Hello there.' ]),
+      status11: () => (world.azzie ? [ '<32>{#p/asriel2}* Canis Minor.' ] : [ '<32>{#p/story}* Hello there.' ]),
       status12: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [ '<32>{#p/story}* Canis Minor is questioning your life choices.' ],
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Canis Minor.' ]
+            : [ '<32>{#p/story}* Canis Minor is questioning your life choices.' ],
       status13: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* ...' ]
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Canis Minor.' ]
             : [ '<32>{#p/story}* Canis Minor has gone where no dog has gone before.' ]
    },
    b_opponent_dogamy: {
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ "<32>{#p/asriel2}* Dogamy, the pathetic dog.\n* Cool under pressure, but he's nothing without support." ]
             : [ '<32>{#p/story}* DOGAMY - ATK 14 DEF 5\n* Husband of Dogaressa.\n* Knows only what he smells.' ],
       act_talk: [ "<32>{#p/narrator}* You talk to Dogamy.\n* He can't seem to smell it..." ],
       fetchStatus: () =>
-         world.goatbro
+         world.azzie
             ? save.flag.n.ga_asrielFetch < 2
                ? [ '<32>{#p/asriel2}* Oh... huh.' ]
                : save.flag.n.ga_asrielFetch < 3
@@ -4261,23 +4084,20 @@ export default {
             : [ '<32>{#p/story}* Married dogs love fetch!' ],
       fetchText: () => [
          '<32>{#p/narrator}* The dogs ran to get it.\n* You played fetch for a while.',
-         ...(world.goatbro && save.flag.n.ga_asrielFetch++ < 1 ? [ '<32>{#p/asriel2}* What will THAT accomplish?' ] : [])
+         ...(world.azzie && save.flag.n.ga_asrielFetch++ < 1 ? [ '<32>{#p/asriel2}* What will that accomplish?' ] : [])
       ],
       fetchTextLone: () => [
          '<32>{#p/narrator}* Dogamy ignores the spanner and lets it roll off the edge.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Saw that coming.' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* Saw that coming.' ] : [])
       ],
       flirtTalk1: [ '<11>{~}Ah!\nBut why...!?' ],
       flirtTalk2: [ '<11>{~}Love is in the air?' ],
       flirtTalk3: [ "<11>{~}You didn't just..." ],
       flirtTalk4: [ "<11>{~}What's the puppy doing?" ],
-      flirtText: () => [
-         "<32>{#p/narrator}* Your... pheromones, reach Dogamy's snout.",
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Really...' ] : [])
-      ],
+      flirtText: () => [ "<32>{#p/narrator}* Your... pheromones, reach Dogamy's snout." ],
       flirtTextLone: [ "<32>{#p/narrator}* Dogamy's expression is unchanged." ],
       loneStatus: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* One left.' ]
             : [ '<32>{#p/story}* Dogaressa is determined to kick human tail.' ],
       loneTalk1: [ '<11>{~}Whine.' ],
@@ -4286,76 +4106,68 @@ export default {
       name: '* Dogamy',
       otherPet: [ '<11>{~}...' ],
       petNeedStatus: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Dogamy whines like the pathetic dog he is.' ]
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Dogamy and Dogaressa.' ]
             : [ '<32>{#p/story}* Dogaressa is looking for affection.' ],
       petStatus: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Had your fun yet?' ]
+         world.azzie
+            ? [ "<32>{#p/asriel2}* They're vulnerable." ]
             : [ "<32>{#p/story}* The dogs' minds have been expanded." ],
       petTalk1: [ '<11>{~}Paws off you smelly human.' ],
       petTalk2: [ '<11>{~}Wow!!!\nPet by another pup!!!' ],
       petTalk3: [ "<11>{~}Stop!\nDon't touch her!" ],
       petTalk4: [ '<11>{~}What\nabout\nme......' ],
       petText: [ '<32>{#p/narrator}* You pet Dogamy.' ],
-      petTextLone: () => [
-         '<32>{#p/narrator}* Dogamy cowers in fear.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Just kill this whelp already.' ] : [])
-      ],
+      petTextLone: () => [ '<32>{#p/narrator}* Dogamy cowers in fear.' ],
       randTalk1: () =>
-         world.goatbro ? [ '<11>{~}The prince has lost his mind...' ] : [ "<11>{~}Take my wife...\n's fleas." ],
-      randTalk2: () => (world.goatbro ? [ '<11>{~}You have come far...' ] : [ "<11>{~}Don't touch my hot dog." ]),
-      randTalk3: () => (world.goatbro ? [ "<11>{~}We'll take you down!" ] : [ "<11>{~}No. 1 Nuzzle Champs '13!!" ]),
-      randTalk4: () => (world.goatbro ? [ "<11>{~}You won't win this time..." ] : [ "<11>{~}Let's kick human tail!!" ]),
+         world.azzie ? [ '<11>{~}The prince has lost his mind...' ] : [ "<11>{~}Take my wife...\n's fleas." ],
+      randTalk2: () => (world.azzie ? [ '<11>{~}You have come far...' ] : [ "<11>{~}Don't touch my hot dog." ]),
+      randTalk3: () => (world.azzie ? [ "<11>{~}We'll take you down!" ] : [ "<11>{~}No. 1 Nuzzle Champs '13!!" ]),
+      randTalk4: () => (world.azzie ? [ "<11>{~}You won't win this time..." ] : [ "<11>{~}Let's kick human tail!!" ]),
       resmellStatus: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Idiots.\n* Both of them.' ]
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Dogamy and Dogaressa.' ]
             : [ '<32>{#p/story}* The dogs think that you may be a lost puppy.' ],
       resmellText1: () => [
          '<32>{#p/narrator}* The dogs sniff you again...',
-         '<32>* But you smell just as weird as before!',
-         ...(world.goatbro ? [ "<32>{#p/asriel2}* You're wasting time." ] : [])
+         '<32>* But you smell just as weird as before!'
       ],
       resmellText2: () => [
          '<32>{#p/narrator}* The dogs sniff you again...',
-         '<32>* After rolling in the dirt, you smell alright!',
-         ...(world.goatbro ? [ "<32>{#p/asriel2}* You're wasting time." ] : [])
+         '<32>* After rolling in the dirt, you smell alright!'
       ],
       resmellText3: () => [ '<32>{#p/narrator}* The dogs already know you smell fine.' ],
-      resmellTextLone: () => [
-         "<32>{#p/narrator}* Dogamy won't even lift up his snout.",
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Just kill this whelp already.' ] : [])
-      ],
+      resmellTextLone: () => [ "<32>{#p/narrator}* Dogamy won't even lift up his snout." ],
       rollStatus: () =>
-         world.goatbro
+         world.azzie
             ? [ "<32>{#p/asriel2}* You're going to get your clothes dirty, $(name)." ]
             : [ '<32>{#p/story}* The dogs may want to re-smell you.' ],
       rollText: () => [
          '<32>{#p/narrator}* You playfully roll around in the dirt.',
          '<32>* Synthetic as it may be, it still gets you smelling like a weird puppy!',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* I have questions.' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* I have questions.' ] : [])
       ],
       rollTextLone: () => [
          "<32>{#p/narrator}* You roll around in Dogaressa's dust.",
          '<32>* Dogamy looks even more defeated than before.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : [])
       ],
       smellTalk1: [ "<11>{~}Hm?\nWhat's that smell?" ],
       smellTalk2: [ '<11>{~}What!\nSmells like a...' ],
       status1: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Dogamy and Dogaressa.' ]
             : [ '<32>{#p/story}* The dogs keep shifting their axes to protect each other.' ],
       status2: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Dogamy and Dogaressa.' ]
             : [ '<32>{#p/story}* The dogs are re-evaluating your smell.' ],
       status3: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Dogamy and Dogaressa.' ]
             : [ '<32>{#p/story}* The dogs are practicing for the next couples contest.' ],
       status4: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Dogamy and Dogaressa.' ]
             : [ '<32>{#p/story}* The dogs are whispering sweet nothings to each other.' ],
       susText: [ "<32>{#p/narrator}* The dogs still think you're a smelly human." ],
@@ -4363,57 +4175,45 @@ export default {
    },
    b_opponent_dogaressa: {
       act_check: () =>
-         world.goatbro
-            ? [
-                 '<32>{#p/asriel2}* Dogaressa, the rowdy dog.\n* Cool under pressure, but turns rabid if a loved one dies.'
-              ]
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Dogaressa, the rowdy dog.\n* Cool under pressure, but turns rabid without support.' ]
             : [ '<32>{#p/story}* DOGARESSA - ATK 14 DEF 5\n* This puppy finds her hubby lovely. SMELLS ONLY?' ],
       act_talk: [ "<32>{#p/narrator}* You talk to Dogaressa.\n* She can't seem to smell it..." ],
       fetchTextLone: () => [
          '<32>{#p/narrator}* Dogaressa takes the spanner and smashes it to bits.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Saw that coming.' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* Saw that coming.' ] : [])
       ],
       flirtTalk1: [ '<11>{~}(Hey! Knock it off!)' ],
       flirtTalk2: [ '<11>{~}(This just gets weirder and weirder.)' ],
       flirtTalk3: [ '<11>{~}(...flirt with me! Ugh!)' ],
       flirtTalk4: [ '<11>{~}(I think it loves me. A lot.)' ],
-      flirtText: () => [
-         "<32>{#p/narrator}* Your... pheromones, reach Dogaressa's snout.",
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Really...' ] : [])
-      ],
+      flirtText: () => [ "<32>{#p/narrator}* Your... pheromones, reach Dogaressa's snout." ],
       flirtTextLone: [ "<32>{#p/narrator}* Dogaressa's expression is unchanged." ],
-      loneStatus: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Dogamy is brokenhearted.' ],
+      loneStatus: () => (world.azzie ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* Dogamy is brokenhearted.' ]),
       loneTalk1: [ '<11>{~}(Misery awaits you.)' ],
       loneTalk2: [ "<11>{~}(You'll suffer for this.)" ],
       name: '* Dogaressa',
       otherPet: [ '<11>{~}(...)' ],
       petNeedStatus: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Dogaressa complains like the rowdy dog she is.' ]
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Dogamy and Dogaressa.' ]
             : [ '<32>{#p/story}* Dogamy is looking for affection.' ],
       petTalk1: [ "<11>{~}(That's not your husband, OK?)" ],
       petTalk2: [ "<11>{~}(Well. Don't leave me out!)" ],
       petTalk3: [ '<11>{~}(Beware of dog.)' ],
       petTalk4: [ '<11>{~}(A dog that pets dogs... Amazing!)' ],
       petText: [ '<32>{#p/narrator}* You pet Dogaressa.' ],
-      petTextLone: () => [
-         '<32>{#p/narrator}* Dogaressa just growls at you.',
-         ...(world.goatbro ? [ "<32>{#p/asriel2}* Careful now, $(name).\n* She's rabid." ] : [])
-      ],
-      randTalk1: () => (world.goatbro ? [ '<11>{~}(Indeed.)' ] : [ "<12>{~}(Don't,\nactually...)" ]),
-      randTalk2: () => (world.goatbro ? [ '<11>{~}(Far enough.)' ] : [ '<11>{~}(He means me.)' ]),
-      randTalk3: () => (world.goatbro ? [ '<11>{~}(By force if necessary.)' ] : [ '<11>{~}(Of course we were first.)' ]),
-      randTalk4: () => (world.goatbro ? [ "<11>{~}(Time's up.)" ] : [ '<11>{~}(Do humans have tails?)' ]),
+      petTextLone: () => [ '<32>{#p/narrator}* Dogaressa just growls at you.' ],
+      randTalk1: () => (world.azzie ? [ '<11>{~}(Indeed.)' ] : [ "<12>{~}(Don't,\nactually...)" ]),
+      randTalk2: () => (world.azzie ? [ '<11>{~}(Far enough.)' ] : [ '<11>{~}(He means me.)' ]),
+      randTalk3: () => (world.azzie ? [ '<11>{~}(By force if necessary.)' ] : [ '<11>{~}(Of course we were first.)' ]),
+      randTalk4: () => (world.azzie ? [ "<11>{~}(Time's up.)" ] : [ '<11>{~}(Do humans have tails?)' ]),
       resmellTalkLone: [ '<11>{~}(Is that what you wanted??\nHuh?)' ],
-      resmellTextLone: () => [
-         '<32>{#p/narrator}* Dogaressa aggressively shoves her snout in your face.',
-         ...(world.goatbro ? [ "<32>{#p/asriel2}* Careful now, $(name).\n* She's rabid." ] : [])
-      ],
+      resmellTextLone: () => [ '<32>{#p/narrator}* Dogaressa aggressively shoves her snout in your face.' ],
       rollTextLone: () => [
          "<32>{#p/narrator}* You roll around in Dogamy's dust.",
          '<32>* Dogaressa looks even angrier than before.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [])
+         ...(world.azzie ? [ '<32>{#p/asriel2}* ...' ] : [])
       ],
       smellTalk1: [ '<11>{~}(A smell mystery...)' ],
       smellTalk2: [ '<11>{~}(Are you actually a little puppy!?)' ],
@@ -4421,13 +4221,12 @@ export default {
    },
    b_opponent_greatdog: {
       act_check: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Canis Major, the stupid dog.\n* The biggest and dumbest dog of them all.' ]
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Canis Major, the stupid dog.\n* The biggest and dumbest dog of the bunch.' ]
             : [ "<32>{#p/story}* CANIS MAJOR - ATK 15 DEF 8\n* It's so excited that it thinks fighting is just play." ],
       act_flirt: () => [
          '<32>{#p/narrator}* You suggestively wink.',
-         '<32>* Canis Major awkwardly cocks its head to one side.',
-         ...(world.goatbro ? [ '<32>{#p/asriel2}* Really...' ] : [])
+         '<32>* Canis Major awkwardly cocks its head to one side.'
       ],
       act_talk: [ "<32>{#p/narrator}* You try talking with Canis Major, but it doesn't seem to understand you." ],
       beckonText: [
@@ -4435,15 +4234,15 @@ export default {
          '<32>* It bounds towards you, flecking slobber into your face.'
       ],
       closeStatus: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Canis Major.' ] : [ '<32>{#p/story}* Canis Major seeks affection.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Major.' ] : [ '<32>{#p/story}* Canis Major seeks affection.' ],
       closeText: [ "<32>{#p/narrator}* Only the dog's ears perk up.\n* Nothing else happens." ],
       doneText: [ '<32>{#p/narrator}* Canis Major decides you are too boring.' ],
       fetch: () => [
          '<32>{#p/narrator}* The dog ran to get it.\n* You played fetch for a while.',
-         ...(world.goatbro && save.flag.n.ga_asrielFetch++ < 1 ? [ '<32>{#p/asriel2}* What will THAT accomplish?' ] : [])
+         ...(world.azzie && save.flag.n.ga_asrielFetch++ < 1 ? [ '<32>{#p/asriel2}* What will that accomplish?' ] : [])
       ],
       fetchStatus: () =>
-         world.goatbro
+         world.azzie
             ? save.flag.n.ga_asrielFetch < 2
                ? [ '<32>{#p/asriel2}* I guess that works.' ]
                : save.flag.n.ga_asrielFetch < 3
@@ -4451,23 +4250,21 @@ export default {
                : [ '<32>{#p/asriel2}* Canis Major.' ]
             : [ '<32>{#p/story}* Canis Major loves fetch!' ],
       hurtStatus: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ '<32>{#p/story}* Canis Major is panting slowly.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ '<32>{#p/story}* Canis Major is panting slowly.' ],
       ignoreStatus1: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Uh...' ] : [ '<32>{#p/story}* Canis Major just wants some affection.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Major.' ] : [ '<32>{#p/story}* Canis Major just wants some affection.' ],
       ignoreStatus2: () =>
-         world.goatbro
-            ? [ "<32>{#p/asriel2}* If you don't give it attention, it might..." ]
-            : [ '<32>{#p/story}* Canis Major is making puppy-dog eyes.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Major.' ] : [ '<32>{#p/story}* Canis Major is making puppy-dog eyes.' ],
       name: '* Canis Major',
       petStatus1: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Aw, the puppy wants to play.' ]
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Canis Major.' ]
             : [ '<32>{#p/story}* Canis Major is patting the ground with its front paws.' ],
       petStatus2: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* (Well, this is cute.)' ] : [ '<32>{#p/story}* Canis Major wants some TLC.' ],
-      petStatus3: () => (world.goatbro ? [ '<32>{#p/asriel2}* ...' ] : [ '<32>{#p/story}* Pet capacity is 40%.' ]),
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Major.' ] : [ '<32>{#p/story}* Canis Major wants some TLC.' ],
+      petStatus3: () => (world.azzie ? [ '<32>{#p/asriel2}* ...' ] : [ '<32>{#p/story}* Pet capacity is 40%.' ]),
       petStatus4: () =>
-         world.goatbro ? [ "<32>{#p/asriel2}* It's vulnerable." ] : [ '<32>{#p/story}* Canis Major is contented.' ],
+         world.azzie ? [ "<32>{#p/asriel2}* It's vulnerable." ] : [ '<32>{#p/story}* Canis Major is contented.' ],
       petText0: [ '<32>{#p/narrator}* Canis Major was too far away to pet.' ],
       petText1: [
          '<32>{#p/narrator}* Canis Major curls up in your lap as it is pet by you.',
@@ -4496,17 +4293,15 @@ export default {
          '<32>* Now the dog is very tired.\n* It rests its head on you...'
       ],
       playText3: [ '<32>{#p/narrator}* Canis Major is too tired to play.' ],
-      status0: () => (world.goatbro ? [ '<32>{#p/asriel2}* Canis Major.' ] : [ '<32>{#p/story}* Canis Major appears.' ]),
+      status0: () => (world.azzie ? [ '<32>{#p/asriel2}* Canis Major.' ] : [ '<32>{#p/story}* Canis Major appears.' ]),
       status1: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Canis Major.' ] : [ '<32>{#p/story}* Canis Major is watching you intently.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Major.' ] : [ '<32>{#p/story}* Canis Major is watching you intently.' ],
       status2: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Canis Major.' ]
             : [ '<32>{#p/story}* Canis Major is waiting for your command.' ],
       status3: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Canis Major.' ]
-            : [ '<32>{#p/story}* Smells like fresh-squeezed puppy juice.' ],
+         world.azzie ? [ '<32>{#p/asriel2}* Canis Major.' ] : [ '<32>{#p/story}* Smells like fresh-squeezed puppy juice.' ],
       waitText: [ '<32>{#p/narrator}* Canis Major inches closer.' ]
    },
    b_opponent_papyrus: {
@@ -4578,7 +4373,7 @@ export default {
       dots: [ '<32>{#p/narrator}* ...' ],
       flirt0: [ '<32>{#p/narrator}* Cute.' ],
       flirt1: [
-         '<15>{#p/papyrus}{#f/20}WHAT!?\nFL-FLIRTING!?',
+         '<15>{#p/papyrus}{#f/20}WHAT!?\nF-F-FLIRTING!?',
          '<15>SO YOU FINALLY REVEAL YOUR {@fill:#f00}ULTIMATE FEELINGS{@fill:#000}!',
          "<15>W-WELL!\nI'M A SKELETON WITH VERY HIGH STANDARDS!!!",
          '<15>WHAT CAN YOU DO IN RETURN FOR MY AFFECTION???'
@@ -4778,8 +4573,8 @@ export default {
          '<20>{*}after all...'
       ],
       sansDeath4: [ "<20>{#p/sans}{*}you're the... great{^6} papyrus.{^20}{%}" ],
-      sansDeath4a: [ '<15>{#p/papyrus}{*}... {^50}{%}' ],
-      sansText: [ '<20>{#p/without}{*}PAPYRUS- {^6}{%}' ],
+      sansDeath4a: [ '<15>{#p/papyrus}{*}...{^50}{%}' ],
+      sansText: [ '<20>{#p/without}{*}PAPYRUS-{^6}{%}' ],
       status1: [ '<32>{#p/asriel2}* Papyrus was taken by surprise.' ],
       status2: [ '<32>{#p/asriel2}* Papyrus is still looking for his brother.' ]
    },
@@ -4788,7 +4583,7 @@ export default {
    },
    b_opponent_shockasgore: {
       act_check: [ '<32>{#p/asriel2}* Asgore.\n* The king who got his home planet destroyed.' ],
-      foodStatus: [ '<32>{#p/asriel2}* Oh, $(name)...' ],
+      foodStatus: [ '<32>{#p/asriel2}* Asgore.' ],
       foodText1: [ '<11>{#p/asgore1}{#f/5}That pie looks familiar...' ],
       foodText2: [ '<11>{#p/asgore1}{#f/5}Fried snails...\nOdd.' ],
       idleText: [ '<11>{#p/asgore1}{#f/1}...' ],
@@ -4889,14 +4684,17 @@ export default {
       name: 'Nice Cream',
       use: pager.create(
          'random',
-         [ "<32>{#p/monster}* You're just great!" ],
-         [ '<32>{#p/monster}* You look stellar today!' ],
-         [ '<32>{#p/monster}* Are those implants natural?' ],
-         [ "<32>{#p/monster}* You're super spiffy!" ],
-         [ '<32>{#p/monster}* Have a wonderful day!' ],
-         [ '<32>{#p/monster}* Is this as sweet as you?' ],
-         [ "<32>{#p/human}* (It's a holographic illustration of a hug.)" ],
-         [ '<32>{#p/monster}* Love yourself!\n* I love you!' ]
+         [ '<32>{#p/human}* (You unwrapped the Nice Cream.)', '<32>{#p/narrator}* "You\'re just great!"' ],
+         [ '<32>{#p/human}* (You unwrapped the Nice Cream.)', '<32>{#p/narrator}* "You look stellar today!"' ],
+         [ '<32>{#p/human}* (You unwrapped the Nice Cream.)', '<32>{#p/narrator}* "Are those augments natural?"' ],
+         [ '<32>{#p/human}* (You unwrapped the Nice Cream.)', '<32>{#p/narrator}* "You\'re super spiffy!"' ],
+         [ '<32>{#p/human}* (You unwrapped the Nice Cream.)', '<32>{#p/narrator}* "Have a wonderful time!"' ],
+         [ '<32>{#p/human}* (You unwrapped the Nice Cream.)', '<32>{#p/narrator}* "Is this as sweet as you?"' ],
+         [
+            '<32>{#p/human}* (You unwrapped the Nice Cream.)',
+            "<32>{#p/human}* (It's a holographic illustration of a hug.)"
+         ],
+         [ '<32>{#p/human}* (You unwrapped the Nice Cream.)', '<32>{#p/narrator}* "Love yourself!"\n* "I love you!"' ]
       )
    },
    i_pop: {
@@ -4936,11 +4734,11 @@ export default {
    },
    i_voidy: {
       battle: {
-         description: "Napstablook's personal void.\nNot viable in battle.",
+         description: "Napstablook's personal void key.\nNot viable in battle.",
          name: 'Void Key'
       },
       drop: [ '<32>{#p/human}* (You threw away the key.)' ],
-      info: [ "<32>{#p/narrator}* Napstablook's personal void, accessible on-the-go." ],
+      info: [ "<32>{#p/narrator}* Napstablook's personal void key, accessible on-the-go." ],
       name: 'Void Key',
       use: () =>
          battler.active
@@ -5026,7 +4824,7 @@ export default {
          'Ghosts',
          'The Void',
          65 <= save.data.n.plot
-            ? save.data.b.a_state_hapstablook
+            ? save.data.b.a_state_hapstablook && 68 <= save.data.n.plot
                ? 'Family'
                : 'Your Life'
             : 63 <= save.data.n.plot && save.data.b.a_state_hapstablook
@@ -5072,26 +4870,31 @@ export default {
             '<32>{#k/0}* well, the only ghosts i know are myself, my three cousins...',
             '<32>{#k/3}* and $(name), of course',
             "<32>{#k/1}* aside from that, there's not much to say",
-            '<32>{#k/0}* without a fused host body, we sorta just... exist',
-            '<32>{#k/0}* yeah, i know...\n* very intriguing stuff...'
+            '<32>{#k/0}* without a fused host body, we just sorta... exist',
+            '<32>{#k/0}* yeah, i know...\n* very interesting stuff...'
          ],
          [
             '<32>{#p/napstablook}{#k/3}* oh yeah... that...',
-            '<32>{#k/1}* well, one day, just outside the outpost limits...',
-            '<32>{#k/1}* i saw a flash of light beyond the edge of the force field',
-            '<32>{#k/2}* when i went to investigate, i ended up in this odd white room...',
-            "<32>{#k/5}* that's actually when i first found $(name)...",
-            '<32>{#k/1}* after guiding them to the outpost, i made a key to access the room',
-            '<32>{#k/4}* now and then, i like to visit that place to relax...',
+            '<32>{#k/1}* well, one day, i found this key lying around...',
+            '<32>{#k/5}* when i used it, i ended up in this odd room i haven\'t seen before...',
+            '<32>{#k/4}* now and then, i like to visit that place to relax',
             "<32>{#k/3}* it's peaceful..."
          ],
          () =>
             65 <= save.data.n.plot
                ? save.data.b.a_state_hapstablook
-                  ? [
-                       '<32>{#k/7}* hey... thanks for all the help back there...',
-                       "<32>{#k/7}* i don't know how things would've gone without you......"
-                    ]
+                  ? 68 <= save.data.n.plot
+                     ? [
+                          '<32>{#p/napstablook}* hey, hapstablook came by a little while ago.',
+                          "<32>* we talked for a bit about what we've been up to...",
+                          '<32>* about the family...',
+                          "<32>* i... don't think i've ever been this happy before...",
+                          '<32>* what you did for us back there... it means a lot to me.'
+                       ]
+                     : [
+                          "<32>{#p/napstablook}* hey... sorry things didn't work out the way we hoped...",
+                          '<32>{#p/napstablook}* it was nice to have you there, though......'
+                       ]
                   : [ '<32>{#k/7}* with every day that goes by, i feel a little farther away from happiness......' ]
                : 63 <= save.data.n.plot && save.data.b.a_state_hapstablook
                ? [
@@ -5118,11 +4921,8 @@ export default {
                     ...[
                        [ '<32>{#k/0}* sorry for interrupting whatever you were doing with my cousin...' ],
                        [ '<32>{#k/0}* ...\n* have you seen my cousin?' ],
-                       [ '<32>{#k/3}* i heard my cousins really like you...' ],
-                       [
-                          "<32>{#k/5}* my cousin tells me you're not the most intriguing person to be with...",
-                          '<32>{#k/3}* i disagree......'
-                       ],
+                       [ '<32>{#k/3}* i heard my cousin really likes you...' ],
+                       [ "<32>{#k/5}* my cousin tells me you're not the most interesting person to be with..." ],
                        [],
                        []
                     ][save.data.b.toriel_phone ? 2 : save.data.n.state_foundry_maddummy],
@@ -5269,30 +5069,2568 @@ export default {
          ? "Papyrus's Phone"
          : 'Papyrus and Undyne',
 
-   p_papyrus,
+   p_papyrus: <Partial<CosmosKeyed<CosmosProvider<string[]>>>>{
+      s_start: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}AH, THAT LONELY ROAD.',
+            '<18>{#f/4}BACK WHEN WE WERE BABY BONES...',
+            '<18>{#f/0}SANS AND I WOULD RACE SHUTTLECRAFT TOGETHER.',
+            '<18>{#f/4}BUT NO MATTER HOW FAST I WENT...',
+            '<18>{#f/7}SANS WOULD ALWAYS BE WAITING AT THE FINISH LINE!',
+            ...(solo()
+               ? [ '<18>{#f/5}YOU CAN IMAGINE MY FRUSTRATION.' ]
+               : [
+                    "<25>{#p/undyne}{#f/1}* That's 'cause he's a big fat cheater!",
+                    '<25>{#f/4}* Have you SEEN his high score on the target practice machine?',
+                    "<25>{#f/12}* It's like, a gazillion or something.",
+                    '<18>{#p/papyrus}{#f/4}TRUST ME, I KNOW ALL TOO WELL.',
+                    "<18>{#f/7}I REALLY WISH HE WOULDN'T CHEAT ON THINGS LIKE THAT!",
+                    '<18>{#f/7}IT RUINS THE GAME FOR EVERYONE ELSE.',
+                    '<25>{#p/undyne}{#f/1}* Or maybe...',
+                    '<25>{#f/8}* It just provides a more interesting challenge!!',
+                    "<18>{#p/papyrus}{#f/0}ACTUALLY, THAT'S A FAIR POINT!"
+                 ])
+         ],
+         () => [
+            '<18>{#p/papyrus}{#f/5}SANS HAS ALWAYS BEEN ONE TO TAKE SHORTCUTS.',
+            ...(solo()
+               ? [ '<18>{#f/4}I SUSPECT THAT PLAYED A PART IN HIS VICTORIES.' ]
+               : [ "<18>{#f/4}IT'S PRACTICALLY A LAW OF NATURE AT THIS POINT." ])
+         ]
+      ),
+      s_sans: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/4}THIS IS WHERE MY BROTHER IS MEANT TO PATROL...',
+            "<18>{#f/7}BUT EVERY TIME I CHECK ON HIM, HE'S SLACKING OFF!",
+            ...(solo()
+               ? [ '<18>{#f/5}NOT THAT I CAN BLAME HIM...' ]
+               : [
+                    '<25>{#p/undyne}{#f/9}* Felt that.',
+                    '<25>{#f/16}* I never see him at his post anymore.',
+                    "<18>{#p/papyrus}{#f/5}I CAN'T BLAME HIM, THOUGH..."
+                 ]),
+            '<18>{#f/5}LIFE OUT HERE HAS BECOME KIND OF HARD LATELY.',
+            ...(solo() ? [] : [ '<25>{#p/undyne}{#f/16}* Yeah...' ])
+         ],
+         () => [
+            '<18>{#p/papyrus}{#f/5}JUST BECAUSE WE LIVE AMONGST THE STARS...',
+            "<18>{#f/5}...DOESN'T MEAN WE'RE ANY LESS TRAPPED."
+         ]
+      ),
+      s_crossroads: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}RECENTLY, PEOPLE HAVE BEEN LEAVING NOTES OUTSIDE.',
+            '<18>{#f/5}DREAMS, WISHES, OFFERS OF ROMANCE...',
+            ...(solo()
+               ? [
+                    "<18>{#f/0}REALLY, I'M OVER THE MOON ABOUT IT!",
+                    "<18>{#f/0}IT'S GREAT TO SEE PEOPLE MAKING AN EFFORT.",
+                    '<18>{#f/4}SANS, ON THE OTHER HAND...',
+                    "<18>{#f/4}HE THINKS THEY'RE ALL JUST BEING LUNAR-TICKS."
+                 ]
+               : [
+                    '<18>{#f/6}...',
+                    "<18>{#f/6}WHAT'S THAT LOOK FOR, UNDYNE?",
+                    '<25>{#p/undyne}{#f/3}* ...did you, uh...',
+                    '<18>{#p/papyrus}{#f/1}DID I WHAT?',
+                    '<25>{#p/undyne}{#f/15}* ...see any...\n* ...scientific notes?',
+                    '<18>{#p/papyrus}{#f/6}UH...\nNO, SORRY...',
+                    '<25>{#p/undyne}{#f/1}* Damn it!'
+                 ])
+         ],
+         () => [
+            ...(solo()
+               ? [ '<18>{#p/papyrus}I WONDER WHAT LIFE WOULD BE LIKE WITH A MOON IN ORBIT.' ]
+               : [ '<18>{#p/papyrus}DO YOU HAVE ANY HOPES AND DREAMS TO SHARE?' ])
+         ]
+      ),
+      s_human: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}ISN'T THAT WHERE WE FIRST MET?",
+            '<18>{#f/5}WOWIE, TIME SURE DOES FLY...',
+            ...(solo()
+               ? [
+                    "<18>{#f/0}BUT HEY, JUST LOOK AT HOW FAR WE'VE COME!",
+                    world.population === 0 && !world.bullied
+                       ? '<18>{#f/5}ALL THE PUZZLING AND RECONCILING WE DID...'
+                       : '<18>{#f/5}ALL THE PUZZLING AND BATTLING AND DATING WE DID...',
+                    '<18>{#f/0}GOOD TIMES, HUH?'
+                 ]
+               : [
+                    '<25>{#p/undyne}{#f/14}* Man, remember how WE first met?',
+                    '<18>{#p/papyrus}OH, YEAH, I WAS WAITING OUTSIDE FOR HOURS...',
+                    '<25>{#p/undyne}{#f/16}* No, not that...',
+                    '<25>{#f/9}* Actually, you might not even remember it.',
+                    "<18>{#p/papyrus}WAIT, THERE'S MORE TO PAPYRUS THAN I THOUGHT!?",
+                    '<25>{#p/undyne}{#f/1}* Always has been.',
+                    "<18>{#p/papyrus}YOU'LL HAVE TO TELL ME MORE ABOUT IT LATER!"
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/5}STILL RELIVING THE PAST?',
+                    '<18>{#f/5}TRUST ME, I KNOW THE FEELING...',
+                    '<18>{#f/5}I WISH I COULD GO BACK, TOO.'
+                 ]
+               : [ '<18>{#p/papyrus}{#f/4}YOU THINK YOU KNOW A PERSON...' ]
+      ),
+      s_papyrus: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/9}NYEH HEH HEH!!\nIMPRESSED!?!',
+            '<18>{#f/0}NOT ONLY AM I GREAT AT PUZZLES...',
+            "<18>{#f/9}I'M ALSO AN ESTEEMED ARCHITECT!!!",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* Y\'know, I WAS thinking of renovating your "sentry station..."',
+                    '<25>{#f/1}* Like a surprise gift.',
+                    '<18>{#p/papyrus}{#f/6}NYEH...?',
+                    "<25>{#p/undyne}{#f/12}* But, uh, then I realized I'd be messing with perfection.",
+                    '<18>{#p/papyrus}PERFECTION, HUH?',
+                    '<25>{#p/undyne}{#f/14}* Yeah!',
+                    '<18>{#p/papyrus}{#f/5}BUT, YOU ONCE SAID THINGS CAN ALWAYS BE IMPROVED!',
+                    '<25>{*}{#p/undyne}{#f/17}* Wh- huh?\n* I mean... yes!!!\n* But what do I call- {%}',
+                    '<18>{#p/papyrus}ALMOST-PERFECTION.\nHOW ABOUT THAT?',
+                    '<25>{#p/undyne}{#f/12}* Works for me.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}MY BROTHER HELPED ME FIND THE BOX.' ]
+               : [ '<18>{#p/papyrus}THANK YOU, HUMAN...', '<18> FOR BEING MY ALMOST- PERFECT FRIEND.' ]
+      ),
+      s_doggo: pager.create(
+         'limit',
+         () =>
+            player.y > 60
+               ? [
+                    '<18>{#p/papyrus}{#f/5}LIFE AS A BUILDER BOT MUST BE TOUGH.',
+                    '<18>{#f/5}BE NICE TO THOSE WHOSE INTELLIGENCE IS ARTIFICIAL.',
+                    ...(solo()
+                       ? []
+                       : [
+                            '<25>{#p/undyne}{#f/17}* Wait, those things still exist??',
+                            "<18>{#p/papyrus}{#f/6}ACTUALLY, IT'S JUST THE ONE IN STARTON.",
+                            "<25>{#p/undyne}{#f/14}* Oh.\n* Yeah, I don't know that robot very well.",
+                            '<18>{#p/papyrus}{#f/4}WHAT ABOUT THE ROBOT YOU DO KNOW?',
+                            '<25>{#p/undyne}{#f/4}* ...',
+                            '<25>{#f/5}* ...',
+                            '<18>{#p/papyrus}{#f/6}OKAY, MAYBE ANOTHER TIME!!!'
+                         ])
+                 ]
+               : [
+                    '<18>{#p/papyrus}THE SENTRY STATION OF DOGGO...',
+                    '<18>{#f/5}ONE DAY, AFTER AN INCIDENT WITH THE OTHER DOGS...',
+                    "<18>{#f/5}HE TOLD ME HE DIDN'T FEEL AT HOME ANYMORE.",
+                    '<18>{#f/0}SO I GAVE HIM A HUG, AND TOLD HIM TO TALK IT OUT.',
+                    '<18>{#f/4}OF COURSE, THE CANINE UNIT ARE A REASONABLE BUNCH.',
+                    "<18>{#f/0}IT'S NO SURPRISE THINGS TURNED OUT JUST FINE!",
+                    ...(solo()
+                       ? []
+                       : [
+                            '<25>{#p/undyne}{#f/16}* Hey, I remember that incident...',
+                            '<25>{#f/16}* Doggo, uh...\n* He was thinking of...',
+                            '<18>{#p/papyrus}{#f/4}THINKING OF...?',
+                            '<25>{#p/undyne}{#f/9}* Just... thanks for being there when you were.',
+                            "<25>{#f/16}* Without you, he might've actually...",
+                            '<18>{#p/papyrus}{#f/7}WHAT??\nWHAT IS IT??',
+                            '<25>{#p/undyne}{#f/9}* ...',
+                            '<25>{#f/12}* Uh, he would have quit the guard for a really long time.',
+                            '<18>{#p/papyrus}OH!\nOKAY.'
+                         ])
+                 ],
+         [ '<18>{#p/papyrus}{#f/0}KINDNESS REALLY -IS- A VIRTUE!' ]
+      ),
+      s_maze: () => [
+         '<18>{#p/papyrus}{#f/5}YES, YES, I KNOW MY PUZZLES CAN BE DIFFICULT...',
+         ...(save.data.b.papyrus_fire
+            ? [
+                 "<18>{#f/5}BUT LOOK, DON'T THINK ABOUT YOUR FAILURE...",
+                 '<18>{#f/9}THINK ABOUT WHAT YOU LEARNED FROM IT!',
+                 ...(solo()
+                    ? []
+                    : [
+                         '<25>{#p/undyne}{#f/1}* Yeah!!!',
+                         '<25>{#f/5}* Wait, what are you talking about?',
+                         "<18>{#p/papyrus}{#f/5}THE HUMAN DIDN'T DO SO WELL ON THE WALL OF FIRE.",
+                         "<25>{#p/undyne}{#f/10}* Ah.\n* Yeah, I didn't fare much better.",
+                         '<18>{#p/papyrus}PRACTICE MAKES PERFECT, UNDYNE.',
+                         '<18>{#f/4}YOU OF ALL FISH LADIES SHOULD KNOW THAT.',
+                         '<25>{#p/undyne}{#f/17}* Hey, quit calling me that!',
+                         '<18>{#p/papyrus}{#f/6}AH- SORRY!!!',
+                         "<25>{#p/undyne}{#f/1}* Nah, you're good.\n* Besides...",
+                         "<25>{#f/8}* When it comes from a handsome bone man like you, I can't complain!!",
+                         '<18>{#p/papyrus}{#f/0}YOU CHEEKY LITTLE!!'
+                      ])
+              ]
+            : [
+                 '<18>{#f/0}BUT YOU, MY FRIEND, ARE QUITE THE PUZZLIST!',
+                 "<18>{#f/9}IT'S NOT EVERY DAY SOMEONE TROUSLES THIS BONE.",
+                 ...(solo()
+                    ? []
+                    : [
+                         '<25>{#p/undyne}{#f/5}* Hey, what are you talking about?',
+                         '<18>{#p/papyrus}{#f/5}THE HUMAN BEAT MY INFAMOUS "WALL OF FIRE" EARLIER.',
+                         '<25>{#p/undyne}{#f/3}* Wait, really?',
+                         "<25>{#f/8}* Even I can't beat that thing!",
+                         '<18>{#p/papyrus}PRACTICE MAKES PERFECT, UNDYNE.',
+                         "<18>{#f/4}THOUGH, I'M NOT SURE WHERE THEY GOT IT...",
+                         '<18>{#f/4}CONSIDERING THAT WAS DEFINITELY THEIR FIRST TRY.',
+                         '<25>{#p/undyne}{#f/17}* What?\n* Practice?\n* Screw that!!',
+                         '<25>{#f/7}* GIVE ME YOUR SECRETS NOW, PUNK!!!',
+                         '<18>{#p/papyrus}{#f/6}NO, LET THE PUZZLIST PUZZLE IN PEACE!'
+                      ])
+              ])
+      ],
+      s_dogs: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}THE SENTRY STATION OF DOGAMY AND DOGARESSA...',
+            '<18>{#f/0}I WONDER WHAT IT WOULD BE LIKE TO MARRY A DOG.',
+            "<18>{#f/4}THOUGH, I'LL NEVER HAVE TO WORRY ABOUT THAT...",
+            "<18>{#f/0}I'D MUCH RATHER MARRY A VERY HANDSOME SKELETON!",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* So, basically yourself, then.',
+                    "<18>{#p/papyrus}{#f/7}HUH?\nWHERE'D YOU GET THAT IDEA??",
+                    "<25>{#p/undyne}{#f/1}* It's not like there's any OTHER handsome skeletons out there...",
+                    '<25>{#p/undyne}{#f/8}* At least, none as handsome as yourself!',
+                    '<18>{#p/papyrus}{#f/4}WELL, I SUPPOSE I DO HAVE A VERY DASHING LOOK...',
+                    "<18>{#f/0}BUT NONETHELESS, IT SIMPLY WASN'T MEANT TO BE!"
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    "<18>{#p/papyrus}WHAT!?!?\nWE CAN'T MARRY!!",
+                    ...(save.data.b.flirt_papyrus
+                       ? [ "<18>{#f/5}WE AGREED THAT IT WOULDN'T WORK OUT, REMEMBER?" ]
+                       : [ "<18>{#f/5}WE'RE JUST VERY COOL FRIENDS, REMEMBER?" ])
+                 ]
+               : [ '<18>{#p/papyrus}{#f/4}SUCH A PAIRING WOULD BE... TOO POWERFUL.' ]
+      ),
+      s_lesser: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}THIS ROOM USED TO BE CONNECTED WITH A BRIDGE.',
+            '<18>{#f/0}TWO HALVES, JOINED AT THE CENTERPOINT...',
+            '<18>{#f/0}LIKE THE SOULS OF TWO VERY INTREPID SKELETONS.',
+            ...(solo()
+               ? [
+                    "<18>{#f/5}I DON'T KNOW EXACTLY WHAT SANS IS THINKING NOW...",
+                    '<18>{#f/4}BUT I GET THE FEELING IT HAS TO DO WITH TOMATOES.',
+                    '<18>{#f/0}YOU KNOW, IF HE STOPPED THINKING OF CONDIMENTS...',
+                    '<18>{#f/9}HE MIGHT ACTUALLY "KETCHUP" ON HIS SENTRY DUTIES!'
+                 ]
+               : [
+                    "<25>{#p/undyne}{#f/1}* Oh yeah, aren't you guys linked or something?",
+                    '<18>{#p/papyrus}FOR AS LONG AS WE CAN REMEMBER!',
+                    '<25>{#p/undyne}{#f/1}* I heard they did experiments with skeletons in the past.',
+                    "<25>{#f/8}* If you and Sans were the result, it MUST'VE been a success!",
+                    '<18>{#p/papyrus}{#f/1}ME, AN EXPERIMENT!?',
+                    "<18>{#f/7}THAT'S PREPOSTEROUS!",
+                    '<25>{#p/undyne}{#f/14}* Well, you never know.',
+                    '<18>{#p/papyrus}{#f/4}HMM...'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/5}I WISH I HAD MORE TO SAY...',
+                    "<18>{#f/4}BUT I CAN'T STOP THINKING ABOUT CONDIMENTS."
+                 ]
+               : [
+                    "<18>{#p/papyrus}{#f/5}WELL, NOW I'M REALLY CURIOUS ABOUT MY PAST.",
+                    '<18>{#f/5}I MIGHT DO SOME RESEARCH LATER.',
+                    "<25>{#p/undyne}{#f/14}* If you'd like, I could give you a hand...",
+                    "<18>{#p/papyrus}{#f/4}NO, IT'S ALRIGHT. BESIDES, AS THE GUARD CAPTAIN...",
+                    '<18>{#f/4}YOU ALREADY HAVE TOO MUCH ON YOUR PLATE.'
+                 ]
+      ),
+      s_bros: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/4}THOSE SPOT-THE- DIFFERENCE PUZZLES SANS LIKES...',
+            '<18>{#f/5}THEY USED TO BE SO EASY FOR ME...',
+            "<18>{#f/7}BUT LATELY, IT'S BECOME NEXT TO IMPOSSIBLE!",
+            '<18>{#f/4}AND, SHORT OF SCANNING THE IMAGE PIXEL FOR PIXEL...',
+            "<18>{#f/7}THERE'S NO WAY ANYONE COULD SOLVE THEM!",
+            "<18>{#f/7}IT'S RIDICULOUS!",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* That puzzle artist in the librarby made it, I think.',
+                    '<25>{#f/11}* I talked to her just the other day.',
+                    "<25>* ...something tells me she's really bored with her job.",
+                    "<18>{#p/papyrus}{#f/4}NOW THERE'S A PUZZLE..."
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/4}ARE YOU ASKING FOR MY HELP?',
+                    '<18>{#f/7}WELL, FORGET IT!',
+                    "<18>{#f/0}UNFAIR PUZZLES AREN'T WORTH SOLVING, ANYWAY."
+                 ]
+               : [
+                    '<25>{#p/undyne}{#f/1}* Whenever I get stuck on those things, I just send it over to Alphys.',
+                    '<25>{#f/1}* She does some kinda fancy image subtraction thing... I dunno.',
+                    "<25>{#f/12}* I have no idea how it works, but it's great at finding differences."
+                 ]
+      ),
+      s_spaghetti: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}DID YOU ENJOY THE SPAGHETTI I MADE EARLIER?',
+            "<18>{#f/0}IT'S NOT EVERY DAY YOU COOK FOR SUCH ESTEEMED GUESTS.",
+            ...(solo()
+               ? [
+                    [
+                       '<18>{#f/4}BUT, KNOWING THAT YOU WANTED TO SHARE IT...',
+                       '<18>{#f/9}THAT REALLY MADE THE DIFFERENCE!'
+                    ],
+                    [
+                       '<18>{#f/4}ESPECIALLY WHEN THAT COOKING INVOLVES...',
+                       '<18>{#f/9}CONCOCTING AN IRRESISTABLE TRAP!\nNYEH!'
+                    ]
+                 ][(save.data.n.state_papyrus_spaghet + 1) % 2]
+               : [
+                    '<25>{#p/undyne}{#f/1}* Sans once told me you wanted to cook for the king.',
+                    '<25>{#f/1}* Is that true?',
+                    '<18>{#p/papyrus}OH, YEAH!\nI DO, ACTUALLY.',
+                    "<18>I'D OFFER HIM ONLY THE HIGHEST QUALITY DISH.",
+                    '<18>{#f/9}YOU AND THE HUMAN COULD EVEN HELP!',
+                    "<25>{#p/undyne}{#f/8}* I'm down for it!!",
+                    "<25>{#f/9}* It's just a matter of if HE is...",
+                    '<18>{#p/papyrus}{#f/5}YEAH...'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    [ '<18>{#p/papyrus}REMEMBER, SHARING IS CARING!' ],
+                    [
+                       '<18>{#p/papyrus}{#f/4}IF YOU EVER WANT MORE SPAGHETTI...',
+                       "<18>{#f/0}DON'T HESITATE TO STOP BY MY FOOD MUSEUM!"
+                    ]
+                 ][(save.data.n.state_papyrus_spaghet + 1) % 2]
+               : [
+                    '<18>{#p/papyrus}{#f/5}THE KING CAN BE A LITTLE RECLUSIVE AT TIMES.',
+                    "<18>I, UH...\nI HOPE HE'S DOING ALRIGHT UP THERE."
+                 ]
+      ),
+      s_math: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}MATH HAS ALWAYS BEEN A PET PEEVE OF MINE.',
+            '<18>{#f/5}CALCULUS THIS, GEOMETRY THAT...',
+            '<18>{#f/7}WHATEVER HAPPENED TO COUNTING ON YOUR FINGERBONES?',
+            '<18>{#f/0}THAT "ADVANCED" MATH IS TOTALLY UNNECESSARY.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/17}* Unnecessary, huh?',
+                    "<25>{#f/7}* Without advanced math, we'd still be living in the dark ages!",
+                    "<18>{#p/papyrus}{#f/4}YEAH, I KNOW.\nI JUST DON'T LIKE SOLVING IT.",
+                    "<25>{#p/undyne}{#f/14}* Oh, no, I'm with you on that."
+                 ])
+         ],
+         () => [
+            '<18>{#p/papyrus}{#f/4}IF YOU WANT HELP WITH ADVANCED MATH...',
+            ...(solo()
+               ? [ '<18>{#f/0}JUST ASK DR. ALPHYS!!' ]
+               : [ '<25>{#p/undyne}{#f/1}* Just ask Dr. Alphys!!', '<18>{#p/papyrus}{#f/6}UH... YEAH, THAT!' ])
+         ]
+      ),
+      s_puzzle1: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}THIS ROOM IS NORMALLY BLOCKED BY THOSE LASERS.',
+            "<18>{#f/5}ALTHOUGH, WE'RE THINKING OF REMOVING THEM...",
+            '<18>{#f/4}THE KING RELEASED A MANDATE ON PUZZLES RECENTLY.',
+            '<18>{#f/4}HE SAYS LASERS ARE INEFFECTIVE AND HAZARDOUS TO KIDS.',
+            ...(solo()
+               ? [
+                    "<18>{#f/5}WHILE I DO THINK THEY'RE NEAT, PART OF ME AGREES...",
+                    "<18>{#f/5}I WOULDN'T WANT ANY KIDS GETTING HURT."
+                 ]
+               : [
+                    '<25>{#p/undyne}{#f/16}* Heh...',
+                    "<25>{#f/9}* That's such an Asgore thing to do.",
+                    '<18>{#p/papyrus}{#f/6}BUT WHAT ABOUT THE KIDS!?',
+                    "<25>{#p/undyne}{#f/1}* Yeah, I know.\n* He's probably right.",
+                    '<25>{#f/8}* But damn, those lasers were pretty fun growing up!',
+                    '<18>{#p/papyrus}{#f/4}OF COURSE YOU\'D FIND RISKING YOUR LIFE "FUN."',
+                    "<25>{#p/undyne}{#f/14}* Who wouldn't!",
+                    '<18>{#p/papyrus}{#f/6}UH, ME???'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}REMEMBER, SAFETY FIRST!' ]
+               : [
+                    "<18>{#p/papyrus}{#f/4}THERE'S A BIT OF A DIFFERENCE BETWEEN RISKING A LIFE...",
+                    '<18>{#f/7}AND NEEDLESSLY THROWING IT AWAY!'
+                 ]
+      ),
+      s_puzzle2: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}HMMM... THE SOLUTION TO THIS ONE...?',
+            '<18>{#f/5}I ACTUALLY JUST STEPPED OVER THE LASERS.',
+            '<18>{#f/0}THEREFORE, THE SOLUTION IS TO BE TALL AND HANDSOME!',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/8}* Meanwhile, my JETPACK and I are here...',
+                    '<18>{#p/papyrus}{#f/4}A JETPACK YOU ALMOST NEVER USE, MIND YOU.',
+                    "<25>{#p/undyne}{#f/17}* I don't have infinite energy reserves, Papyrus!"
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/4}I'M SOLVING IT AS WE SPEAK..." ]
+               : [ '<18>{#p/papyrus}{#f/4}HMM...', '<18>{#f/0}UNDYNE SHOULD PROBABLY INVEST IN A BATTERY.' ]
+      ),
+      s_jenga: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/5}AT FIRST, THIS PUZZLE'S OUTCOME DISAPPOINTED ME...",
+            '<18>{#f/4}BUT THEN I REALIZED...',
+            '<18>{#f/0}THE CHANCES OF WHAT HAPPENED WERE SO LOW...',
+            '<18>{#f/0}...THAT WE MAY BE THE ONLY ONES TO EVER SEE IT!',
+            '<18>{#f/0}HOW LUCKY YOU MUST FEEL RIGHT NOW.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/5}* Hey, gambling is really bad for you, YOU KNOW THAT RIGHT?',
+                    "<18>{#p/papyrus}{#f/4}WHY DOES SHE THINK I'M GAMBLING.",
+                    '<25>{#p/undyne}{#f/4}* Your time could be better spent doing things that matter!',
+                    '<25>{#f/5}* Like, uh...',
+                    '<25>{#f/3}* ...',
+                    '<18>{#p/papyrus}{#f/5}ARE YOU ALRIGHT?',
+                    '<25>{#p/undyne}{#f/16}* ...sorry, bad memory.',
+                    '<18>{#p/papyrus}{#f/5}I SEE.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}LUCK IS ON OUR SIDE TODAY, HUMAN!' ]
+               : [ '<18>{#p/papyrus}{#f/5}IT APPEARS LUCK IS NOT ON OUR SIDE AFTER ALL.' ]
+      ),
+      s_pacing: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}THE SENTRY STATION OF CANIS MINOR...',
+            "<18>{#f/4}THAT'S WHERE THOSE LOUD MOON ROCK SALESFOLK STAND.",
+            '<18>{#f/5}WHAT ARE MOON ROCKS MADE OF, ANYWAY?',
+            "<18>{#f/4}THEY CAN'T BE MADE OF MOONS, BECAUSE...",
+            '<18>{#f/7}MOONS ARE JUST BIG ROCKS ANYWAY!',
+            '<18>{#f/5}DOES THAT MEAN MOONS ARE MOON ROCKS THEMSELVES?',
+            '<18>{#f/5}WHERE DOES "MOON" END AND "MOON ROCK" BEGIN?',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* Serious question.',
+                    '<25>{#f/7}* Do you ever worry that you THINK too much??',
+                    '<18>{#p/papyrus}{#f/1}WH-\nTHINKING IS GOOD FOR THE BRAIN!',
+                    "<25>{#p/undyne}{#f/1}* But you don't actually have a brain.",
+                    '<25>{*}{#f/1}* You have a- {%}',
+                    '<18>{#p/papyrus}{#f/7}YES, YES, I KNOW!\nSANS HAS REMINDED ME PLENTY.',
+                    '<18>{#f/4}YOU SEE, HUMAN...',
+                    "<18>{#f/4}WE MONSTERS DON'T REALLY USE BRAINS TO THINK.",
+                    "<18>{#f/0}IT'S MORE LIKE... A SOUL THING.",
+                    '<25>{#p/undyne}{#f/8}* As opposed to a SKULL thing.',
+                    '<18>{#p/papyrus}{#f/7}OH MY GOD!!!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}PERHAPS US MORTALS ARE NOT WORTHY OF SUCH KNOWLEDGE.' ]
+               : [ "<18>{#p/papyrus}{#f/4}YOU KNOW IT'S BAD WHEN UNDYNE STARTS MAKING PUNS." ]
+      ),
+      s_puzzle3: pager.create(
+         'limit',
+         [ '<18>{#p/papyrus}{#f/7}...', '<18>{#f/5}...', "<18>{#f/4}LET'S NOT TALK ABOUT THIS PUZZLE." ],
+         () => [
+            '<18>{#p/papyrus}{#f/4}...',
+            ...(solo() ? [] : [ '<25>{#p/undyne}{#f/7}* HE SAID NOT TO TALK ABOUT IT, PUNK!!!' ])
+         ]
+      ),
+      s_greater: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}THE SENTRY STATION OF CANIS MAJOR...',
+            '<18>{#f/5}THAT DOG HAS A HEART OF GOLD- LADEN PLATINUM.',
+            '<18>{#f/4}IF ONLY I WAS IN THE ROYAL GUARD...',
+            "<18>{#f/0}I'D BE ABLE TO REPAY IT FOR ITS KINDNESS!",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* ...how so?',
+                    '<18>{#p/papyrus}WELL, IF I GO TO WORK WITH HIM EVERY DAY...',
+                    '<18>{#f/0}I CAN BE A MORE POSITIVE PRESENCE!',
+                    '<25>{#p/undyne}{#f/9}* ...',
+                    "<25>{#f/16}* You're making me reconsider some decisions.",
+                    '<18>{#p/papyrus}{#f/6}LIKE... WHAT?',
+                    '<25>{#p/undyne}{#f/17}* ...',
+                    "<25>{#p/undyne}{#f/17}* I'll let you know when I figure it out!!",
+                    '<18>{#p/papyrus}OKAY!!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}SOMETIMES, I FEEL LIKE UNDYNE TREATS ME LIKE A CHILD.' ]
+               : [
+                    '<18>{#p/papyrus}{#f/4}SOMETIMES, I FEEL LIKE...',
+                    '<25>{#p/undyne}{#f/20}* Feel like what...?',
+                    '<18>{#p/papyrus}{#f/4}UH, NEVER MIND.',
+                    '<25>{#p/undyne}{#f/11}* ...',
+                    "<18>{#p/papyrus}{#f/6}I SWEAR, IT'S NOTHING!",
+                    '<25>{#p/undyne}{#f/16}* If you say so...'
+                 ]
+      ),
+      s_bridge: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}REMEMBER THE "GAUNTLET OF DEADLY TERROR?"',
+            '<18>{#f/5}AS MUCH AS I WANTED TO USE IT...',
+            '<18>{#f/5}LIFE HAS TAUGHT ME TO AVOID PUTTING OTHERS IN DANGER.',
+            ...(solo()
+               ? [ "<18>{#f/0}IT'S FOR THE BEST.\nREALLY." ]
+               : [
+                    '<25>{#p/undyne}{#f/18}* Something you wanna talk about?',
+                    '<18>{#p/papyrus}{#f/5}YOU ALREADY KNOW WHY I LEARNED THAT LESSON.',
+                    '<25>{#p/undyne}{#f/18}* Oh.\n* Yeah...',
+                    "<18>{#p/papyrus}{#f/6}BUT HEY, AT LEAST THEY'RE STILL ALIVE...",
+                    '<25>{#p/undyne}{#f/12}* Heh, yeah.'
+                 ])
+         ],
+         [ '<18>{#p/papyrus}{#f/5}SOME TRAPS ARE BETTER LEFT UNSPRUNG.' ]
+      ),
+      s_town1: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}STARTON TOWN: THE NORTH SIDE!',
+            "<18>{#f/4}I DON'T REALLY SPEND MUCH TIME THERE.",
+            '<18>{#f/5}SANS, ON THE OTHER HAND...',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/17}* Oh, I know.\n* I've SEEN him slacking at the bar.",
+                    '<18>{#p/papyrus}{#f/4}TELL ME ABOUT IT...',
+                    "<18>{#f/6}...ACTUALLY, DON'T TELL ME ABOUT IT!",
+                    "<18>{#f/6}I DON'T EVEN WANT TO KNOW!"
+                 ])
+         ],
+         () => [
+            "<18>{#p/papyrus}DON'T WORRY!\nLAST I CHECKED, HE'S AT HOME.",
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/5}* When it comes to Sans, that doesn't really confirm anything.",
+                    '<18>{#p/papyrus}{#f/4}OH.\nYEAH, HIM AND HIS "SHORTCUTS."',
+                    '<18>{#f/5}I SUPPOSE IT IS WHAT IT IS...'
+                 ])
+         ]
+      ),
+      s_town2: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}STARTON TOWN: THE SOUTH SIDE!',
+            '<18>{#f/4}OR AS I LIKE TO CALL IT...',
+            '<18>{#f/9}THE SUPERIOR SIDE!',
+            "<18>{#f/0}THAT'S BECAUSE I LIVE THERE.",
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/5}* Are you just saying that because you don't like Grillby's?",
+                    '<18>{#p/papyrus}{#f/4}MAYBE IN THE PAST, BUT...',
+                    "<18>{#f/0}WELL, MAYBE THE NORTH SIDE ISN'T SO BAD AFTER ALL."
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    "<18>{#p/papyrus}{#f/4}IT'S NO WONDER A FRIENDLY GHOST PUT THEIR SHOP HERE.",
+                    "<18>{#f/9}WHO WOULDN'T WANT TO BE IN PROXIMITY OF SUCH GREATNESS?"
+                 ]
+               : [
+                    "<18>{#p/papyrus}{#f/5}DANG... IT'S A SHAME THEY HAD TO SPLIT THE TOWN.",
+                    '<18>{#p/papyrus}{#f/4}SEEMS A MONSTER- MADE LANDMASS THAT SIZE WAS TOO MUCH.'
+                 ]
+      ),
+      s_battle: pager.create(
+         'limit',
+         () => [
+            world.population === 0 && !world.bullied
+               ? '<18>{#p/papyrus}{#f/9}STANDING AT THE SITE OF YOUR EPIC REDEMPTION ARC?'
+               : '<18>{#p/papyrus}{#f/9}STANDING AT THE SITE OF OUR LEGENDARY BATTLE?',
+            "<18>{#f/0}NO, NO, GO AHEAD.\nIT'S A PLACE OF HISTORICAL VALUE.",
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/7}* Don't admire the view for too long, punk!",
+                    "<25>{#f/8}* You've still gotta admire the site of OUR epic battle!",
+                    '<18>{#p/papyrus}{#f/6}HOW MANY LEGENDARY BATTLES HAVE THEY BEEN IN?',
+                    '<25>{#p/undyne}{#f/12}* Possibly... too many.',
+                    '<25>{#p/undyne}{#f/8}* OR NOT ENOUGH!!!',
+                    "<18>{#p/papyrus}{#f/9}YEAH, NOW THAT'S MORE LIKE IT!"
+                 ])
+         ],
+         [ "<18>{#p/papyrus}{#f/4}I'M PETITIONING TO HAVE THIS PLACE PRESERVED." ]
+      ),
+      s_grillbys: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/5}OH... GRILLBY'S...",
+            '<18>{#f/5}I DESPISED THAT PLACE ONCE.',
+            '<18>{#f/0}BUT THESE DAYS, THEIR FOOD HAS IMPROVED.',
+            '<18>{#f/4}AND, MOST IMPORTANTLY...',
+            '<18>{#f/1}THEY FINALLY FIXED THE JUKEBOX!!!',
+            '<18>{#f/0}I KNOW!!\nCRAZY, RIGHT??',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/8}* Oh, I KNOW!!!',
+                    "<25>{#f/1}* That thing's been broken since before I was BORN.",
+                    '<18>{#p/papyrus}{#f/4}YEAH...'
+                 ])
+         ],
+         () => [
+            '<18>{#p/papyrus}{#f/4}TRACK THREE IS MY PERSONAL FAVORITE.',
+            ...(solo() ? [] : [ "<25>{#p/undyne}{#f/8}* Mine's track four!" ])
+         ]
+      ),
+      s_backrooms: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/4}PART OF THE REASON GRILLBY'S FOOD IMPROVED...",
+            '<18>{#f/4}HAS TO DO WITH THE USE OF REPLICATION TECHNOLOGY.',
+            '<18>{#f/0}OF COURSE, THAT MADE THE KITCHEN OBSOLETE.',
+            '<18>{#f/5}NOW, THAT AREA IS JUST USED TO PLAY CARD GAMES...',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* Speaking of, how is Canis Minor doing?',
+                    "<18>{#p/papyrus}{#f/4}OH, THEY'RE FINE, UNDYNE.",
+                    '<18>{#f/4}THEY SEEM TO HAVE THEIR OWN AGENDA FOR LIFE.',
+                    '<18>{#f/0}INVOLVING LOTS OF CARD GAMES!\nAND HEADPATS!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/5}IS CANIS MINOR STILL IN THERE...?' ]
+               : [ "<18>{#p/papyrus}{#f/0}DOGS AND CARD GAMES... WHO'D HAVE THUNK IT!" ]
+      ),
+      s_bonehouse: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}WHAT BETTER PLACE TO BE THAN MY HOUSE!',
+            "<18>{#f/0}IT'S PRACTICALLY THE ONLY PLACE I FEEL AT HOME.",
+            ...(solo()
+               ? []
+               : [ "<25>{#p/undyne}{#f/8}* Well, obviously, it's your HOUSE after all!", '<18>{#p/papyrus}YEAH!!!' ])
+         ],
+         () => [
+            "<18>{#p/papyrus}DON'T YOU FEEL AT HOME HERE?",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* Actually, where DO humans live??',
+                    '<25>{#p/undyne}{#f/8}* I heard that Earth is a decaying mess, although it was only a rumor.',
+                    '<18>{#p/papyrus}{#f/4}HONESTLY, HUMANS COULD BE FROM ANYWHERE NOWADAYS.'
+                 ])
+         ]
+      ),
+      s_papyrusroom: pager.create(
+         'limit',
+         () =>
+            save.data.n.plot_date < 1.1
+               ? [
+                    '<18>{#p/papyrus}WOW, IT ONLY TOOK YOU FOUR SECONDS TO CALL ME!!',
+                    '<18>YOU MUST BE VERY DESPERATE FOR MY HELP!!!',
+                    "<18>{#f/9}WELL, DO NOT FEAR!\nTHIS IS PAPYRUS'S HOTFUL HELPLINE!",
+                    '<18>{#f/4}JUST DESCRIBE YOUR LOCATION, AND...!',
+                    '<18>{#f/6}I WILL DESCRIBE SOME HOT TIPS!',
+                    '<18>{#f/0}SO, WHERE ARE YOU?',
+                    '<18>{#f/4}...',
+                    "<18>{#f/5}YOU'RE STILL IN MY ROOM??",
+                    '<18>{#f/6}...',
+                    '<18>{#f/6}HAVE YOU HEARD OF SOMETHING CALLED A... DOOR?',
+                    "<18>{#f/0}WAIT, DON'T WORRY!\nI'LL DRAW A DIAGRAM FOR YOU!"
+                 ]
+               : save.data.n.plot_date < 1.2
+               ? [
+                    "<18>{#p/papyrus}{#f/1}WHAT?? I THOUGHT YOU'D LEFT MY ROOM!",
+                    "<18>{#f/4}WE'LL HAVE TO START OVER FROM SQUARE ONE...",
+                    '<18>{#f/0}FIRST, DO YOU KNOW WHO PAPYRUS IS!?'
+                 ]
+               : [
+                    '<18>{#p/papyrus}{#f/4}SO YOU CAME BACK TO MY ROOM...',
+                    "<18>{#f/0}JUST COULDN'T STAY AWAY FOR LONG, HUH?",
+                    "<18>{#f/0}THAT'S OKAY.",
+                    ...(solo()
+                       ? []
+                       : [
+                            '<25>{#p/undyne}{#f/1}* Hey, maybe you could come over to...',
+                            '<25>{#f/17}* Wait, no, my house went up in flames.',
+                            '<25>{#f/8}* Never mind!'
+                         ])
+                 ],
+         () =>
+            save.data.n.plot_date < 1.1
+               ? [ "<18>{#p/papyrus}{#f/6}HOLD UP!\nI'M STILL DRAWING!" ]
+               : save.data.n.plot_date < 1.2
+               ? [ '<18>{#p/papyrus}{#f/1}DO I KNOW WHO PAPYRUS IS!?' ]
+               : [
+                    "<18>{#p/papyrus}{#f/4}MAYBE WHILE YOU'RE THERE...",
+                    '<18>{#f/4}YOU CAN FIGURE OUT WHERE THAT BANNER CAME FROM.',
+                    ...(solo()
+                       ? []
+                       : [
+                            '<25>{#p/undyne}{#f/1}* What, the skull and crossbones banner?',
+                            "<18>{#p/papyrus}YEAH, THERE'S SOMETHING OFF ABOUT THAT THING.",
+                            "<18>{#f/4}I CAN'T QUITE PUT MY FINGERBONE ON IT, THOUGH..."
+                         ])
+                 ]
+      ),
+      s_innterior: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}THE INN'S A GREAT PLACE TO STAY.",
+            ...(solo()
+               ? [ '<18>I ESPECIALLY LOVE THE PHOTO ON THE WALL...', '<18>{#f/5}I FEEL... CONNECTED TO IT, SOMEHOW.' ]
+               : [
+                    '<25>{#p/undyne}{#f/14}* Oh yeah, the reception lady is really nice!',
+                    "<25>{#f/14}* And she's a big monster history buff!"
+                 ])
+         ],
+         () => [
+            '<18>{#p/papyrus}{#f/5}DO YOU EVER WONDER WHAT LIFE WAS LIKE BEFORE THE WAR?',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/10}* Honestly, Papyrus?',
+                    '<25>{#f/16}* It was pretty good.',
+                    '<25>{#f/1}* Gerson and Asgore could both tell you countless stories...',
+                    "<25>{#f/12}* Knowing you, it'd make for a hundred great bedtimes!",
+                    '<18>{#p/papyrus}WITHOUT DOUBT!'
+                 ])
+         ]
+      ),
+      s_beddinng: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}GROWING UP, SANS USED READ ME BEDTIME STORIES.',
+            '<18>HAVE YOU EVER HEARD OF "GENEROUS MONSTER?"',
+            '<18>{#f/8}SANS READ IT TO ME LAST NIGHT, AND I...!',
+            '<18>{#f/6}I CRIED...',
+            ...(solo()
+               ? [ '<18>{#f/5}THE ENDING WAS JUST TOO MUCH...' ]
+               : [
+                    "<25>{#p/undyne}{#f/1}* Hey, crying's not a bad thing.",
+                    '<18>{#p/papyrus}{#f/5}I KNOW...',
+                    '<18>{#p/papyrus}{#f/5}BUT... STILL!'
+                 ])
+         ],
+         [ '<18>{#p/papyrus}{#f/8}IT WAS A SAD STORY, OKAY??' ]
+      ),
+      s_librarby: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}I LOVE THE LIBRARBY.',
+            '<18>{#f/0}THE BOOKS ARE ALL ARRANGED BY COLOR!',
+            ...(solo() ? [] : [ '<25>{#p/undyne}{#f/8}* Perfectly good reason to love a librarby!' ])
+         ],
+         [ '<18>{#p/papyrus}TELL ME, WHAT\'S A "LIBRARBY CARD?"' ]
+      ),
+      s_exit: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}CAREFUL, THAT'S THE FOUNDRY ENTRANCE.",
+            '<18>{#f/4}ONLY DARKNESS AWAITS YOU IN THAT FORSAKEN PLACE.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* Ha, no argument from me.',
+                    '<25>{#f/8}* Half the time I just use my jetpack as a flashlight!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}DID I SAY THE FOUNDRY WAS DARK?\nBECAUSE IT IS.' ]
+               : [
+                    "<18>{#p/papyrus}IF I'VE LEARNED ONE THING FROM UNDYNE...",
+                    "<18>{#f/0}IT'S THAT JETPACKS ARE PRETTY NEATO, ACTUALLY.",
+                    '<25>{#p/undyne}{#f/1}* Anything you can do in a shuttle, you can do faster in a jetpack!',
+                    '<25>{#f/8}* AND IT LOOKS COOLER!!'
+                 ]
+      ),
+      f_start: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}SO YOU'RE IN THE FOUNDRY NOW.",
+            '<18>{#f/4}YOU SHOULD WATCH YOURSELF IN THERE...',
+            '<18>{#f/0}THOSE STEAM VENTS ARE UNWIELDY.',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/17}* Steam??\n* That's what you're worried about??",
+                    '<25>{#f/8}* I used to swing on the pipes like they were monkey bars!',
+                    "<18>{#p/papyrus}{#f/6}UNDYNE, NO!\nDON'T ENCOURAGE THEM FURTHER!!"
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/6}A SKELETON CAN ONLY TAKE SO MUCH HEAT!' ]
+               : [ '<18>{#p/papyrus}{#f/6}A SKELETON CAN ONLY TAKE SO MUCH ACTION!' ]
+      ),
+      f_sans: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}MY BROTHER HAS A STATION HERE.',
+            '<18>{#f/4}YES, HE MANS TWO STATIONS AT ONCE.',
+            "<18>{#f/0}AMAZING, ISN'T HE?",
+            '<18>{#f/7}HE SLACKS OFF TWICE AS MUCH AS NORMAL!!',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/17}* Hey, at least he's keeping watch, right??",
+                    "<18>{#p/papyrus}{#f/6}UNDYNE, NO!\nDON'T ENCOURAGE THEM FURTHER!!"
+                 ])
+         ],
+         [ '<18>{#p/papyrus}{#f/6}NORMAL FOLKS CAN ONLY DREAM OF SUCH SLOTH...' ]
+      ),
+      f_corridor: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}WHAT'S IN YOUR DIMENSIONAL BOX?",
+            "<18>{#f/4}ACTUALLY, DON'T TELL ME.",
+            "<18>{#f/7}THAT'D BE A BLATANT VIOLATION OF YOUR PRIVACY!",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/8}* Wait, no!\n* I wanna know!',
+                    "<25>{#f/17}* You!\n* What've you been hiding, punk!?",
+                    '<18>{#p/papyrus}{#f/6}UNDYNE, NO!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}...AT LEAST TELL ME IT\'S NOT "DOG RESIDUE."' ]
+               : [
+                    '<18>{#p/papyrus}{#f/6}ER, SORRY ABOUT THAT...',
+                    "<18>{#f/0}UNDYNE DOESN'T ACTUALLY WANT TO STEAL YOUR STUFF.",
+                    "<25>{#p/undyne}{#f/12}* Me? Stealing?\n* Pfft, I dunno what you're talking about!",
+                    "<18>{*}{#p/papyrus}SEE?\nSHE'S NOT- {%}",
+                    "<25>{#p/undyne}{#f/17}* I'd only steal from someone who ISN'T the nicest punk around!",
+                    '<18>{#p/papyrus}{#f/1}UNDYNE!!!'
+                 ]
+      ),
+      f_armor: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}"BEWARE OF SLEEPING DOGS."',
+            '<18>AN OMINOUS WARNING, BUT...',
+            '<18>WHO MIGHT THIS DOG POSSIBLY BE?',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/1}* Well, duh... it's Doge!\n* One of my top guards.",
+                    '<25>{#f/16}* Well, WAS one of my top guards.',
+                    '<25>{#f/9}* ...\n* I think I went a bit too hard on her.',
+                    "<18>{#p/papyrus}HEY, DON'T BEAT YOURSELF UP OVER IT.",
+                    '<18>YOU CAN JUST APOLOGIZE TO HER LATER!',
+                    "<25>{#p/undyne}{#f/16}* Heh... it's gonna take a bit more than a simple apology."
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}MAYBE IT'S THAT PESKY CANINE WHO HANGS BY MY HOUSE." ]
+               : [
+                    "<18>{#p/papyrus}{#f/5}IF I WERE YOU, I'D BE SURE TO TALK THINGS OUT.",
+                    "<25>{#p/undyne}{#f/12}* Yeah, that's the plan!",
+                    '<18>{#p/papyrus}{#f/0}GOOD!'
+                 ]
+      ),
+      f_doge: () => [
+         '<18>{#p/papyrus}{#f/3}UGH... ANYWHERE BUT THAT CREEPY HALLWAY.',
+         ...(solo()
+            ? []
+            : [
+                 "<25>{#p/undyne}{#f/3}* What's so creepy about it?",
+                 "<18>{#p/papyrus}{#f/5}THAT ILLUSTRATION...\nIT'S SO...",
+                 '<18>{#f/5}JUST... NO.'
+              ])
+      ],
+      f_puzzle1: pager.create('limit', () =>
+         save.data.n.plot < 48
+            ? [
+                 '<18>{#p/papyrus}{#f/0}WATCH OUT FOR THE ANCIENT HUMAN PYLON PUZZLES!',
+                 '<18>THOUGH RUDIMENTARY IN THEIR METHOD OF CONSTRUCTION...',
+                 '<18>THEIR DESIGN IS NOTHING SHORT OF PERPLEXING!'
+              ]
+            : [
+                 "<18>{#p/papyrus}{#f/4}SO, HOW'D YOU FARE WITH THE PYLON PUZZLES?",
+                 '<18>{#f/5}I STRUGGLED WITH THEM GREATLY.',
+                 ...(solo()
+                    ? []
+                    : [
+                         "<25>{#p/undyne}{#f/1}* They weren't built by monsters, so it actually makes sense.",
+                         '<25>{#f/8}* Makes me wonder if the human struggles on monster-made puzzles!'
+                      ])
+              ]
+      ),
+      f_quiche: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/5}AM I THE ONLY ONE WHO FINDS IT ODD...',
+            '<18>THAT A RANDOM BENCH SITS HERE?',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/3}* Actually, you're not the only one.",
+                    '<25>{#f/8}* Why IS there just a bench there?',
+                    "<18>{#p/papyrus}{#f/4}I DOUBT WE'LL EVER KNOW.",
+                    "<25>{#p/undyne}{#f/16}* Yeah...\n* You're probably right."
+                 ])
+         ],
+         [ '<18>{#p/papyrus}{#f/4}BEWARE OF OUT OF PLACE OBJECTS.\nESPECIALLY HERE.' ]
+      ),
+      f_puzzle2: pager.create('limit', () =>
+         save.data.n.plot < 48
+            ? [ '<18>{#p/papyrus}{#f/0}THIS PUZZLE IS JUST LIKE THE LAST ONE, BUT WORSE.', '<18>{#f/8}SOMEONE SAVE US!' ]
+            : [
+                 "<18>{#p/papyrus}{#f/4}SO, HOW'D YOU FARE WITH THE PYLON PUZZLES?",
+                 '<18>{#f/5}I STRUGGLED WITH THEM GREATLY.',
+                 ...(solo()
+                    ? []
+                    : [
+                         "<25>{#p/undyne}{#f/1}* They weren't built by monsters, so it actually makes sense.",
+                         '<25>{#f/8}* Makes me wonder if the human struggles on monster-made puzzles!'
+                      ])
+              ]
+      ),
+      f_story1: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}SIGNAL STARS ARE PRETTY NEAT, HUH?',
+            '<18>THOUGH, THEY ONLY RESET PERIODICALLY.',
+            '<18>UNTIL THEN, ONLY A SINGLE MESSAGE IS SAVED.',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/10}* So that's why messages to Alphys haven't been getting through.",
+                    '<25>{#f/7}* Damn!'
+                 ])
+         ],
+         [ "<18>{#p/papyrus}{#f/4}THIS PHONE CALL PROBABLY WON'T BE RECORDED." ]
+      ),
+      f_prechase: pager.create('limit', () =>
+         save.data.n.plot < 37.11
+            ? []
+            : save.data.n.plot < 48
+            ? [
+                 '<18>{#p/papyrus}THERE USED TO BE A BRIDGE HERE, BUT IT COLLAPSED.',
+                 '<18>HOPEFULLY THEY BUILD A NEW ONE SOON...',
+                 '<18>{#f/6}RIDING A FLIMSY FLOATING PLATFORM IS NERVEWRACKING!'
+              ]
+            : [
+                 "<18>{#p/papyrus}I HEARD THERE'S A NEW BRIDGE HERE!",
+                 '<18>THANK HEAVENS...',
+                 '<18>I WAS GETTING TIRED OF THAT FLOATING PLATFORM.',
+                 ...(solo()
+                    ? []
+                    : [
+                         "<25>{#p/undyne}{#f/8}* What's so bad about a floating platform!?",
+                         "<18>{#p/papyrus}{#f/4}YOU HAVE A JETPACK, SO YOU CAN'T FALL OFF.",
+                         '<18>{#f/6}I HAVE NO SUCH GUARUNTEES!',
+                         '<25>{#p/undyne}{#f/1}* Oh, come on, the gravity on that thing was secure.',
+                         "<18>{#p/papyrus}{#f/6}I'LL BELIEVE IT WHEN I SEE IT!",
+                         "<18>{#f/4}WHICH I WON'T EVER DO, BECAUSE...",
+                         '<18>{#f/0}THE BRIDGE IS BACK IN PLACE, THANKS TO THOSE WORKERS.'
+                      ])
+              ]
+      ),
+      f_chase: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/4}THE FIRST TIME I SAW THIS ROOM, I WAS... AMAZED.',
+            "<18>{#f/6}SO MUCH SO, THAT I COULDN'T FIND MY WAY OUT!",
+            '<18>{#f/5}NOT TO MENTION THE TRAPS...',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* Oh yeah, I forgot about those things.',
+                    "<25>{#p/undyne}{#f/14}* Most people know the way through, though, so it's altight.",
+                    '<18>{#p/papyrus}{#f/4}THIS SEEMS LIKE A RECIPE FOR DISASTER.',
+                    "<25>{#p/undyne}{#f/8}* Hey, at least it's fun!",
+                    '<18>{#p/papyrus}{#f/6}FUN!?!?'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#f/5}I FIND IT BEST TO STEER CLEAR OF SCARY MAZE GAMES.' ]
+               : [
+                    "<25>{#p/undyne}{#f/12}* There used to be a lot more, actually.\n* It's not what it was.",
+                    '<18>{#p/papyrus}{#f/4}HOW MUCH MORE?',
+                    '<25>{#p/undyne}{#f/9}* ...\n* Many more.',
+                    '<18>{#p/papyrus}{#f/5}HOW MANY?',
+                    '<25>{#p/undyne}{#f/16}* Very.',
+                    '<18>{#p/papyrus}{#f/6}HOW VERY??',
+                    '<25>{#p/undyne}{#f/7}* Knock it off!'
+                 ]
+      ),
+      f_entrance: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}YOU'RE AT THE ENTRANCE TO WHAT'S KNOWN AS...",
+            '<18>{#f/9}THE "DARK ZONE."',
+            "<18>{#f/4}IT'S CALLED THAT BECAUSE THE WALLS ARE VERY DARK.",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* You can thank Asgore for that brilliancy in naming.',
+                    '<25>{#p/undyne}{#f/8}* He always has the BEST names for things!',
+                    '<18>{#p/papyrus}{#f/9}IF BY "BEST" YOU MEAN MOST OBVIOUS, THEN YES!',
+                    '<25>{#p/undyne}{#f/8}* What!?',
+                    "<18>{#p/papyrus}{#f/0}IT'S A QUALITY OF HIS I APPRECIATE.",
+                    '<25>{#p/undyne}{#f/3}* Oh.',
+                    '<18>{#p/papyrus}{#f/0}HE MAKES THINGS EASY TO UNDERSTAND.',
+                    '<25>{#p/undyne}{#f/1}* I see.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    "<18>{#p/papyrus}{#f/6}IT'S ALSO JUST VERY DARK IN GENERAL.",
+                    "<18>{#p/papyrus}{#f/6}SO THERE'S THAT."
+                 ]
+               : [ "<18>{#p/papyrus}{#f/0}AREN'T THINGS BETTER WHEN YOU UNDERSTAND THEM?" ]
+      ),
+      f_bird: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/9}THE MOST INFAMOUS.',
+            '<18>{#f/9}THE MOST FEARLESS.',
+            '<18>{#f/9}THE MOST BRAVESTEST.',
+            '<18>{#f/9}THE MONSTER.\nTHE MYTH.\nTHE LEGEND...',
+            "<18>{#f/9}IT'S THE YELLOW BIRD.",
+            ...(save.data.n.plot < 42
+               ? [
+                    '<18>{#f/9}...',
+                    '<18>{#f/4}...WAIT.',
+                    "<18>{#f/1}IT'S NOT THERE RIGHT NOW!?!?",
+                    '<18>{#f/8}HOW COULD THIS BE!!!'
+                 ]
+               : solo()
+               ? [ '<18>{#f/4}...NOT LIKE WE HAVE ANY OTHER WAY TO CROSS THE GAP.' ]
+               : [
+                    '<25>{#p/undyne}{#f/1}* That bird will carry anyone past the gap.\n* It NEVER says no.',
+                    '<25>{#f/16}* When I was younger, it gave me a lift.\n* It took an hour...',
+                    '<25>{#f/17}* But this bird NEVER once thought of giving up!!!',
+                    '<25>{#f/1}* Cherish this bird.'
+                 ])
+         ],
+         () =>
+            save.data.n.plot < 42
+               ? [
+                    "<18>{#p/papyrus}{#f/8}I DON'T UNDERSTAND LIFE ANYMORE!",
+                    '<18>{#f/8}HOW COULD THE ONE AND ONLY YELLOW BIRD ABANDON US!'
+                 ]
+               : [
+                    '<18>{#p/papyrus}{#f/0}TRUST ME, THE GAP IS EVEN LONGER THAN IT SEEMS.',
+                    '<18>{#f/0}AND POSSIBLY NON- EUCLIDIAN.',
+                    ...(solo()
+                       ? []
+                       : [
+                            '<25>{#p/undyne}{#f/7}* What.',
+                            '<18>{*}{#p/papyrus}{#f/0}NON-EUCLIDIAN!\nYOU KNOW... THAT THING WHERE- {%}',
+                            "<25>{#p/undyne}{#f/1}* Sometimes I wonder why you aren't working at the lab."
+                         ])
+                 ]
+      ),
+      f_stand: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}LEGEND HAS IT...',
+            '<18>THE LOCAL ICE CREAM GUY HANDS OUT PUNCH CARDS.',
+            '<18>{#f/4}SOURCES SAY THESE "PUNCH CARDS" HAVE UNSPOKEN POWER...',
+            '<18>{#f/9}...TO UNLOCK MORE TASTY TREATS!',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/8}* And we love tasty treats!!',
+                    "<25>{#p/undyne}{#f/16}* Just, umm, don't eat too many in one go.",
+                    "<25>{#p/undyne}{#f/8}* You'd never hear the end of it from Alphys!!"
+                 ])
+         ],
+         () => [
+            "<18>{#p/papyrus}{#f/5}BRING ME A TREAT, WON'T YOU?",
+            ...(solo() ? [] : [ "<25>{#p/undyne}{#f/7}* And don't you dare leave me out!!" ])
+         ]
+      ),
+      f_abyss: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/4}WE LOOK UPON THIS WINDING PATH FULL OF SIGNAL STARS...',
+            '<18>{#f/4}AND WE DEEM IT "NORMAL."',
+            '<18>{#f/0}YOU KNOW WHAT ELSE IS "NORMAL?"',
+            '<18>{#f/0}THE FACT THAT THIS PHONE CALL EVEN GETS DOWN THERE!',
+            '<18>{#f/6}TOTALLY NORMAL!',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/1}* So you're saying that's NOT normal, right?",
+                    '<18>{#p/papyrus}{#f/4}RIGHT.',
+                    '<25>{#p/undyne}{#f/12}* Well done! You seem to be improving at sarcasm.',
+                    "<18>{#p/papyrus}{#f/9}I CAN'T WAIT TO USE IT ON MY BROTHER!",
+                    "<25>{#p/undyne}{#f/14}* Careful, he's the de- facto sarcasm wizard.",
+                    "<25>{#p/undyne}{#f/12}* If you want any chance of besting him, you've gotta train like crazy!",
+                    "<18>{#p/papyrus}{#f/4}OH, BELIEVE ME, UNDYNE, I'M READY.",
+                    "<25>{#p/undyne}{#f/8}* I hope you're not being sarcastic about that!"
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}IT\'S CALLED "SARCASM."', "<18>UNDYNE'S BEEN TEACHING IT TO ME." ]
+               : [ "<19>{#p/papyrus}{#f/4}SARCASM TRAINING'S -TOTALLY- THE EASIEST THING EVER." ]
+      ),
+      f_muffet: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}I WAS SURFING THE WEB THE OTHER DAY...',
+            "<18>{#f/0}TURNS OUT SPIDER SILK IS STRONGER THAN YOU'D THINK!",
+            '<18>{#f/6}WHICH WEB WAS I SURFING, YOU ASK?',
+            "<18>{#f/6}...\nYOU PROBABLY DON'T WANT TO KNOW.",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/17}* Papyrus, not again!',
+                    '<18>{#p/papyrus}{#f/4}WELL, YOU SEE...',
+                    '<18>{#p/papyrus}{#f/6}I WANTED TO KNOW WHERE THE LITTLE STRINGS WENT!',
+                    '<25>{#p/undyne}{#f/17}* That was your reason last time!',
+                    '<18>{#p/papyrus}{#f/6}BUT... CURIOSITY!',
+                    '<25>{#p/undyne}{#f/12}* Maybe leave the web-crawling to me, okay?'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/4}WELL... IT WASN'T THE INTERNET." ]
+               : [ "<18>{#p/papyrus}{#f/4}WELL... MAYBE IT'S SAFER TO RESEARCH FROM AFAR." ]
+      ),
+      f_shyren: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}I'VE HEARD A SHY MONSTER LIVES AROUND HERE.",
+            ...(solo()
+               ? [
+                    '<18>{#f/4}WELL, IF YOU WANT TO GET SOMEONE TO OPEN UP...',
+                    '<18>{#f/0}YOU SHOULD ENGAGE THEM IN COMBAT!'
+                 ]
+               : [
+                    "<25>{#p/undyne}{#f/1}* Oh, that'd be Shyren.",
+                    '<25>* I used to give her piano lessons...',
+                    '<25>{#f/14}* She was really talented for someone with no appendages.',
+                    '<25>{#f/16}* One day, though, she stopped coming to her lessons...',
+                    '<25>{#f/11}* How did her song go again...?'
+                 ])
+         ],
+         () => [ '<18>{#p/papyrus}{#f/0}HUM HUM HUM...', ...(solo() ? [] : [ '<25>{#p/undyne}{#f/12}* Hum hum hum...' ]) ]
+      ),
+      f_statue: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/4}A MYSTERIOUS STATUE...',
+            '<18>{#p/papyrus}{#f/4}I WONDER WHAT IT COULD BE FOR.',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/16}* That statue's been there forever...",
+                    '<25>{#p/undyne}{#f/9}* Nobody seems to know where it came from.'
+                 ])
+         ],
+         () => [
+            ...(solo()
+               ? [
+                    "<18>{#p/papyrus}{#f/4}IT'S A FACT OF LIFE...",
+                    '<18>{#p/papyrus}{#f/6}THE MYSTERIOUS STATUE IS MYSTERIOUS.'
+                 ]
+               : [ "<25>{#p/undyne}{#f/14}* It's got a cool music box, though." ])
+         ]
+      ),
+      f_piano: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}HUH!?\nARE YOU SERENADING ME!?',
+            "<18>{#f/1}NO!!!\nYOU'RE GONNA MAKE ME BLUSH!!!",
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/17}* Oh yeah, there's a puzzle there!",
+                    '<25>{#p/undyne}{#f/1}* Whoever built it must have great taste.',
+                    '<25>{#p/undyne}{#f/8}* FIGHTING THE IVORIES IS THE BEST!'
+                 ])
+         ],
+         () => [
+            "<18>{#p/papyrus}LET'S WRITE A MUSICAL ABOUT OUR ADVENTURES!",
+            ...(solo() ? [] : [ "<25>{#p/undyne}{#f/8}* I'm down to sing it!" ])
+         ]
+      ),
+      f_artifact: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}I DON'T THINK I'VE EVER BEEN IN THIS ROOM BEFORE.",
+            "<18>WHAT'S IT LIKE?\nARE THERE UNTOLD TREASURES ABOUND?",
+            '<18>{#f/4}FOR THE RECORD, THAT QUESTION WAS RHETORICAL.',
+            "<18>{#f/9}I'D RATHER FIND OUT FOR MYSELF!",
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/1}* Glad to see your sense of adventure hasn't gone away.",
+                    '<18>{#p/papyrus}{#f/9}OF COURSE NOT!\nI, THE GREAT PAPYRUS...',
+                    '<18>{#f/9}HAVE A SENSE OF ADVENTURE BEYOND COMPARE!',
+                    "<18>{#f/4}WELL, THAT'S NOT ENTIRELY TRUE.",
+                    '<18>{#f/4}SANS FINDS NEW WAYS OF EXPLORING THE COUCH DAILY.',
+                    '<25>{#p/undyne}{#f/17}* Oh.',
+                    "<25>{#p/undyne}{#f/8}* So that's why that thing is such a mess!!"
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/6}NO SPOILERS!!!' ]
+               : [
+                    "<18>{#p/papyrus}{#f/4}YOU'D BE AMAZED BY SANS'S MANY FEATS.",
+                    '<18>{#f/0}AND, BELIEVE IT OR NOT, NOT ALL OF THEM ARE BAD!',
+                    '<18>{#f/5}LIKE THAT TIME HE USED "SHORTCUTS" TO SAVE MY LIFE.',
+                    '<25>{#p/undyne}{#f/14}* The more you know, huh?'
+                 ]
+      ),
+      f_path: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}KEEP GOING, AND YOU'LL WITNESS THE CITADEL.",
+            "<18>{#f/5}YOU CAN'T NORMALLY SEE IT DUE TO SOME TIME-PHASING.",
+            '<18>{#f/4}BUT SOMETHING ABOUT THAT ONE ROOM...',
+            '<18>...MAKES IT POSSIBLE TO VIEW...',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* Could be one of those spatial anomalies.',
+                    '<18>{#p/papyrus}{#f/4}IF SO, THEN THE HUMAN BETTER BE CAREFUL.',
+                    "<25>{#p/undyne}{#f/12}* But I've been through there many times, and I never got stuck.",
+                    '<18>{#p/papyrus}{#f/7}JUST BE CAREFUL!'
+                 ])
+         ],
+         [ '<18>{#p/papyrus}NOT ALL SPATIAL ANOMALIES ARE MADE EQUAL, IT SEEMS.' ]
+      ),
+      f_view: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}YOU MUST BE A VERY GREAT MULTITASKER!',
+            "<18>{#f/4}IT'D TAKE ONE TO WANT TO CALL SOMEONE...",
+            '<18>{#f/4}WITH A VIEW LIKE THAT SITTING AHEAD OF THEM.',
+            ...(solo() ? [] : [ '<25>{#p/undyne}{#f/1}* Amen to that.' ])
+         ],
+         [
+            '<18>{#p/papyrus}{#f/7}WHAT ARE YOU DOING CALLING ME?',
+            "<18>{#p/papyrus}{#f/7}YOU'VE GOT FANCY STRUCTURES TO ADMIRE!"
+         ]
+      ),
+      f_plank: [
+         '<18>{#p/papyrus}{#f/0}THE SIGNAL IS WEAK FROM THERE.',
+         "<18>{#f/6}GO ANY FUTHER, AND I WON'T BE ABLE TO REACH YOU!",
+         "<18>{#f/0}CALL BACK WHEN YOU'RE NOT SO FAR OUT."
+      ],
+      f_dummy: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}DON'T LOOK PAST THE HIDDEN PATH...",
+            '<18>{#f/0}CLOSE YOUR EYES, WALK STRAIGHT...',
+            "<18>AND FACE THE TEMMIES' WRATH.",
+            "<18>{#f/4}IT'S A RIDDLE I'VE HEARD ABOUT THIS PLACE.",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/4}* A riddle about temmies?',
+                    '<25>{#p/undyne}{#f/7}* No riddle can locate THOSE guys!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/6}APPARENTLY, TEMMIES ARE RATHER HARD TO FIND.' ]
+               : [ '<18>{#p/papyrus}{#f/4}DO YOU KNOW HOW TO SOLVE THIS RIDDLE?' ]
+      ),
+      f_hub: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}IF YOU SEE A SHOP, YOU SHOULD STOP...',
+            '<18>{#f/4}DROP, AND ROLL...',
+            '<18>{#f/0}INTO SOME GREAT DEALS!!',
+            ...(solo()
+               ? [
+                    "<18>{#f/9}BECAUSE WE'RE HAVING A FIRE SALE!!",
+                    '<18>{#f/5}AT MY IMAGINARY STORE, WHICH SELLS FLAMES.'
+                 ]
+               : [
+                    "<25>{#p/undyne}{#f/1}* Like the ones at Gerson's shop?",
+                    "<25>{#f/17}* See, he's the toughest monster that ever lived.",
+                    '<25>{#f/16}* He fought in the war between humans and monsters...',
+                    "<25>{#f/1}* And yet, he survived!\n* He's a real hero.",
+                    '<18>{#p/papyrus}{#f/4}I WAS GOING TO SAY SOMETHING ELSE, BUT OKAY.',
+                    '<18>{#f/0}HOORAY FOR GERSON!'
+                 ])
+         ],
+         [ "<18>{#p/papyrus}{#f/5}IT'S YET ANOTHER A DREAM OF MINE." ]
+      ),
+      f_undyne: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}THAT'S UNDYNE'S HOUSE.",
+            ...(save.data.n.plot < 48 || world.trueKills > 0
+               ? [ "<18>{#f/0}IT'S THE IDEAL PLACE TO LEARN HOW TO COOK!" ]
+               : save.data.n.plot_date < 1.3
+               ? [ '<18>{#f/4}YOU KNOW, THE ONE WITH THE SKELETON IN FRONT.' ]
+               : save.data.n.plot_date < 2
+               ? [ "<18>{#f/9}DON'T HESITATE TO COME INSIDE!" ]
+               : save.data.n.plot_date < 2.1
+               ? [
+                    "<18>{#f/0}YOU'RE STILL AT UNDYNE'S HOUSE?",
+                    "<18>{#f/5}SHE, UH, HASN'T EVEN MET UP WITH ME YET.",
+                    '<18>{#f/4}MAYBE LEAVE THE ROOM AND...',
+                    '<18>{#f/1}... {%}',
+                    '<25>{#p/undyne}{#f/12}* Huff... puff...!',
+                    "<25>{#f/12}* YEAH!!!\n* That's MY HOUSE!!!",
+                    "<18>{#p/papyrus}{#f/6}UH, HI UNDYNE!\nHOW'D YOU GET HERE SO FAST?",
+                    '<25>{#p/undyne}{#f/17}I ran.',
+                    '<18>{#p/papyrus}{#f/1}WHAT??\nTHEN YOU MUST HAVE SOMETHING...',
+                    '<18>{#f/9}EXTREMELY COOL TO SAY ABOUT YOUR HOUSE!!!',
+                    '<25>{#p/undyne}{#f/14}* Nope!!!'
+                 ]
+               : [
+                    '<18>{#f/4}WELL, IT WAS, UNTIL...',
+                    '<25>{#p/undyne}{#f/12}* Yeah, we kinda blew it up.',
+                    '<25>{#f/8}* BUT WHO CARES??',
+                    '<25>{#f/8}* HANGING OUT WITH PAPYRUS IS JUST AS GOOD!'
+                 ])
+         ],
+         () =>
+            save.data.n.plot < 48 || world.trueKills > 0
+               ? [
+                    '<18>{#p/papyrus}{#f/0}PRO TIP WHEN COOKING WITH UNDYNE...',
+                    "<18>{#f/4}ONCE SHE STARTS POUNDING VEGGIES, IT'S TIME TO BAIL."
+                 ]
+               : save.data.n.plot_date < 1.3
+               ? [ '<18>{#p/papyrus}{#f/0}NICE TO SEE YOU, TOO!' ]
+               : save.data.n.plot_date < 2
+               ? [ "<18>{#p/papyrus}{#f/6}WE'RE STILL WAITING INSIDE, YOU KNOW..." ]
+               : save.data.n.plot_date < 2.1
+               ? [
+                    "<18>{#p/papyrus}{#f/0}DON'T WORRY, HUMAN.",
+                    "<18>{#f/0}I'M SURE SHE'LL COME UP WITH SOMETHING.",
+                    '<18>{#f/6}NO PRESSURE, OF COURSE!!!',
+                    '<25>{#p/undyne}{#f/12}* Not at all!'
+                 ]
+               : [
+                    '<18>{#p/papyrus}{#f/0}YOU MIGHT AS WELL CALL ME THE HANGOUT HANDYMAN!',
+                    '<18>{#f/4}I MAY NOT BE ABLE TO FIX YOUR HOUSE...',
+                    '<18>{#f/9}BUT I CAN STILL FIX YOUR DAY!',
+                    '<18>{#f/0}BY HANGING OUT, OF COURSE.'
+                 ]
+      ),
+      f_blooky: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}HEY, THAT'S WHERE NAPSTABLOOK LIVES.",
+            '<18>{#f/5}DESPITE FEELING SAD, THEY DECLINE OFFERS OF HELP...',
+            '<18>{#f/0}EXCEPT FOR WHEN THEY LET US BUILD A SNAIL PRESERVE!',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/12}* Oh yeah, they were really happy about that...',
+                    "<25>{#p/undyne}{#f/7}* But, uh, they haven't said much since."
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/0}THE SNAIL PRESERVE KEEPS THEM BUSY, AND LESS LONELY.',
+                    '<18>{#f/9}AN A-PLUS COMBINATION IF YOU ASK ME!'
+                 ]
+               : [
+                    "<18>{#p/papyrus}{#f/4}MAYBE THEY'RE JUST AFRAID OF YOU.",
+                    '<25>{#p/undyne}{#f/7}* Me??\n* Scary???',
+                    '<25>{#p/undyne}{#f/14}* Not a chance!'
+                 ]
+      ),
+      f_snail: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}HEY, THAT'S WHERE NAPSTABLOOK LIVES.",
+            '<18>{#f/5}DESPITE BEING SAD, THEY TURN DOWN OFFERS OF HELP...',
+            '<18>{#f/0}EXCEPT FOR WHEN THEY LET US BUILD A SNAIL PRESERVE!',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/12}* Oh yeah, they were really happy about that...',
+                    "<25>{#p/undyne}{#f/10}* But, uh, they haven't said much since."
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/0}THE SNAIL PRESERVE KEEPS THEM BUSY, AND LESS LONELY.',
+                    '<18>{#f/9}AN A-PLUS COMBINATION IF YOU ASK ME!'
+                 ]
+               : [
+                    "<18>{#p/papyrus}{#f/4}MAYBE THEY'RE JUST AFRAID OF YOU.",
+                    '<25>{#p/undyne}{#f/7}* Me??\n* Scary???',
+                    '<25>{#p/undyne}{#f/8}* Not a chance!'
+                 ]
+      ),
+      f_napstablook: pager.create(
+         'limit',
+         () =>
+            save.data.n.state_foundry_blookdate < 2
+               ? [
+                    "<18>{#p/papyrus}{#f/0}SO YOU'RE MAKING FRIENDS WITH A GHOST, HUH?",
+                    '<18>{#p/papyrus}{#f/4}IS THERE NOTHING BEYOND YOUR GRASP OF FRIENDSHIP?',
+                    '<18>{#p/papyrus}{#f/9}YOU SEEM TO HAVE A KNACK FOR IT!',
+                    ...(solo() ? [] : [ "<25>{#p/undyne}{#f/16}* ...I just hope they're feeling alright." ])
+                 ]
+               : [
+                    '<18>{#p/papyrus}{#f/4}HMM...',
+                    '<18>{#p/papyrus}{#f/4}WHY DO I HEAR BOSS MUSIC?',
+                    ...(solo()
+                       ? [
+                            '<18>{#p/papyrus}{#f/0}...SORRY, DID I SAY "BOSS" MUSIC?',
+                            '<18>{#p/papyrus}{#f/5}I MEANT "BOSSA NOVA."'
+                         ]
+                       : [
+                            "<25>{#p/undyne}{#f/8}* BECAUSE I'M HERE, SILLY!",
+                            '<18>{#p/papyrus}{#f/6}OH, RIGHT!\nYES, OF COURSE!',
+                            '<18>THAT EXPLAINS IT!!'
+                         ])
+                 ],
+         () =>
+            save.data.n.state_foundry_blookdate < 2
+               ? solo()
+                  ? [ '<18>{#p/papyrus}{#f/5}WATCH OUT FOR THE ECTOPLASM...' ]
+                  : [ '<18>{#p/papyrus}{#f/5}MAYBE... TRY NOT TO HURT THEIR FEELINGS.' ]
+               : solo()
+               ? [ '<18>{#p/papyrus}{#f/0}NAPSTABLOOK HAS TONS OF MUSIC ON THEIR STEREO.' ]
+               : [
+                    '<18>{#p/papyrus}{#f/0}BOSSY MUSIC FOR A BOSSY FISH LADY.',
+                    "<18>{#p/papyrus}{#f/0}MAKES SENSE, DOESN'T IT?"
+                 ]
+      ),
+      f_puzzle3: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/5}EMBARRASINGLY, I'VE NEVER SOLVED THIS PUZZLE.",
+            "<18>{#p/papyrus}{#f/4}THERE'S JUST... SOMETHING TWISTED ABOUT IT.",
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/11}* Wasn't it YOU who said no puzzle is too great for you?",
+                    '<18>{#p/papyrus}{#f/4}WHEN I SAID THAT, I WAS REFERRING TO FAIR PUZZLES.',
+                    '<18>THIS IS CLEARLY A VERY UNFAIR PUZZLE.',
+                    '<25>{#p/undyne}{#f/14}* I see.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    "<18>{#p/papyrus}{#f/5}IF YOU'RE TRYING TO SOLVE IT, THEN GOOD LUCK...",
+                    "<18>{#f/4}YOU'RE ON YOUR OWN."
+                 ]
+               : [ '<18>{#p/papyrus}{#f/6}WHEN IT COMES TO FAIRNESS, THERE -IS- A DIFFERENCE!' ]
+      ),
+      f_prespear,
+      f_spear: f_prespear,
+      f_corner: f_prespear,
+      f_story2: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}SIGNAL STARS ARE PRETTY NEAT, HUH?',
+            '<18>THOUGH, THEY ONLY RESET PERIODICALLY.',
+            '<18>UNTIL THAT HAPPENS...',
+            "<18>{#f/4}WAIT, ISN'T THERE ANOTHER ROOM LIKE THIS SOMEWHERE?",
+            ...(solo()
+               ? []
+               : [ '<25>{#p/undyne}{#f/1}* You tell me.', '<25>{#f/8}* I get lost in this place all the time!' ])
+         ],
+         [ "<18>{#p/papyrus}{#f/4}SOMETIMES I WONDER IF WE'RE ALL JUST GOING IN CIRCLES." ]
+      ),
+      f_pacing: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}THERE'S GENUINELY NOTHING TO SAY ON THIS HALLWAY.",
+            "<18>{#f/0}IT'S LITERALLY ONLY HERE TO MAKE YOU WALK FURTHER.",
+            '<18>{#f/4}TO MAKE IT SO THAT EVERY STEP TOWARDS THE EXIT...',
+            '<18>{#f/0}IS FILLED WITH UTTER, UNENDING SUSPENSE.',
+            ...(solo() ? [] : [ '<25>{#p/undyne}{#f/3}* ...', '<25>{#f/1}* You stole the words right outta my head.' ])
+         ],
+         [ '<18>{#p/papyrus}{#f/0}UTTER.\nUNENDING.\nSUSPENSE.' ]
+      ),
+      f_battle: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}FLOATING ABOVE THIS ROOM IS UNDYNE'S ASTEROID.",
+            "<18>{#f/0}SHE'S ALWAYS POSING ATOP IT...",
+            '<18>{#f/4}MUMBLING SOMETHING TO HERSELF...',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/12}* Ah, yeah, the "story of our people..."',
+                    '<25>{#f/1}* Despite all the rehearsal, I just ended up going off the cuff.',
+                    '<25>{#f/8}* But hey, the battle turned out awesome anyway!',
+                    "<25>{#f/12}* So, uh, I'd say it was worth it."
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/0}I THINK IT'S SOMETHING SHE HAS TO MEMORIZE." ]
+               : [ "<18>{#p/papyrus}{#f/0}A BATTLE'S MORE FUN WHEN IT'S UNSCRIPTED." ]
+      ),
+      f_exit: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}THIS FLUID TANK WAS SPECIFICALLY PUT HERE...',
+            '<18>{#f/0}BECAUSE A CERTAIN FISH LADY THINKS METAL ARMOR...',
+            '<18>{#f/4}AND STATICALLY- CHARGED SKYWAYS...',
+            "<18>{#f/4}WON'T CAUSE A MAJOR CATASTROPHE WHEN THEY TOUCH.",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/12}* I was in a hurry!',
+                    "<18>{#p/papyrus}{#f/4}YOU'VE BEEN IN A LOT OF HURRIES...",
+                    '<25>{#p/undyne}{#f/3}* ...'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/0}I ONLY HAVE ONE WORD FOR UNDYNE.',
+                    '<18>{#f/0}AND THAT WORD IS "WATCH WHERE YOU\'RE GOING."'
+                 ]
+               : [
+                    '<18>{#p/papyrus}{#f/0}NO HARD FEELINGS!',
+                    "<25>{#p/undyne}{#f/12}* Pfft, wasn't worried for a second!"
+                 ]
+      ),
+      a_start: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}SO YOU'RE IN AERIALIS NOW, HUH?",
+            "<18>{#p/papyrus}{#f/0}GUESS I'M NOT THE ONLY ONE WHO LIKES DECORATIVE SPIRES.",
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/17}* Those aren't just for decoration, Papyrus!",
+                    "<25>{#p/undyne}{#f/12}* They're people's homes!",
+                    '<18>{#p/papyrus}{#f/4}FOR HOUSES, THEY DO SEEM A LITTLE EXTRAVAGANT.',
+                    '<25>{#p/undyne}{#f/14}* ...fair point.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/0}THE ONE IN THE MIDDLE IS MY FAVORITE.' ]
+               : [
+                    "<18>{#p/papyrus}{#f/0}MAYBE ONE DAY I'LL GET TO LIVE IN A SPIRE HOUSE.",
+                    '<25>{#p/undyne}{#f/15}* And eat spire food...',
+                    '<18>{#p/papyrus}{#f/0}HUH?',
+                    '<25>{#p/undyne}{#f/7}* Nothing!!!',
+                    '<18>{#p/papyrus}{#f/1}OKAY!!!!!!'
+                 ]
+      ),
+      a_lab_entry: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}AH, THE LAB.\nA GREAT PLACE TO HANG OUT!',
+            '<18>{#p/papyrus}{#f/0}ESPECIALLY WHEN ALPHYS IS AROUND.',
+            ...(solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/4}SHE REALLY LOVES TALKING ABOUT "SCI-FI" STUFF...',
+                    "<18>{#p/papyrus}{#f/9}SO IT'S A GOOD THING I DO TOO!"
+                 ]
+               : [ '<25>{#p/undyne}{#f/15}* Alphys...' ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}SHE DOES HAVE A HABIT OF SPOILING THINGS, THOUGH.' ]
+               : [ "<18>{*}{#p/papyrus}{#f/0}I'M STARTING TO THINK UNDYNE HAS A CR- {%}", '<25>{#p/undyne}{#f/17}No.' ]
+      ),
+      a_lab_main: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/4}THE LAST TIME I WAS HERE...',
+            solo()
+               ? '<18>{#p/papyrus}{#f/0}...WAS EARLIER IN THE WEEK, TO HANG OUT WITH ALPHYS!'
+               : '<18>{#p/papyrus}{#f/0}...WAS EARLIER TODAY, ON OUR WAY TO THE REC CENTER!',
+            '<18>{#p/papyrus}{#f/4}BUT WHEN I WAS YOUNGER, SANS USED TO TAKE ME THERE.',
+            '<18>{#p/papyrus}{#f/5}SO MANY SCIENTIFIC MARVELS TO BE FOUND IN A LAB...',
+            "<18>{#p/papyrus}{#f/6}IT'S A SHAME MORE PEOPLE DON'T TAKE AN INTEREST!",
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/14}* They just don't get it like you do, Papyrus.",
+                    "<18>{#p/papyrus}{#f/7}THEY DON'T KNOW WHAT THEY'RE MISSING!",
+                    "<25>{#p/undyne}{#f/17}* You're damn right."
+                 ])
+         ],
+         () => [
+            '<18>{#p/papyrus}{#f/0}OH YEAH, I FORGOT TO MENTION...',
+            '<18>{#p/papyrus}{#f/0}MY BROTHER USED TO BE LAB ASSISTANT.',
+            '<18>{#p/papyrus}{#f/5}...\nI MISS THOSE DAYS.',
+            ...(solo() ? [] : [ '<25>{#p/undyne}{#f/16}* ...', '<25>{#p/undyne}{#f/9}* Me too.' ])
+         ]
+      ),
+      a_lab_upstairs: pager.create(
+         'limit',
+         () =>
+            save.data.b.water
+               ? [
+                    '<18>{#p/papyrus}{#f/5}THOSE RECYCLE BINS ARE NEVER ACTUALLY USED TO RECYCLE.',
+                    "<18>{#f/4}IF THEY WERE, ALPHYS WOULN'T HAVE PLANS...",
+                    '<18>{#f/4}FOR A MACHINE THAT SEPERATES ALL THE TRASH INSIDE.',
+                    '<18>{#f/7}FOR EXAMPLE, ELECTRO-DAMPENING FLUID!',
+                    ...(solo()
+                       ? []
+                       : [ "<25>{#p/undyne}{#f/17}* Don't tell me you're still carrying that thing around." ])
+                 ]
+               : [
+                    "<18>{#p/papyrus}{#f/0}THERE'S THIS ODD MACHINE IN THE LAB...",
+                    "<18>{#p/papyrus}{#f/0}I HEARD IT'S USED TO MAKE ICE CREAM.",
+                    '<18>{#p/papyrus}{#f/4}...WHICH ALPHYS NO DOUBT EATS WHILE BINGING SCI-FI.',
+                    ...(solo()
+                       ? []
+                       : [
+                            "<25>{#p/undyne}{#f/17}* What??\n* She hasn't invited ME to any TV marathons...",
+                            "<18>{#p/papyrus}{#f/6}I THINK SHE'S SLIGHTLY AFRAID OF YOU, UNDYNE.",
+                            '<18>{#p/papyrus}{#f/4}MAYBE...',
+                            '<18>{#p/papyrus}{#f/9}YOU JUST HAVE TO "BREAK THE ICE CREAM!" WITH HER!',
+                            '<25>{#p/undyne}{#f/13}* Break the... what?',
+                            '<25>{#p/undyne}{#f/17}* ...',
+                            '<25>{#p/undyne}{#f/4}* Wait.',
+                            '<25>{#p/undyne}{#f/3}* Was that supposed to be a pun?',
+                            '<18>{#p/papyrus}{#f/0}YES.',
+                            '<25>{#p/undyne}{#f/8}* Come on!'
+                         ])
+                 ],
+         () => [
+            '<18>{#p/papyrus}{#f/4}SPEAKING OF FOOD AND DRINK...',
+            '<18>{#f/0}I HEARD METTATON ONCE WANTED TO OPEN A FOOD SHOP.',
+            '<18>{#f/9}THE FEATURED ITEM WAS CALLED "NEO ENERGY."',
+            ...(solo()
+               ? [ "<18>{#p/papyrus}{#f/4}I DON'T KNOW WHAT IT MEANS." ]
+               : [
+                    '<25>{#p/undyne}{#f/12}* Sounds like some cheap knockoff brand.',
+                    "<18>{#p/papyrus}{#f/7}WHAT??\nMETTATON WOULDN'T DO THAT!"
+                 ])
+         ]
+      ),
+      a_lab_downstairs: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}THOSE FANCY DRINKS IN THE VENDING MACHINE...',
+            '<18>{#p/papyrus}{#f/0}I KEEP MEANING TO TRY THEM, BUT...',
+            '<18>{#p/papyrus}{#f/4}DR. ALPHYS ALWAYS SEEMS TO GIVE ME SOMETHING TO DO.',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/14}* Don't worry, Papyrus.\n* You'll get to it next time!",
+                    '<18>{#p/papyrus}{#f/0}THAT I WILL!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/0}MAYBE THE FIZZY JUICE ON THE TABLE WOULD BE BETTER.' ]
+               : [
+                    '<25>{#p/undyne}{#f/13}* ...what?',
+                    "<25>{#p/undyne}{#f/13}* Haven't YOU ever wanted to try strange drinks from a vending machine?"
+                 ]
+      ),
+      a_lab_virt: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/5}IT'S A SHAME THE VIRTUALASIUM BROKE DOWN LAST MONTH.",
+            "<18>{#p/papyrus}{#f/7}THINK OF ALL THE FUN I'M LOSING OUT ON RIGHT NOW!",
+            ...(solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/5}SUCH A PITY.',
+                    "<18>{#p/papyrus}{#f/5}I CAN'T EVEN RUN MY WORLD-FAMOUS RESTARAUNT."
+                 ]
+               : [
+                    '<25>{#p/undyne}{#f/8}* "Fun" isn\'t exactly the word I\'d use.',
+                    '<18>{#p/papyrus}{#f/5}CAN YOU REALLY BLAME A SKELETON SUCH AS MYSELF...',
+                    '<18>{#p/papyrus}{#f/5}FOR WANTING TO RUN A WORLD-FAMOUS RESTARAUNT?',
+                    '<25>{#p/undyne}{#f/3}* You know that kinda thing can get stressful, right...?',
+                    '<18>{#p/papyrus}{#f/4}SAYS THE CAPTAIN OF THE ROYAL GUARD.',
+                    '<25>{#p/undyne}{#f/17}* Running the royal guard is one thing.',
+                    '<25>{#p/undyne}{#f/8}* Running a restaraunt is something else entirely!!!'
+                 ])
+         ],
+         () => [
+            '<18>{#p/papyrus}{#f/0}OH YEAH, ABOUT THE RESTARAUNT...',
+            '<18>{#p/papyrus}{#f/9}IT HAPPENS TO BE A GIANT SPACESHIP!',
+            '<18>{#p/papyrus}{#f/4}POWERED BY MARINARA SAUCE, OBVIOUSLY.',
+            ...(solo() ? [] : [ '<25>{#p/undyne}{#f/17}* Obviously.' ])
+         ]
+      ),
+      a_path1: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}I HEARD AERIALIS USED TO BE A STAGING AREA.',
+            '<18>{#p/papyrus}{#f/0}THEY WERE GOING TO BUILD SO MANY COOL THINGS, BUT...',
+            '<18>{#p/papyrus}{#f/4}AFTER THE LAB WAS DONE, THEY RAN OUT OF PURPLE.',
+            '<18>{#p/papyrus}{#f/5}TRULY, THIS IS A TRAGEDY FOR PAINT- KIND EVERYWHERE.',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/3}* You know they could've just made more of it, right?",
+                    '<25>{#p/undyne}{#f/17}* The REAL reason they quit is because Mettaton took over!',
+                    "<18>{#p/papyrus}{#f/4}YOU SAY THAT LIKE IT'S A BAD THING...",
+                    '<25>{#p/undyne}{#f/17}* ...',
+                    "<18>{#p/papyrus}{#f/0}I DON'T BLAME THEM FOR QUITTING, ACTUALLY.",
+                    '<18>{#p/papyrus}{#f/4}FEW CAN WITHSTAND HIS OVERPOWERING BEAUTY.',
+                    "<25>{#p/undyne}{#f/12}* Oh... yeah!\n* That's what I meant!"
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    "<19>{#p/papyrus}{#f/0}IT'S TOO BAD WE'LL NEVER GET TO SEE ITS FULL POTENTIAL.",
+                    "<18>{#p/papyrus}{#f/8}THINK OF ALL THE NEAT GIZMOS I COULD'VE TRIED!"
+                 ]
+               : [
+                    "<18>{#p/papyrus}{#f/0}IT'S GOOD TO KNOW I'M NOT THE ONLY ONE...",
+                    '<18>{#p/papyrus}{#f/9}WHO FINDS METTATON TO BE A COMMANDING PRECENSE.',
+                    '<25>{#p/undyne}{#f/12}* Pfft, yeah.'
+                 ]
+      ),
+      a_path2: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}THESE LIFTGATES ARE PRETTY FUN.',
+            "<18>{#p/papyrus}{#f/0}SOMETIMES, WHEN NOBODY'S WATCHING...",
+            "<18>{#p/papyrus}{#f/0}I'LL COME OUT THERE AND GO BACK AND FORTH ON THEM.",
+            '<18>{#p/papyrus}{#f/4}IT DOES REQUIRE A SPECIAL PASS, THOUGH.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/4}* Hey, Alphys never gives ME liftgate passes!',
+                    '<18>{#p/papyrus}{#f/0}MAYBE NEXT TIME YOU SHOULD ASK HER FOR ONE!',
+                    '<25>{#p/undyne}{#f/3}* ...',
+                    '<25>{#p/undyne}{#f/8}* Like hell I will!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/0}GO ON, GIVE IT A TRY!' ]
+               : [
+                    '<18>{#p/papyrus}{#f/4}...',
+                    "<18>{*}{#p/papyrus}{#f/4}I CAN'T BE THE ONLY ONE THAT THINKS YOU'RE- {%}",
+                    "<25>{#p/undyne}{#f/7}* Don't you dare.",
+                    '<18>{#p/papyrus}{#f/6}SORRY!!'
+                 ]
+      ),
+      a_path3: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}I HEARD TUITION IS HARD TO COME BY IN AERIALIS.',
+            '<18>{#p/papyrus}{#f/5}IS IT TRUE?\nDO STUDENTS REALLY SUFFER THAT MUCH?',
+            "<18>{#p/papyrus}{#f/8}I DON'T KNOW WHAT I'D BE WITHOUT MY EDUCATION!",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/8}* I quit school when I was only ten years old!',
+                    '<18>{#p/papyrus}{#f/1}HOW COULD YOU BETRAY THE SYSTEM SO COMPLETELY!?!?',
+                    '<25>{#p/undyne}{#f/14}* Not everyone walks the same path in life, Papyrus.',
+                    '<18>{#p/papyrus}{#f/4}IT WOULD APPEAR I HAVE MUCH TO LEARN ABOUT TEACHING.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/4}FOR STARTERS, YOU WOULDN'T SEE MY COOL BONE ATTACKS!" ]
+               : [
+                    '<25>{#p/undyne}{#f/14}* Asgore is a great example of an unconventional teacher.',
+                    "<18>{#p/papyrus}{#f/9}MAYBE THAT'S HOW I CAN GET INTO THE ROYAL GUARD!",
+                    '<25>{#p/undyne}{#f/12}* Maybe.'
+                 ]
+      ),
+      a_rg1: pager.create(
+         'limit',
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/0}I WONDER WHAT ICE CREAM IN AERIALIS TASTES LIKE.',
+                    '<18>{#p/papyrus}{#f/0}IS IT SOFT?\nIS IT PURPLE?',
+                    '<18>{#p/papyrus}{#f/4}OR IS IT NOTHING LIKE I EXPECT?',
+                    "<18>{#p/papyrus}{#f/5}I KNOW, I KNOW... THESE AREN'T EASY QUESTIONS TO ASK."
+                 ]
+               : [
+                    '<18>{#p/papyrus}{#f/0}YOU SHOULD MEET US AT THE REC CENTER.',
+                    '<18>{#p/papyrus}{#f/0}THE ICE CREAM HERE IS AMAZING!',
+                    '<25>{#p/undyne}{#f/1}* Can confirm.',
+                    '<18>{#p/papyrus}{#f/9}WE HOPE TO SEE YOU AROUND SOON!'
+                 ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/5}AND TO THINK I MAY NEVER KNOW THE ANSWER...' ]
+               : save.data.n.plot < 65
+               ? [ '<18>{#p/papyrus}{#f/0}IT\'D BE A REAL "TREAT."' ]
+               : [ '<18>{#p/papyrus}{#f/4}EVEN IF YOU WERE ALREADY HERE.' ]
+      ),
+      a_path4: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}TALES SPEAK OF A PLACE WHERE TRASH TURNS TO TREASURE.',
+            '<18>{#p/papyrus}{#f/9}A PLACE WHERE GARBAGE TURNS TO GOLD!',
+            '<18>{#p/papyrus}{#f/6}AND A PLACE WHERE SPACE TUNA...',
+            '<18>{#p/papyrus}{#f/4}WELL, THAT STUFF JUST DISAPPEARS.',
+            ...(solo()
+               ? [ '<18>{#p/papyrus}{#f/5}DO YOU KNOW OF SUCH A PLACE?' ]
+               : [
+                    "<25>{#p/undyne}{#f/1}* That sounds like Catty and Bratty's place.",
+                    '<25>{#p/undyne}{#f/14}* Not only do they like to repurpose old junk, but they LOVE tuna.',
+                    "<25>{#p/undyne}{#f/17}* Please don't tell them I told you that.",
+                    '<18>{#p/papyrus}{#f/9}...YOU HAVE MY WORD.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}I\'LL TAKE THAT AS A RESOUNDING "MAYBE."' ]
+               : [
+                    '<18>{#p/papyrus}{#f/0}SO CATTY AND BRATTY ARE JUNK DEALERS, HUH?',
+                    "<18>{#p/papyrus}{#f/4}I'M SURPRISED MY BROTHER DOESN'T CALL THEM ALL DAY."
+                 ]
+      ),
+      a_barricade1: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/4}I HEARD YOU HAVE TO ANSWER SECURITY QUESTIONS THERE...',
+            '<18>{#p/papyrus}{#f/1}COULD IT BE??\nA SECRET AUDITION FOR A QUIZ SHOW??',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/14}* Wait, what?',
+                    "<25>{#p/undyne}{#f/17}* Tell me there's a question about...",
+                    '<18>{#p/papyrus}{#f/5}ABOUT WHAT?',
+                    "<26>{#p/undyne}{#f/8}* About how many boots it'd take to kick a robot's butt into space!",
+                    '<18>{#p/papyrus}{#f/4}WELL, THAT DEPENDS ON THE GRAVITY.',
+                    '<25>{#p/undyne}{#f/17}* Papyrus!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/4}IT HAS BEEN A WHILE SINCE HE'S DONE ONE." ]
+               : [
+                    "<18>{#p/papyrus}{#f/4}SHE DOESN'T LIKE IT WHEN I HELP WITH HER PLANS.",
+                    '<25>{#p/undyne}{#f/17}* I do too!',
+                    '<18>{#p/papyrus}{#f/4}HOW DO YOU EXPLAIN THE ROYAL GUARD THING, THEN?',
+                    '<25>{#p/undyne}{#f/4}* ...',
+                    '<25>{#p/undyne}{#f/12}* Good point.'
+                 ]
+      ),
+      a_puzzle1: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/4}THESE PUZZLES ARE WEIRD.',
+            '<18>{#p/papyrus}{#f/5}I ALWAYS END UP WALKING PAST THE CORRECT TERMINAL.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/3}* How many times did someone have to pull you back?',
+                    '<18>{#p/papyrus}{#f/1}HOW MANY!?!?\nUNDYNE, WHAT DID YOU DO!!!',
+                    "<25>{#p/undyne}{#f/12}* Uh, nothin.'",
+                    '<25>{#p/undyne}{#f/12}* Apart from almost erasing myself from existence, that is.',
+                    '<18>{#p/papyrus}{#f/8}PLEASE BE MORE CAREFUL NEXT TIME!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}I HAVE "ZERO" INTENTION OF EVER DOING ONE AGAIN.' ]
+               : [ '<18>{#p/papyrus}{#f/4}THESE DIMENSIONAL TECHNOLOGIES ARE A REAL PROBLEM.' ]
+      ),
+      a_mettaton1: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}LET ME BE CLEAR.',
+            '<18>{#p/papyrus}{#f/0}WHEN METTATON SAYS TO DO SOMETHING ON HIS SHOW...',
+            '<18>{#p/papyrus}{#f/0}YOU DO IT.',
+            '<18>{#p/papyrus}{#f/0}NO IFS, ANDS, OR BUTS ABOUT IT.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/17}* What about howevers?',
+                    '<18>{#p/papyrus}{#f/4}...',
+                    '<18>{#p/papyrus}{#f/4}NO.',
+                    '<25>{#p/undyne}{#f/8}* Damn it!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}AND NO HOWEVERS, EITHER.' ]
+               : [
+                    '<18>{#p/papyrus}{#f/5}DO YOU -ALWAYS- HAVE TO TRY TO BEND THE RULES...',
+                    '<25>{#p/undyne}{#f/1}* Yes. Always.',
+                    '<18>{#p/papyrus}{#f/4}YEAH, YEAH...'
+                 ]
+      ),
+      a_elevator1: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}SO MANY ELEVATORS, SO LITTLE TIME.',
+            "<18>{#f/4}EXCEPT FOR WHEN THEY'RE INACCESSIBLE.",
+            '<18>{#f/5}I HAD TO WALK AROUND ON FOOT YESTERDAY...',
+            "<18>{#f/4}...EVEN THOUGH I PROBABLY COULD'VE FLOWN.",
+            ...(solo()
+               ? [ '<18>{#f/6}SPEAKING OF WHICH, WHO KEEPS SHUTTING DOWN ELEVATORS!?' ]
+               : [
+                    "<18>{#f/6}MAYBE I SHOULD CHECK IF THEY'RE WORKING NOW.",
+                    '<25>{#p/undyne}{#f/14}* I think Mettaton just shuts them off to run his shows.',
+                    '<18>{#p/papyrus}{#f/4}HE... HE DOES?',
+                    '<25>{#p/undyne}{#f/12}* Yeah.',
+                    '<18>{#p/papyrus}{#f/7}...',
+                    '<18>{#p/papyrus}{#f/7}I INTEND TO HAVE A WORD WITH HIM.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}THIS IS A CONSPIRACY OF THE HIGHEST CALIBER.' ]
+               : [
+                    '<18>{#p/papyrus}{#f/4}THIS COULD BE MY CHANCE...',
+                    '<18>{#p/papyrus}{#f/9}...TO SUGGEST THE CONSTRUCTION OF MORE LIFTGATES!'
+                 ]
+      ),
+      a_lift: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}THIS ELEVATOR SHOULD RELEASE A MUSIC ALBUM!',
+            '<18>{#p/papyrus}{#f/0}SO MANY PLEASANTLY BLUESY TUNES...',
+            "<18>{#p/papyrus}{#f/5}IT'S A SHAME THE SOUND SYSTEM IS BROKEN RIGHT NOW.",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/13}* Blues?\n* Seriously?',
+                    "<25>{#p/undyne}{#f/14}* Everyone knows rock 'n' roll is the best.",
+                    '<18>{#p/papyrus}{#f/4}I WILL DEBATE YOU TO NO END ON THIS.',
+                    '<25>{#p/undyne}{#f/12}* And I will not.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}I MAY OR MAY NOT HAVE USED IT ONE TOO MANY TIMES.' ]
+               : [
+                    '<18>{#p/papyrus}{#f/0}BLUES IS NICE, BUT SKA IS MY FAVORITE OF ALL.',
+                    '<18>{#p/papyrus}{#f/9}YOU CAN NEVER GET ENOUGH OF THOSE RIVETING TRUMPETS!'
+                 ]
+      ),
+      a_elevator2: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}LOOK, YOU'RE ON THE SECOND FLOOR!",
+            '<18>{#p/papyrus}{#f/0}HERE, YOU WILL FIND MANY AMAZING THINGS...',
+            '<18>{#p/papyrus}{#f/9}PUZZLES!\nBARRICADES!\nSHOW STAGES!',
+            '<18>{#p/papyrus}{#f/4}SO... BASICALLY THE EXACT SAME AS THE FIRST FLOOR.',
+            ...(solo()
+               ? [ '<18>{#p/papyrus}{#f/9}BUT BETTER!!' ]
+               : [ '<25>{#p/undyne}{#f/14}* Yeah, that sounds about right.' ])
+         ],
+         [ '<18>{#p/papyrus}{#f/4}* ...IT EVEN HAS AN EXTRA SENTRY STATION.' ]
+      ),
+      a_sans: pager.create(
+         'limit',
+         () => [
+            '<19>{#p/papyrus}{#f/4}YES, MY BROTHER SELLS CORN DOGS AT HIS SENTRY STATION.',
+            '<18>{#p/papyrus}{#f/6}IT\'S NOT EXACTLY WHAT I\'D CALL "PALATABLE."',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/13}* What does a neon dog even taste like?',
+                    "<18>{#p/papyrus}{#f/4}THAT'S A GREAT QUESTION.",
+                    "<18>{#p/papyrus}{#f/4}A GREAT QUESTION I DON'T NEED AN ANSWER TO."
+                 ])
+         ],
+         [ '<18>{#p/papyrus}{#f/4}...AT LEAST THEY LOOK COOL.' ]
+      ),
+      a_pacing: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/5}IMAGINE, SOMEWHERE OUT THERE...',
+            '<18>{#p/papyrus}{#f/4}LIVES A COLONY OF MOLE-RATS, TRAPPED IN A FORCE FIELD.',
+            '<18>{#p/papyrus}{#f/5}LIVING MOLE-RAT LIVES, EATING MOLE-RAT FOOD...',
+            '<18>{#p/papyrus}{#f/4}YEARNING TO ONE DAY REACH THE MOLE-RAT STARS.',
+            ...(solo()
+               ? [ '<18>{#p/papyrus}{#f/0}THAT WOULD SURE BE SOMETHING, HUH?' ]
+               : [
+                    '<25>{#p/undyne}{#f/3}* Where do you come up with this stuff, man?',
+                    "<18>{#p/papyrus}{#f/7}HEY, DON'T GET GREEDY FOR IDEAS!",
+                    "<25>{#p/undyne}{#f/1}* I'm only curious!!"
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/5}THE UNIVERSE TRULY IS BOUNDLESS...',
+                    "<18>{#p/papyrus}{#f/5}...EVEN IF WE'RE STUCK STARING AT IT FROM AFAR."
+                 ]
+               : [
+                    '<25>{#p/undyne}{#f/1}* I think Papyrus just wants someone he can relate to.',
+                    '<18>{#p/papyrus}{#f/0}YEAH, MOLE-RATS CAN BE QUITE THE RELATABLE BUNCH!'
+                 ]
+      ),
+      a_prepuzzle: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/4}ABOUT THE FLOWERS SCATTERED AROUND THE AREA...',
+            "<18>{#p/papyrus}{#f/0}IT WAS ASGORE'S IDEA, ACTUALLY.",
+            '<18>{#p/papyrus}{#f/5}IF THAT GUY WASN\'T THE "CEO" OF THE OUTPOST...',
+            '<18>{#p/papyrus}{#f/4}HE\'D BE THE "CGO" INSTEAD.',
+            '<18>{#p/papyrus}{#f/0}THAT STANDS FOR "CHIEF GARDENING OFFICER."',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* Who would I be, then?',
+                    '<18>{#p/papyrus}{#f/0}OH YEAH, YOU\'D BE THE "CSETPO."',
+                    "<25>{#p/undyne}{#f/17}* ...what's that?",
+                    '<18>{#p/papyrus}{#f/4}THE "CHIEF SMASH- EVERYTHING-TO- PIECES OFFICER."',
+                    '<25>{#p/undyne}{#f/8}* OH YEAH!!!'
+                 ])
+         ],
+         [
+            '<18>{#p/papyrus}{#f/0}AS YOU CAN SEE, ACRONYMS ARE MY SPECIALITY.',
+            '<18>{#p/papyrus}{#f/4}I MIGHT AS WELL BE THE "CAO" AROUND HERE...',
+            '<18>{#p/papyrus}{#f/9}SHORT FOR "CHIEF ACRONYM OFFICER" OF COURSE!'
+         ]
+      ),
+      a_puzzle2: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/6}NO MATTER WHERE I GO, I END UP IN THE SAME PLACE!',
+            "<18>{#p/papyrus}{#f/5}AT LEAST, THAT'S WHAT HAPPENS TO ME...",
+            '<18>{#p/papyrus}{#f/5}WHENEVER I ATTEMPT TO SOLVE THIS PUZZLE.',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/8}* It's easy!\n* Just fly around it!!",
+                    '<18>{#p/papyrus}{#f/0}FLIGHT MAGIC IS RESERVED FOR EMERGENCIES.',
+                    '<25>{#p/undyne}{#f/3}* I thought being trapped in one of those things WAS an emergency.',
+                    '<18>{#p/papyrus}{#f/5}OH.\nI NEVER THOUGHT ABOUT IT THAT WAY.',
+                    "<25>{#p/undyne}{#f/14}* Now's a good time to start, then!",
+                    "<18>{#p/papyrus}{#f/0}I'LL CONSIDER IT."
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}I DO NOT ENJOY BEING TRAPPED.' ]
+               : [
+                    '<18>{#p/papyrus}{#f/0}I WONDER WHAT LIFE WOULD BE IF I FLEW AROUND EVERYWHERE.',
+                    '<25>{#p/undyne}{#f/14}* Probably pretty boring, honestly.',
+                    '<18>{#p/papyrus}{#f/0}YEAH.'
+                 ]
+      ),
+      a_mettaton2: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/5}METTATON WANTED ME TO BE A PART OF HIS NEXT SHOW...',
+            '<18>{#p/papyrus}{#f/5}BUT AFTER SOME THOUGHT, I CAME TO REALIZE...',
+            "<18>{#p/papyrus}{#f/6}...HOW NERVOUS I'D BE SITTING RIGHT NEXT TO HIM.",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/12}* You really like him, huh?',
+                    '<18>{#p/papyrus}{#f/7}I DO NOT!!!',
+                    '<18>{#p/papyrus}{#f/4}...',
+                    '<18>{#p/papyrus}{#f/4}MAYBE A LITTLE.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/0}THAT'S WHY I TOLD MY BROTHER TO GO IN MY PLACE." ]
+               : [ '<18>{#p/papyrus}{#f/6}...OR MAYBE A LOT.' ]
+      ),
+      a_rg2: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/6}BE CAREFUL OUT THERE, HUMAN!',
+            '<18>{#p/papyrus}{#f/5}THE GUARDS IN THAT AREA ARE KNOWN TO BE UNRULY.',
+            '<18>{#p/papyrus}{#f/4}...ALPHYS HAS TOLD ME HOW THEY IGNORE HER ROYAL MEMOS.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/16}* ...',
+                    '<18>{#f/16}* I had a feeling that might happen to her.',
+                    "<18>{#p/papyrus}{#f/5}WHAT'S THE PROBLEM?",
+                    "<25>{#p/undyne}{#f/16}* The royal scientist is meant to be the king's most trusted associate.",
+                    "<25>{#f/9}* After sir Roman passed, though, we weren't ready to replace him.",
+                    "<25>{#f/17}* Don't get me wrong.\n* Alphys is... honestly a brilliant individual.",
+                    "<25>{#f/16}* But she's unwieldy... she lacks the expertise sir Roman had.",
+                    '<18>{#p/papyrus}{#f/5}THE ROYAL GUARD IS STILL GETTING USED TO THAT, HUH?',
+                    '<25>{#p/undyne}{#f/14}* Something like that.',
+                    "<25>{#f/1}* But hey, I know they'll come around eventually."
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/4}NOW THERE'S A QUESTION...", "<18>{#p/papyrus}{#f/0}WHAT'S A ROYAL MEMO?" ]
+               : [ '<18>{#p/papyrus}{#f/4}WE CAN ONLY HOPE IT HAPPENS SOONER THAN LATER.' ]
+      ),
+      a_barricade2: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/5}I'M AFRAID I DON'T HAVE MUCH TO SAY ABOUT THIS AREA...",
+            "<18>{#p/papyrus}{#f/5}WELL, APART FROM THE FACT THAT IT'S EMPTY.",
+            '<18>{#p/papyrus}{#f/5}...',
+            '<18>{#p/papyrus}{#f/5}THEY REALLY DID WANT TO DO SO MUCH WITH THIS PLACE...',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/1}* Hey, don't be sad.\n* You've got me by your side, right?",
+                    "<18>{#p/papyrus}{#f/1}* I KNOW.\nYOU'RE A GREAT FRIEND, UNDYNE.",
+                    '<25>{#p/undyne}{#f/14}* Shucks...\n* Thanks, Papyrus.',
+                    "<18>{#p/papyrus}{#f/4}IT'S MY PLEASURE."
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/5}UNFULFILLED DREAMS ARE THE WORST.' ]
+               : [
+                    '<18>{#p/papyrus}{#f/0}FRIENDS CAN GET YOU THROUGH ANYTHING.',
+                    '<18>{#p/papyrus}{#f/5}EVEN... THE STING OF AN UNFULFILLED DREAM...',
+                    "<18>{#p/papyrus}{#f/4}THOUGH, I'D RATHER FIX THE PROBLEM THEN IGNORE IT.",
+                    '<25>{#p/undyne}{#f/14}* Never change, Papyrus.'
+                 ]
+      ),
+      a_split: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}LOOK, IT'S THE WORLD-FAMOUS METTATON FOUNTAIN!",
+            '<18>{#f/4}I HEARD IT TOOK A LOT OF TIME TO GET IT TO LOOK RIGHT.',
+            '<18>{#f/5}COUNTLESS HOURS OF TIRELESS, PAINFUL WORK...',
+            '<18>{#f/6}TO GET THAT IDEAL RECTANGULAR SHAPE.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/17}* And then he destroyed it just so he could rebuild it himself.',
+                    '<25>{#p/undyne}{#f/17}* Because it wasn\'t up to his "high standards."',
+                    "<18>{#p/papyrus}{#f/4}WAIT, WASN'T THERE SOMETHING ABOUT THAT ON TV?",
+                    '<25>{#p/undyne}{#f/14}* Oh yeah, he decided to broadcast it to the entire outpost.',
+                    '<18>{#p/papyrus}{#f/1}OH MY GOD!',
+                    '<25>{#p/undyne}{#f/17}* Because of course he did.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/4}MY BROTHER TELLS ME THAT'S NOT ENTIRELY TRUE." ]
+               : [
+                    '<18>{#p/papyrus}{#f/4}IF HE KNEW HOW TO BUILD IT HIMSELF...',
+                    '<18>{#p/papyrus}{#f/5}WHY DID HE BOTHER TO HIRE ANYONE ELSE?',
+                    '<25>{#p/undyne}{#f/17}* The world may never know.'
+                 ]
+      ),
+      a_offshoot1: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/5}THE SIGNAL SEEMS TO BE A BIT WEAK.',
+            "<18>{#p/papyrus}{#f/5}IT'S LIKE... INTERFERENCE OF SOME KIND?",
+            "<18>{#p/papyrus}{#f/6}MAYBE IT'D BE A GOOD IDEA TO CALL BACK ELSEWHERE.",
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/14}* They're probably near the old security tower in Aerialis.",
+                    '<25>{#p/undyne}{#f/12}* Nothing to worry about.'
+                 ])
+         ],
+         () => (solo() ? [ '<18>{#p/papyrus}{#f/6}ESLEWHERE!!!' ] : [ '<18>{#p/papyrus}{#f/0}NOTHING AT ALL.' ])
+      ),
+      a_elevator3: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}ANOTHER DAY, ANOTHER ELEVATOR...',
+            "<18>{#p/papyrus}{#f/5}IT'S A MIRACLE WE DON'T SPEND OUR LIVES...",
+            '<18>{#p/papyrus}{#f/5}GOING UP AND DOWN THESE THINGS EVERY DAY.',
+            '<18>{#p/papyrus}{#f/6}EVEN IF WE DO NEED THEM TO GET AROUND.',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/17}* If you think it's bad here, just wait until you see a spire house!",
+                    '<18>{#p/papyrus}{#f/8}N-NO...!',
+                    '<25>{#p/undyne}{#f/1}* An elevator a day keeps the taxi driver away!',
+                    "<18>{#p/papyrus}{#f/4}THAT IS THE WORST THING I'VE EVER HEARD."
+                 ])
+         ],
+         [ '<18>{#p/papyrus}{#f/4}IF ONLY THERE WAS A FASTER WAY TO GET AROUND...' ]
+      ),
+      a_elevator4: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}WHAT HAPPENS TO A SKELETON WHO WALKS THROUGH SECURITY?',
+            "<19>{#p/papyrus}{#f/4}...THAT'S RIGHT.\nHE GETS RESPRAINED.",
+            '<18>{#p/papyrus}{#f/6}JUST LIKE I WAS MY FIRST TIME AT THE REC CENTER.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* That sounds like a fun story, why not share it?',
+                    '<18>{#p/papyrus}{#f/6}THAT STORY IS ANYTHING BUT "FUN."',
+                    '<25>{#p/undyne}{#f/17}* Even though you just made a "pun" out of it.',
+                    '<18>{#p/papyrus}{#f/4}CAN YOU BLAME ME FOR WANTING TO BE... HUMERUS?',
+                    "<25>{#p/undyne}{#f/17}* God, you're worse than your brother.",
+                    '<18>{#p/papyrus}{#f/7}I AM NOT!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/6}IT'S A LONG STORY." ]
+               : [ '<18>{#p/papyrus}{#f/4}MY BROTHER ALWAYS CRACKS JOKES AT THE WORST TIMES.' ]
+      ),
+      a_auditorium: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}MY BROTHER ONCE HOSTED A COMEDY SHOW HERE.',
+            '<18>{#p/papyrus}{#f/0}IT WAS CALLED...',
+            '<18>{#p/papyrus}{#f/4}...THE RIB-TICKLER.',
+            '<18>{#p/papyrus}{#f/1}EVEN ASGORE COULD HAVE DONE BETTER THAN THAT!',
+            '<18>{#p/papyrus}{#f/0}ANYWAY, HIS SHOW ACTUALLY DID PRETTY WELL.',
+            "<18>{#p/papyrus}{#f/5}IT'S A SHAME HE STOPPED DOING IT.",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* I think he just wanted to be a royal sentry.',
+                    "<18>{#p/papyrus}{#f/5}YEAH.\nMAYBE THAT'S IT.",
+                    '<18>{#f/4}BUT WHY WOULD HE WANT TO BE A ROYAL SENTRY?',
+                    '<18>{#f/9}BEING A ROYAL GUARD IS MUCH MORE PRESTIGIOUS!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    "<18>{#p/papyrus}{#f/5}IF YOU EVER FIND SUCCESS, DON'T QUIT.",
+                    '<18>{#f/5}WELL... UNLESS NOT DOING THAT WOULD CAUSE YOU HARM.',
+                    '<18>{#f/4}THEN YOU SHOULD DEFINITELY QUIT.',
+                    "<18>{#f/6}JUST DO WHAT'S BEST FOR YOURSELF, ALRIGHT??"
+                 ]
+               : [
+                    '<18>{#p/papyrus}{#f/4}YOU CAN COUNT ON MY BROTHER TO SHOOT LOW...',
+                    '<18>{#p/papyrus}{#f/4}EVERY.\nSINGLE.\nTIME.'
+                 ]
+      ),
+      a_aftershow: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}SO THIS IS WHERE CATTY AND BRATTY WORK, HUH?',
+            "<18>{#f/0}IT'S CLEANER THAN I EXPECTED.",
+            '<18>{#f/4}AND HERE I THOUGHT THESE TWO WERE TRASH DEALERS...',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/17}* They ARE trash dealers!',
+                    "<25>{#p/undyne}{#f/14}* I think... they're just protective about the trash they collect.",
+                    '<25>{#p/undyne}{#f/16}* Alphys told me how she used to go trash- hunting with them...',
+                    "<25>{#p/undyne}{#f/9}* It's more than just a silly hobby.\n* It's... a way of life.",
+                    '<18>{#p/papyrus}{#f/0}I CAN BELIEVE IT.',
+                    "<25>{#p/undyne}{#f/15}* It's also how we get our coolest trinkets.",
+                    '<18>{#p/papyrus}{#f/0}LIKE THE MEW MEW DOLL ON TV EARLIER!',
+                    '<25>{#p/undyne}{#f/12}* Exactly!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/0}MAYBE THE JUNK IS JUST KEPT ON THE INSIDE.',
+                    "<18>{#p/papyrus}{#f/4}IT'D EXPLAIN A LOT MORE THAN YOU MIGHT THINK."
+                 ]
+               : [ '<18>{#p/papyrus}{#f/0}I WONDER IF HUMANS GO HUNTING FOR MONSTER TRASH.' ]
+      ),
+      a_hub1: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}SO YOU'VE MADE IT TO THE CENTRAL RING ROOM!",
+            '<18>{#p/papyrus}{#f/4}AT FIRST, WHEN I HEARD THE TERM "RING ROOM..."',
+            '<18>{#p/papyrus}{#f/5}I THOUGHT IT REFERRED TO A ROOM FOR MAKING CALLS.',
+            ...(solo()
+               ? [ "<18>{#p/papyrus}{#f/0}GIVEN WHAT YOU'RE DOING, IT'S NOT ENTIRELY WRONG!" ]
+               : [
+                    "<18>{#p/papyrus}{#f/0}GIVEN WHAT WE'RE DOING, IT'S NOT ENTIRELY WRONG!",
+                    '<25>{#p/undyne}{#f/1}* "Ring room" huh?',
+                    '<25>{#p/undyne}{#f/12}* Papyrus, have you ever considered poetry?',
+                    "<25>{#p/undyne}{#f/8}* You're a natural!",
+                    "<18>{#p/papyrus}{#f/6}I'M NOT SURE THAT'D BE A GREAT USE OF MY TIME.",
+                    '<25>{#p/undyne}{#f/1}* Sure it would!',
+                    '<25>{#p/undyne}{#f/8}* Just IMAGINE all the crazy stories you could write!',
+                    '<18>{#p/papyrus}{#f/4}I THINK...\nYOU AND I...',
+                    '<18>{#p/papyrus}{#f/4}...HAVE TWO VERY DIFFERENT IDEAS ABOUT THAT.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}NOT TO MENTION, THE RECEPTION IS WAY BETTER THERE.' ]
+               : [ '<18>{#p/papyrus}{#f/4}PAPYRUS THE POET.', '<18>{#f/5}WELL, IT DOES HAVE A RING TO IT.' ]
+      ),
+      a_dining: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/5}I DON'T KNOW ABOUT YOU, BUT THE FOOD IN THIS PLACE...",
+            '<18>{#f/5}WELL, IT REALLY GRINDS MY GEARS.',
+            "<18>{#f/4}IT'S LIKE EVERYONE FORGOT WHAT GOOD COOKING IS LIKE...",
+            "<18>{#f/1}WHERE'S MY PASTA- FLAVORED PASTA!?!?",
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/16}* You know, that reminds me...',
+                    '<25>{#p/undyne}{#f/9}* I once wanted the royal guard to have a cooking division.',
+                    "<25>{#p/undyne}{#f/12}* We'd have gourmet restaraunts, exquisite food...",
+                    '<25>{#p/undyne}{#f/17}* ...and then Asgore tasted my cooking.',
+                    '<18>{#p/papyrus}{#f/4}...OH.',
+                    '<18>{#p/papyrus}{#f/5}...',
+                    "<18>{#p/papyrus}{#f/9}MAYBE YOU JUST DIDN'T ADD ENOUGH MARINARA SAUCE!",
+                    '<25>{#p/undyne}{#f/4}* No amount of marinara sauce could fix THAT disaster.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/6}THE LAST TIME I ORDERED IT, THEY...',
+                    "<18>{#p/papyrus}{#f/4}WELL, LET'S JUST SAY THE CONCEPT WAS BEYOND THEM."
+                 ]
+               : [
+                    '<18>{#p/papyrus}{#f/4}IN MY VERY HUMBLE OPINION...',
+                    '<18>{#p/papyrus}{#f/0}MARINARA SAUCE CAN FIX EVERYTHING.',
+                    '<25>{#p/undyne}{#f/17}* But not this!!',
+                    "<19>{#p/papyrus}{#f/6}YOU'D BE SURPRISED!"
+                 ]
+      ),
+      a_hub2: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}LIFE IS LIKE A CHESS GAME.',
+            '<18>{#p/papyrus}{#f/5}MINUS ALL OF THE BLUNDERING...',
+            '<18>{#p/papyrus}{#f/5}AND CAPTURING OF PIECES...',
+            '<18>{#p/papyrus}{#f/5}AND...',
+            '<18>{#p/papyrus}{#f/4}ACTUALLY, LIFE IS ALMOST NOTHING LIKE A CHESS GAME.',
+            '<18>{#p/papyrus}{#f/0}BUT THEY DO HAVE ONE THING IN COMMON.',
+            '<18>{#p/papyrus}{#f/0}WHICH IS THAT YOU NEVER KNOW WHAT TO EXPECT!',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* So, kind of like a box of tree saps, then.',
+                    '<18>{#p/papyrus}{#f/6}YEAH, KIND OF LIKE THAT.',
+                    "<18>{#p/papyrus}{#f/4}WAIT, ISN'T IT SUPPOSED TO BE A BOX OF CHOCOLATES?",
+                    '<25>{#p/undyne}{#f/14}* That would be the human expression.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}OR WAS IT A BOX OF TREE SAPS...?' ]
+               : [ '<18>{#p/papyrus}{#f/0}CHOCOLATE AND TREE SAP TASTE VERY SIMILAR, ACTUALLY.' ]
+      ),
+      a_lookout: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/5}IN TIME, WE MAY ALL BE EXPLORERS AMONGST THE STARS.',
+            '<18>{#p/papyrus}{#f/5}WE MAY VENTURE OUT IN THE GREAT UNKNOWN...',
+            '<18>{#p/papyrus}{#f/5}EJECTING OURSELVES FAR FROM THIS PRISON OF OLD.',
+            ...(solo()
+               ? []
+               : [
+                    "<25>{#p/undyne}{#f/3}* Don't tell me you're planning a prison break.",
+                    '<18>{#p/papyrus}{#f/4}UMM, NO?\nTHAT WOULD BE FAR TOO SUSPICIOUS.',
+                    '<25>{#p/undyne}{#f/3}* Oh. Right.',
+                    "<18>{#p/papyrus}{#f/0}IT'S AN ALLEGORY FOR FREEDOM.",
+                    '<25>{#p/undyne}{#f/16}* I know what you mean.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [
+                    "<18>{#p/papyrus}{#f/4}LET'S JUST HOPE THAT, WHEN WE REACH THE STARS...",
+                    "<18>WE DON'T MEET ANY OF THOSE MOLE-RAT IMPOSTORS."
+                 ]
+               : [ '<18>{#p/papyrus}{#f/5}I APOLOGIZE.', "<18>{#f/4}I DIDN'T MEAN TO VENT." ]
+      ),
+      a_hub3: pager.create(
+         'limit',
+         () =>
+            solo()
+               ? [
+                    '<18>{#p/papyrus}{#f/0}OH YEAH, THIS IS WHERE THE CHILLY FOLKS HANG OUT.',
+                    '<18>{#p/papyrus}{#f/5}I FEEL BAD FOR THEM...',
+                    "<18>{#p/papyrus}{#f/9}THAT'S WHY I'M THINKING OF BUYING THEM A FRIDGE!",
+                    "<18>{#p/papyrus}{#f/9}THAT WAY, THEY'LL ALWAYS HAVE A COLD PLACE NEARBY!"
+                 ]
+               : [ '<18>{#p/papyrus}{#f/0}COME SAY HI, WE\'RE "CHILLING" IN THE NEXT ROOM OVER!' ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/0}ISN'T TECHNOLOGY WONDERFUL?" ]
+               : [ '<18>{#p/papyrus}{#f/6}WHAT ARE YOU WAITING FOR!!!' ]
+      ),
+      a_plaza: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/0}THAT'S WHERE BURGIE'S SHOP IS.",
+            '<18>{#p/papyrus}{#f/4}ALTHOUGH HIS FOODS ARE BASICALLY JUNK...',
+            '<18>{#p/papyrus}{#f/5}HE DOES SEEM LIKE A REALLY GENUINE GUY.',
+            '<18>{#p/papyrus}{#f/5}HE ALSO GAVE ME A LOT TO TALK ABOUT WITH METTATON.',
+            '<18>{#p/papyrus}{#f/4}...I DO INTEND TO CONFRONT HIM NOW.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* Yeah, uh, you do that.',
+                    "<25>{#p/undyne}{#f/3}* As for me, I'm gonna stay way the hell away when that goes down.",
+                    '<18>{#p/papyrus}{#f/5}METTATON DID SOME BAD THINGS, BUT...',
+                    '<26>{#p/undyne}{#f/14}* You got this, Papyrus.\n* Helping people confront stuff is your specialty.',
+                    '<18>{#p/papyrus}{#f/6}...',
+                    '<18>{#p/papyrus}{#f/9}Y-YEAH, THIS WILL BE EASY!'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/6}AFTER I'VE EARNED HIS RESPECT, OF COURSE." ]
+               : [
+                    '<18>{#p/papyrus}{#f/9}NO RELATIONSHIP IS TOO ABUSIVE FOR PAPYRUS!',
+                    '<25>{#p/undyne}{#f/8}* PAPYRUS!!\n* THAT DOES NOT SOUND HOW YOU THINK IT DOES!'
+                 ]
+      ),
+      a_elevator5: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/5}THIS "REC CENTER" IS CERTIANLY RECREATIONAL...',
+            '<18>{#p/papyrus}{#f/4}...IN MORE WAYS THAN ONE.',
+            "<18>{#p/papyrus}{#f/0}WHAT'S SO AMAZING ABOUT WISH FLOWERS, ANYWAY?",
+            '<18>{#p/papyrus}{#f/0}DO YOUR WISHES COME TRUE IF YOU BREATHE THEM IN?',
+            ...(solo()
+               ? [ '<18>{#p/papyrus}{#f/0}MAYBE I SHOULD TRY IT SOMETIME.' ]
+               : [
+                    "<25>{#p/undyne}{#f/1}* Somehow I don't think you'd enjoy it.",
+                    "<18>{#p/papyrus}{#f/5}YEAH, YOU'RE PROBABLY RIGHT.",
+                    '<18>{#p/papyrus}{#f/9}BUT IT NEVER HURTS TO TRY!',
+                    '<25>{#p/undyne}{#f/3}* ...'
+                 ])
+         ],
+         () => [
+            '<18>{#p/papyrus}{#f/0}BETTER NOT DO IT AT THE REC CENTER, THOUGH.',
+            '<18>{#p/papyrus}{#f/4}TALK ABOUT BEING A NUSIANCE.',
+            ...(solo() ? [] : [ '<25>{#p/undyne}{#f/12}* Pfft, uh, yeah...' ])
+         ]
+      ),
+      a_hub4: pager.create(
+         'limit',
+         () =>
+            solo()
+               ? [
+                    "<18>{#p/papyrus}{#f/0}SO THERE'S ICE CREAM UP THERE, HUH?",
+                    '<18>{#p/papyrus}{#f/0}SOUNDS LIKE A GREAT PLACE TO HANG OUT.',
+                    '<18>{#p/papyrus}{#f/9}MAYBE WE CAN ALL GO THERE AFTER WE VISIT UNDYNE!',
+                    "<18>{#p/papyrus}{#f/4}...IT'D BE BETTER THAN EATING JUNK FOOD."
+                 ]
+               : [ "<25>{#p/undyne}{#f/8}* Wanna talk?\n* We're right here, punk!" ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/4}YOU DO KNOW WHAT JUNK FOOD IS, RIGHT?' ]
+               : [ "<25>{#p/undyne}{#f/8}* And we're not going anywhere else!!!" ]
+      ),
+      a_sleeping1: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/0}I HEAR THIS HOTEL IS MADE IN EXTRA DIMENSIONS.',
+            '<18>{#p/papyrus}{#f/4}DIMENSIONS...\nLAYERS...',
+            '<18>{#p/papyrus}{#f/5}DO THEY GIVE US EXTRA BLANKETS TO TAKE NAPS WITH?',
+            '<18>{#p/papyrus}{#f/0}ASKING FOR A FRIEND, OF COURSE.',
+            ...(solo()
+               ? []
+               : [
+                    '<25>{#p/undyne}{#f/1}* Right, because you just stay awake all the time.',
+                    "<18>{#p/papyrus}{#f/0}OF COURSE!\nI CAN'T WASTE MY TIME NAPPING.",
+                    '<25>{#p/undyne}{#f/14}* What about sleeping?',
+                    '<18>{#p/papyrus}{#f/6}SLEEPING???',
+                    "<18>{#p/papyrus}{#f/4}...THAT'S JUST AN EXCUSE MY BROTHER USES TO TAKE NAPS.",
+                    '<25>{#p/undyne}{#f/14}* I see.'
+                 ])
+         ],
+         () =>
+            solo()
+               ? [ '<18>{#p/papyrus}{#f/9}THE GREAT PAPYRUS NEVER TAKES NAPS.' ]
+               : [ "<18>{#p/papyrus}{#f/4}IT'S A MIRACLE HE MAKES IT OUT OF BED ANYMORE." ]
+      ),
+      a_hub5: pager.create(
+         'limit',
+         () => [
+            '<18>{#p/papyrus}{#f/5}FEELS KIND OF EMPTY IN THAT ROOM, HUH?',
+            '<18>{#p/papyrus}{#f/5}I THINK PEOPLE ARE JUST AFRAID OF THE ELEVATOR.',
+            "<18>{#p/papyrus}{#f/4}OR MORE ACCURATELY, WHAT'S INSIDE IT.",
+            '<18>{#p/papyrus}{#f/8}A LACK OF MUSIC!',
+            ...(solo() ? [] : [ '<25>{#p/undyne}{#f/8}* How could they do this!' ])
+         ],
+         [ '<18>{#p/papyrus}{#f/4}AN ELEVATOR WITHOUT MUSIC IS JUST AWKWARD.' ]
+      ),
+      a_citadelevator: pager.create(
+         'limit',
+         () => [
+            "<18>{#p/papyrus}{#f/5}IF YOU'RE LEAVING THE REC CENTER...",
+            "<18>{#p/papyrus}{#f/5}I WON'T BE ABLE TO REACH YOU.",
+            "<18>{#p/papyrus}{#f/4}IF YOU'RE ON THE RETURN TRIP, THOUGH...",
+            ...(solo() ? [] : [ "<25>{#p/undyne}{#f/14}* Yeah, we'll... probably still be here." ])
+         ],
+         () =>
+            solo()
+               ? [ "<18>{#p/papyrus}{#f/6}IT'S HARD TO TELL WHICH WAY IS UP IN THOSE THINGS." ]
+               : [ "<25>{#p/undyne}{#f/17}* It's not like we have anything better to do." ]
+      )
+   },
 
    s_save: {
       s_crossroads: {
-         name: 'Starton - Box Road',
-         text: [ "<32>{#p/human}* (Sans and Papyrus's antics fill you with determination.)" ]
+         name: 'Starton - Landing Zone',
+         text: () =>
+            save.data.n.plot < 29
+               ? [ "<32>{#p/human}* (Sans and Papyrus's antics fill you with determination.)" ]
+               : world.dead_skeleton
+               ? [ '<32>{#p/human}* (The box is so lonely, it fills you with determination anyway.)' ]
+               : [ '<32>{#p/human}* (The box can rest easy now.)\n* (This, of course, fills you with determination.)' ]
       },
       s_pacing: {
-         name: 'Starton - Fringes',
+         name: 'Starton - Moon Rock Road',
          text: () =>
-            save.data.n.kills_starton > 4
-               ? [ '<32>{#p/human}* (Even as the starlight dims, it fills you with determination.)' ]
-               : [
+            save.data.n.kills_starton < 5
+               ? [
                     '<32>{#p/human}* (Moon rock merchants argue frivolously in the foreground.)',
                     '<32>* (This fills you with determination.)'
                  ]
+               : save.data.n.plot < 29
+               ? [ '<32>{#p/human}* (The starlight dims.)\n* (Somehow, this fills you with determination.)' ]
+               : world.dead_skeleton
+               ? [ '<32>{#p/human}* (The starlight has faded.)\n* (Indeed, this fills you with determination.)' ]
+               : save.data.n.kills_starton < 7
+               ? [ '<32>{#p/human}* (The starlight has returned.)\n* (It once again fills you with determination.)' ]
+               : [ '<32>{#p/human}* (The starlight remains dim.)\n* (Somehow, this fills you with determination.)' ]
       },
       s_spaghetti: {
          name: 'Starton - Spaghetti Junction',
-         text: [ '<32>{#p/human}* (A plate of spaghetti defying the laws of physics fills you with determination.)' ]
+         text: () =>
+            [
+               [ '<32>{#p/human}* (A plate of spaghetti defying the laws of physics fills you with determination.)' ],
+               [
+                  '<32>{#p/human}* (The spaghetti no longer defies the laws of physics.)',
+                  '<32>{#p/human}* (This fills you with determination.)'
+               ],
+               [ '<32>{#p/human}* (The spaghetti is no more.)', '<32>{#p/human}* (This fills you with determination.)' ]
+            ][save.data.n.state_starton_spaghetti]
       },
       s_town1: {
          name: 'Starton - Town',
-         text: [ '<32>{#p/human}* (This cute little town fills you with determination.)' ]
+         text: () =>
+            world.dead_skeleton
+               ? [ '<32>{#p/human}* (A shadow looms over town, filling you with determination.)' ]
+               : [ '<32>{#p/human}* (This cute little town fills you with determination.)' ]
       }
    }
 };

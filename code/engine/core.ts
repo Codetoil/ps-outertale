@@ -1,5 +1,4 @@
-import { Ticker } from 'pixi.js';
-import { CosmosValue } from './numerics';
+import { CosmosMath, CosmosValue } from './numerics';
 import { CosmosBasic, CosmosKeyed, CosmosUtils } from './utils';
 
 export type CosmosTimerEvents = { tick: [number] };
@@ -193,19 +192,24 @@ export class CosmosTimer<A extends CosmosTimerEvents = CosmosTimerEvents> extend
       if (this.$timer.task === null) {
          this.$timer.now = performance.now();
          this.$timer.task = setInterval(() => {
+            let speed = this.speed.value;
             const now = performance.now();
-            const delta = (now - this.$timer.now) * this.speed.value;
-            this.value += delta;
-            for (const when of this.whens) {
-               if (when.condition()) {
-                  this.whens.splice(this.whens.indexOf(when), 1);
-                  when.resolve();
+            const diff = (now - this.$timer.now);
+            while (speed > 0) {
+               const delta = diff * Math.min(speed, CosmosMath.FRAME / 5);
+               this.value += delta;
+               for (const when of this.whens) {
+                  if (when.condition()) {
+                     this.whens.splice(this.whens.indexOf(when), 1);
+                     when.resolve();
+                  }
                }
-            }
-            this.fire('tick', delta);
-            this.$timer.now = now;
-            for (const post of this.posts.splice(0, this.posts.length)) {
-               post();
+               this.fire('tick', delta);
+               for (const post of this.posts.splice(0, this.posts.length)) {
+                  post();
+               }
+               this.$timer.now = now;
+               speed -= CosmosMath.FRAME / 5;
             }
          }, 5);
       }

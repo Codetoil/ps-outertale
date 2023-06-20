@@ -1,7 +1,7 @@
 {
    "$schema": "./room.schema.json",
    "background": "below",
-   "metadata": { "dark03": true, "restoreMuzak": "mall" },
+   "metadata": { "dark03": true },
    "preload": [
       "amMall",
       "amYouscreweduppal",

@@ -154,20 +154,24 @@ export class CosmosObject<
       objects: new Proxy([] as CosmosObject[], {
          set: (target, key: `${number}`, value) => {
             this.$object.dirty = true;
+            value?.$object && (value.$object.parent = this);
             target[key] = value;
             return true;
          },
          deleteProperty: (target, key: `${number}`) => {
             this.$object.dirty = true;
+            const value = target[key];
+            value?.$object && (value.$object.parent = null);
             delete target[key];
             return true;
          }
       }),
       offsets: new Proxy([] as CosmosPoint[], {
-         get: (target, key: `${number}`) => {
+         get (target, key: `${number}`) {
             return (target[key] ??= new CosmosPoint());
          }
-      })
+      }),
+      parent: null as CosmosObject | null
    };
    acceleration: CosmosValue;
    gravity: CosmosRay;
@@ -219,7 +223,10 @@ export class CosmosObject<
                return new CosmosPoint(offset?.x ?? 0, offset?.y ?? 0);
             }
          });
-         this.objects = objects;
+         if (objects.length > 0) {
+            this.$object.objects.push(...objects);
+            this.$object.dirty = true;
+         }
          if (typeof parallax === 'number') {
             this.parallax = new CosmosPoint(parallax ?? 0);
          } else {
@@ -237,13 +244,19 @@ export class CosmosObject<
    }
    attach (...objects: CosmosObject[]) {
       for (const object of objects) {
-         this.objects.includes(object) || this.objects.push(object);
+         if (!this.$object.objects.includes(object)) {
+            this.$object.objects.push(object);
+            this.$object.dirty = true;
+         }
       }
       return this;
    }
    detach (...objects: CosmosObject[]) {
       for (const object of objects) {
-         this.objects.includes(object) && this.objects.splice(this.objects.indexOf(object), 1);
+         if (this.$object.objects.includes(object)) {
+            this.$object.objects.splice(this.$object.objects.indexOf(object), 1);
+            this.$object.dirty = true;
+         }
       }
       return this;
    }
@@ -251,7 +264,7 @@ export class CosmosObject<
    tick (camera: CosmosPointSimple, scale: CosmosPointSimple, style: CosmosStyle) {
       if (this.$object.dirty) {
          this.$object.subcontainer.removeChildren();
-         for (const object of this.objects) {
+         for (const object of this.$object.objects) {
             this.$object.subcontainer.addChild(object.container);
          }
          this.$object.dirty = false;
@@ -289,14 +302,24 @@ export class CosmosObject<
          tint: this.tint ?? style.tint
       };
       this.draw(substyle);
-      for (const object of this.objects) {
+      for (const object of this.$object.objects) {
          object.tick(camera, scale, substyle);
       }
       this.fire('render');
    }
+   transform (
+      renderer: CosmosRenderer,
+      camera = renderer.freecam ? renderer.position : renderer.position.clamp(...renderer.region)
+   ): CosmosTransform {
+      if (this.$object.parent) {
+         return CosmosMath.transform(this.$object.parent.transform(renderer, camera), this, camera);
+      } else {
+         return [ this.position, this.rotation.value, this.scale ];
+      }
+   }
    update (index: number) {
       index === this.container.zIndex || (this.container.zIndex = index);
-      for (const object of this.objects) {
+      for (const object of this.$object.objects) {
          object.update(object.priority.value);
       }
    }
@@ -364,7 +387,7 @@ export class CosmosHitbox<
          { x: 0, y: 0 }
       ] as [CosmosPoint, CosmosPoint, CosmosPoint, CosmosPoint]
    };
-   calculate ([ position, rotation, scale ]: CosmosTransform) {
+   calculate (renderer: CosmosRenderer, [ position, rotation, scale ] = this.transform(renderer)) {
       let update = false;
       if (this.anchor.x !== this.$hitbox.previous[0]) {
          this.$hitbox.previous[0] = this.anchor.x;
@@ -423,6 +446,7 @@ export class CosmosHitbox<
             .endpoint(position.angleFrom(corner4) + offset, position.extentOf(corner4))
             .round(1e6);
       }
+      return this;
    }
    detect (hitbox: CosmosHitbox, [ min1, max1 ] = hitbox.region()) {
       const [ min2, max2 ] = this.region();
@@ -567,7 +591,7 @@ export class CosmosRenderer<
          this.active = active;
       })(properties);
       this.timer.on('tick', delta => {
-         if (1 <= (this.$renderer.delta += delta / (100 / 3))) {
+         if (1 <= (this.$renderer.delta += delta / CosmosMath.FRAME)) {
             this.tick();
             this.$renderer.delta = 0;
          }
@@ -581,34 +605,26 @@ export class CosmosRenderer<
          object.update(object.priority.value || (vertical ? object.position.y : 0));
       }
    }
-   calculate(source: A | CosmosObject[], filter?: CosmosProvider<boolean, [CosmosHitbox]>): CosmosHitbox[];
-   calculate(
-      source: A | CosmosObject[],
-      filter?: CosmosProvider<boolean, [CosmosHitbox]>,
-      transform?: CosmosTransform,
-      camera?: CosmosPointSimple,
-      sublist?: CosmosHitbox[]
-   ): void;
    calculate (
-      source: A | CosmosObject[],
+      source: A | CosmosObject | CosmosObject[],
       filter: CosmosProvider<boolean, [CosmosHitbox]> = true,
-      transform: CosmosTransform = [ new CosmosPoint(), 0, new CosmosPoint(1) ],
-      camera: CosmosPointSimple = this.freecam ? this.position : this.position.clamp(...this.region),
-      sublist?: CosmosHitbox[]
+      camera = this.freecam ? this.position : this.position.clamp(...this.region)
    ) {
-      const list = sublist ?? ([] as CosmosHitbox[]);
-      const objects = typeof source === 'string' ? this.layers[source].objects : source;
+      const list: CosmosHitbox[] = [];
+      const objects =
+         typeof source === 'string'
+            ? this.layers[source].objects
+            : source instanceof CosmosObject
+            ? source.objects
+            : source;
       for (const object of objects) {
-         const subtransform = CosmosMath.transform(transform, object, camera);
          if (object instanceof CosmosHitbox && CosmosUtils.provide(filter, object)) {
             list.push(object);
-            object.calculate(subtransform);
+            object.calculate(this, object.transform(this, camera));
          }
-         this.calculate(object.objects, filter, subtransform, camera, list);
+         list.push(...this.calculate(object, filter, camera));
       }
-      if (!sublist) {
-         return list;
-      }
+      return list;
    }
    clear (key: A) {
       const layer = this.layers[key];
@@ -620,8 +636,8 @@ export class CosmosRenderer<
          layer.objects.includes(object) && layer.objects.splice(layer.objects.indexOf(object), 1);
       }
    }
-   detect (key: A | void, source: CosmosHitbox, ...targets: CosmosHitbox[]) {
-      typeof key === 'string' && this.calculate(key, hitbox => hitbox === source);
+   detect (source: CosmosHitbox, ...targets: CosmosHitbox[]) {
+      source.calculate(this);
       const region = source.region();
       return targets.filter(target => target.detect(source, region));
    }

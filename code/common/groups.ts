@@ -2,7 +2,9 @@ import assets from '../assets';
 import { OutertaleChoice, OutertaleGroup, OutertaleVolatile } from '../classes';
 import content from '../content';
 import { atlas, events, game, keys, renderer, timer } from '../core';
-import { CosmosInventory, CosmosPointSimple, CosmosUtils } from '../engine';
+import { CosmosInventory } from '../engine/core';
+import { CosmosPointSimple } from '../engine/numerics';
+import { CosmosUtils } from '../engine/utils';
 import { battler, world } from '../mantle';
 import save from '../save';
 import opponents from './opponents';
@@ -105,7 +107,7 @@ const groups = {
       assets: new CosmosInventory(content.amBattle1),
       init () {
          battler.grid = content.ibuGrid1;
-         battler.status = text.b_opponent_moldsmal.status1;
+         battler.status = text.b_opponent_moldsmal.status1();
          standardMusic();
          return true;
       },
@@ -115,13 +117,13 @@ const groups = {
             case 'fight':
                if (battler.alive.length < (vars.enemies || 2)) {
                   battler.status =
-                     battler.alive.length > 1 ? text.b_opponent_moldsmal.status6 : text.b_opponent_moldsmal.status7;
+                     battler.alive.length > 1 ? text.b_opponent_moldsmal.status6() : text.b_opponent_moldsmal.status7();
                }
                break;
             case 'spare':
                if (battler.spare()) {
                   battler.status =
-                     battler.alive.length > 1 ? text.b_opponent_moldsmal.status6 : text.b_opponent_moldsmal.status7;
+                     battler.alive.length > 1 ? text.b_opponent_moldsmal.status6() : text.b_opponent_moldsmal.status7();
                }
                break;
             case 'flee':
@@ -159,7 +161,7 @@ const groups = {
       assets: new CosmosInventory(content.amBattle1),
       init () {
          battler.grid = content.ibuGrid1;
-         battler.status = world.goatbro ? text.b_opponent_spacetop.genoStatus : text.b_opponent_spacetop.status1;
+         battler.status = world.azzie ? text.b_opponent_spacetop.genoStatus : text.b_opponent_spacetop.status1;
          standardMusic();
          return true;
       },

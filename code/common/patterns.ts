@@ -2,24 +2,12 @@ import assets from '../assets';
 import { OutertaleLayerKey } from '../classes';
 import content from '../content';
 import { events, game, random, renderer, timer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosAnimationProperties,
-   CosmosDaemon,
-   CosmosDefined,
-   CosmosFace,
-   CosmosHitbox,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosPointSimple,
-   CosmosRay,
-   CosmosRectangle,
-   CosmosSizedObjectProperties,
-   CosmosSprite,
-   CosmosSpriteProperties,
-   CosmosUtils
-} from '../engine';
+import { CosmosDaemon } from '../engine/audio';
+import { CosmosAnimation, CosmosAnimationProperties, CosmosSprite, CosmosSpriteProperties } from '../engine/image';
+import { CosmosMath, CosmosPoint, CosmosPointSimple, CosmosRay } from '../engine/numerics';
+import { CosmosHitbox, CosmosObject, CosmosSizedObjectProperties } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosDefined, CosmosFace, CosmosUtils } from '../engine/utils';
 import { battler, shake, sineWaver } from '../mantle';
 import save from '../save';
 import { voices } from './bootstrap';
@@ -186,10 +174,10 @@ export function screenCheck (object: CosmosPointSimple, distance: number) {
 
 export function boxCheck (object: CosmosPointSimple, distance: number) {
    return (
-      object.x < battler.box.position.x - battler.box.size.x / 2 - distance ||
-      object.x > battler.box.position.x + battler.box.size.x / 2 + distance ||
-      object.y < battler.box.position.y - battler.box.size.y / 2 - distance ||
-      object.y > battler.box.position.y + battler.box.size.y / 2 + distance
+      object.x < battler.box.x - battler.box.size.x / 2 - distance ||
+      object.x > battler.box.x + battler.box.size.x / 2 + distance ||
+      object.y < battler.box.y - battler.box.size.y / 2 - distance ||
+      object.y > battler.box.y + battler.box.size.y / 2 + distance
    );
 }
 
@@ -269,7 +257,7 @@ export default {
                               anchor: 0,
                               metadata: {
                                  bullet: true,
-                                 damage: type === 2 ? (alt ? 6 : 2) : alt ? 3 : 1,
+                                 damage: type === 2 ? (alt ? 2 : 6) : alt ? 1 : 3,
                                  dummybullet: true,
                                  hit: void 0 as boolean | void
                               },
@@ -849,7 +837,7 @@ export default {
                               bullet.on('tick', async () => {
                                  if (
                                     bullet.metadata.impact ||
-                                    bullet.position.y > battler.box.position.y + battler.box.size.y / 2 + 10
+                                    bullet.position.y > battler.box.y + battler.box.size.y / 2 + 10
                                  ) {
                                     detacher();
                                     resolve();
@@ -910,7 +898,7 @@ export default {
                let despawned = false;
                Promise.race([
                   timer.pause(reverse ? 1400 : 5000),
-                  timer.when(() => tear.position.y > battler.box.position.y + battler.box.size.y / 2 || despawned)
+                  timer.when(() => tear.position.y > battler.box.y + battler.box.size.y / 2 || despawned)
                ]).then(() => {
                   despawned = true;
                   tear.alpha.modulate(timer, 300, 0).then(() => {
@@ -969,20 +957,20 @@ export default {
                      await volatile.container.alpha.modulate(timer, 300, 0);
                      if (times < 5) {
                         const possie = [ 100, 160, 220 ].filter(
-                           x => x !== volatile.container.position.x && (times !== 7 || x !== 160)
+                           x => x !== volatile.container.x && (times !== 7 || x !== 160)
                         );
                         const target = possie[Math.floor(random.next() * possie.length)];
-                        volatile.container.position.x = target;
+                        volatile.container.x = target;
                         const reduced = (target - 160) * 0.5 + 160;
                         battler.box.position.modulate(timer, 500, {
                            x: reduced,
-                           y: battler.box.position.y
+                           y: battler.box.y
                         });
                      } else {
-                        volatile.container.position.x = 160;
+                        volatile.container.x = 160;
                         battler.box.position.modulate(timer, 500, {
                            x: 160,
-                           y: battler.box.position.y
+                           y: battler.box.y
                         });
                      }
                      await volatile.container.alpha.modulate(timer, 300, 1);
@@ -1050,17 +1038,15 @@ export default {
       if (alt) {
          return spawnNoteWithSnd;
       } else if (vars.encourage > 0) {
-         const notes = [
-            [ 1, 5, 4, 5, 3, 4, 2, 4, 3, 2, 1, 2, 0 ],
-            [ 0, 4, 3, 0, 2, 0, 2, 3, 0, 0, 3, 0, 2, 0, 2, 3 ],
-            [ 0, 0, 5, 0, 4, 0, 0, 3, 0, 2, 0, 1, 0, 0, 1, 2, 0, 0, 5, 0, 4, 0, 0, 3, 0, 2, 0, 1, 0, 0, 2, 1 ],
-            [ 0, 0, 0, 0, 5, 0, 3, 0, 2, 0, 1, 0, 2, 3, 0, 4, 0, 0, 3, 0, 2, 1, 0, 1, 0, 0, 3, 0, 2, 1, 2, 1 ],
-            [
-               3, 4, 3, 4, 5, 3, 5, 4, 5, 0, 4, 5, 2, 4, 3, 4, 0, 0, 5, 5, 3, 4, 1, 0, 4, 0, 2, 2, 0, 4, 1, 1, 2, 2, 4,
-               4, 2, 5, 3, 5, 4, 2, 1, 4, 1, 4, 5, 2, 5, 0, 0, 1, 3, 1, 3, 0, 3, 2, 4, 0, 3, 3, 4, 2, 4, 4, 1, 5, 4, 4,
-               3
-            ]
-         ][vars.encourage - 1];
+         const notes =
+            vars.encourage < 5
+               ? [
+                    [ 1, 5, 4, 5, 3, 4, 2, 4, 3, 2, 1, 2, 0 ],
+                    [ 0, 4, 3, 0, 2, 0, 2, 3, 0, 0, 3, 0, 2, 0, 2, 3 ],
+                    [ 0, 0, 5, 0, 4, 0, 0, 3, 0, 2, 0, 1, 0, 0, 1, 2, 0, 0, 5, 0, 4, 0, 0, 3, 0, 2, 0, 1, 0, 0, 2, 1 ],
+                    [ 0, 0, 0, 0, 5, 0, 3, 0, 2, 0, 1, 0, 2, 3, 0, 4, 0, 0, 3, 0, 2, 1, 0, 1, 0, 0, 3, 0, 2, 1, 2, 1 ]
+                 ][vars.encourage - 1]
+               : CosmosUtils.populate(71, () => Math.floor(random.next() * 6));
          const notepower = [ 1, 1, 1.1, 1.2, 1.5 ][vars.encourage - 1];
          const timedelay = [ 250, 250, 240, 220, 190 ][vars.encourage - 1];
          await battler.sequence(notes.length, async (promises, index) => {
@@ -1201,10 +1187,7 @@ export default {
                              index: Math.floor(random.next() * 4)
                           }).on('tick', function () {
                              rotspeed = 0;
-                             if (
-                                !this.metadata.trig &&
-                                bullet.position.y > battler.box.position.y + battler.box.size.y / 2
-                             ) {
+                             if (!this.metadata.trig && bullet.position.y > battler.box.y + battler.box.size.y / 2) {
                                 this.metadata.trig = true;
                                 bullet.acceleration.value = 1;
                                 bullet.velocity.y = 0;

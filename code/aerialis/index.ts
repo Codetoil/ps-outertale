@@ -3,59 +3,40 @@ import './bootstrap';
 import { AdvancedBloomFilter, CRTFilter, GlitchFilter, GlowFilter, MotionBlurFilter } from 'pixi-filters';
 import { BLEND_MODES, Container, Graphics, Rectangle, Sprite } from 'pixi.js';
 import assets from '../assets';
-import { OutertaleGroup, OutertaleMultivisualObject, OutertaleShop } from '../classes';
-import { characters, endCall, genCB, goatbro, runEncounter } from '../common';
+import { OutertaleMultivisualObject, OutertaleShop } from '../classes';
+import { azzie, characters, endCall, genCB, runEncounter } from '../common';
 import commonGroups from '../common/groups';
-import commonText from '../common/text';
 import content, { inventories } from '../content';
-import {
-   atlas,
-   audio,
-   backend,
-   events,
-   game,
-   items,
-   keys,
-   random,
-   renderer,
-   rooms,
-   speech,
-   timer,
-   typer
-} from '../core';
+import { atlas, audio, events, exit, game, items, keys, random, renderer, rooms, speech, timer, typer } from '../core';
+import { CosmosDaemon, CosmosInstance } from '../engine/audio';
+import { CosmosInventory, CosmosTimer } from '../engine/core';
+import { CosmosCharacter, CosmosEntity } from '../engine/entity';
 import {
    CosmosAnimation,
    CosmosAnimationResources,
    CosmosBitmap,
-   CosmosCharacter,
    CosmosColor,
-   CosmosDaemon,
-   CosmosDirection,
-   CosmosEntity,
-   CosmosHitbox,
    CosmosImage,
-   CosmosInstance,
-   CosmosInventory,
-   CosmosKeyed,
+   CosmosSprite
+} from '../engine/image';
+import {
    CosmosMath,
-   CosmosObject,
    CosmosPoint,
    CosmosPointLinked,
    CosmosPointSimple,
-   CosmosProvider,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosText,
-   CosmosTimer,
-   CosmosUtils,
    CosmosValue,
    CosmosValueRandom
-} from '../engine';
+} from '../engine/numerics';
+import { CosmosHitbox, CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosText } from '../engine/text';
+import { CosmosDirection, CosmosKeyed, CosmosProvider, CosmosUtils } from '../engine/utils';
 import {
    battler,
    calcHP,
    character,
    choicer,
+   colormix,
    dialogue,
    dialogueSession,
    distanceGravity,
@@ -65,6 +46,7 @@ import {
    instance,
    instances,
    menuBox,
+   notifier,
    oops,
    player,
    quickshadow,
@@ -81,15 +63,13 @@ import {
    world
 } from '../mantle';
 import save from '../save';
-import { colormix, gossiper, sources } from './bootstrap';
+import { gossiper, sources } from './bootstrap';
 import groups from './groups';
-import text, { evac, pms } from './text';
-export { graphMetadata } from './opponents';
-export { mtb as mettatonBullets } from './patterns';
+import text, { evac, pms, trueLizard } from './text';
 
-type AerialisRoomKey = keyof typeof sources;
+export type AerialisRoomKey = keyof typeof sources;
 
-type DefinedRoomStates = {
+export type DefinedRoomStates = {
    a_lift: {
       location:
          | 'a_start'
@@ -101,7 +81,7 @@ type DefinedRoomStates = {
          | 'a_hub5'
          | 'a_core_entry1'
          | 'a_core_exit2'
-         | 'e_elevator';
+         | 'c_start';
       elevating: boolean;
    };
    a_lab_main: {
@@ -111,8 +91,8 @@ type DefinedRoomStates = {
       subcontainer: Container;
       alph: CosmosCharacter;
    };
-   a_puzzle1: { offset: number; check: boolean };
-   a_puzzle2: { offset: number; check: boolean };
+   a_puzzle1: { offset: number; check: boolean; crash: boolean };
+   a_puzzle2: { offset: number; check: boolean; crash: boolean };
    a_barricade1: { trig1: boolean; trig2: boolean; trig3: boolean };
    a_mettaton1: {
       active: boolean;
@@ -142,14 +122,13 @@ type DefinedRoomStates = {
    a_sans: { toppler: boolean };
 };
 
-type RoomStates = {
+export type RoomStates = {
    [k in AerialisRoomKey]: k extends keyof DefinedRoomStates ? Partial<DefinedRoomStates[k]> : {};
 };
 
-const childEvac = () =>
-   world.genocide || world.population === 0 || (save.data.n.bad_lizard > 1 && world.population < 5);
-const babyEvac = () => world.genocide || world.population === 0 || save.data.n.bad_lizard > 1;
-const teenEvac = () => world.genocide || (world.population === 0 && (!world.bullied || save.data.n.bad_lizard > 1));
+export const childEvac = () => world.genocide || world.population === 0 || (trueLizard() > 1 && world.population < 5);
+export const babyEvac = () => world.genocide || world.population === 0 || trueLizard() > 1;
+export const teenEvac = () => world.genocide || (world.population === 0 && (!world.bullied || trueLizard() > 1));
 
 export const darkmansSprites = {
    down: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.ionADarkman })
@@ -373,91 +352,74 @@ export function onionArm (x: number, scaleX: 1 | -1, frame: 'left' | 'out' | 'wa
    });
 }
 
-async function endarea () {
-   await dialogue('auto', ...text.a_aerialis.story.exit);
-   if (choicer.result === 0) {
-      save.flag.b.demo_complete = true;
-      const loader = content.avAsriel.load();
-      const overlay = new CosmosRectangle({
-         alpha: 0,
-         size: { x: 1000, y: 1000 },
-         position: { x: 160, y: 120 },
-         anchor: { x: 0, y: 0 },
-         fill: 'black',
-         stroke: 'transparent'
-      });
-      renderer.attach('menu', overlay);
-      await overlay.alpha.modulate(timer, 3000, 1).then(() => timer.pause(850));
-      await Promise.all([ loader, timer.pause(1000) ]);
-      atlas.switch('dialoguerBottom');
-      await typer.text(...commonText.x_credits);
-      atlas.switch(null);
-      await timer.pause(1000);
-      backend.reload();
-   } else {
-      player.y -= 3;
-      player.face = 'up';
-      game.movement = true;
+export async function updateBadLizard () {
+   if (trueLizard() < 1 && save.data.n.kills_aerialis + (save.data.n.state_aerialis_royalguards === 1 ? 1 : 0) > 2) {
+      save.data.b.bad_lizard = true;
+      await area.scripts.notifier!(
+         (states.rooms[game.room] ??= {}),
+         (states.scripts.notifier ??= {}),
+         'alphysBadLizard'
+      );
    }
 }
 
-const friskJetpack = {
+export const friskJetpack = {
    down: new CosmosAnimation({ active: true, anchor: { x: 0, y: 1 }, resources: content.iocFriskDownJetpack }),
    left: new CosmosAnimation({ active: true, anchor: { x: 0, y: 1 }, resources: content.iocFriskLeftJetpack }),
    right: new CosmosAnimation({ active: true, anchor: { x: 0, y: 1 }, resources: content.iocFriskRightJetpack }),
    up: new CosmosAnimation({ active: true, anchor: { x: 0, y: 1 }, resources: content.iocFriskUpJetpack })
 };
 
-const friskJetpackOff = {
+export const friskJetpackOff = {
    down: new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.iocFriskDownJetpackOff ] }),
    left: new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.iocFriskLeftJetpackOff ] }),
    right: new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.iocFriskRightJetpackOff ] }),
    up: new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.iocFriskUpJetpackOff ] })
 };
 
-const friskWaterJetpack = {
+export const friskWaterJetpack = {
    down: new CosmosAnimation({ active: true, anchor: { x: 0, y: 1 }, resources: content.iocFriskDownWaterJetpack }),
    left: new CosmosAnimation({ active: true, anchor: { x: 0, y: 1 }, resources: content.iocFriskLeftWaterJetpack }),
    right: new CosmosAnimation({ active: true, anchor: { x: 0, y: 1 }, resources: content.iocFriskRightWaterJetpack }),
    up: new CosmosAnimation({ active: true, anchor: { x: 0, y: 1 }, resources: content.iocFriskUpWaterJetpack })
 };
 
-const friskWaterJetpackOff = {
+export const friskWaterJetpackOff = {
    down: new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.iocFriskDownWaterJetpackOff ] }),
    left: new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.iocFriskLeftWaterJetpackOff ] }),
    right: new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.iocFriskRightWaterJetpackOff ] }),
    up: new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.iocFriskUpWaterJetpackOff ] })
 };
 
-const mettaton1 = {
+export const mettaton1 = {
    down: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocMettatonMicrophone }),
    left: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocMettatonWave }),
    right: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocMettatonLaugh }),
    up: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocMettatonPoint })
 };
 
-const mettaton2 = {
+export const mettaton2 = {
    down: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocMettatonClap }),
    left: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocMettatonRollLeft }),
    right: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocMettatonRollRight }),
    up: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocMettatonPointthree })
 };
 
-const mettaton3 = {
+export const mettaton3 = {
    down: new CosmosAnimation(),
    left: new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.iocMettatonDotdotdot ] }),
    right: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.iocMettatonConfused }),
    up: new CosmosAnimation()
 };
 
-const rgdragon = {
+export const rgdragon = {
    down: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.ionARgdragonDown }),
    left: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.ionARgdragonLeft }),
    right: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.ionARgdragonRight }),
    up: new CosmosSprite()
 };
 
-const rgrabbit = {
+export const rgrabbit = {
    down: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.ionARgrabbitDown }),
    left: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.ionARgrabbitLeft }),
    right: new CosmosAnimation({ anchor: { x: 0, y: 1 }, resources: content.ionARgrabbitRight }),
@@ -485,7 +447,7 @@ export const puzzle2target = new CosmosPointLinked({
    set y (value) {}
 });
 
-let flowersampler = [] as CosmosColor[][];
+export let flowersampler = [] as CosmosColor[][];
 events.on('modded').then(async () => {
    await content.iooStarling.load();
    flowersampler = CosmosBitmap.texture2colors(content.iooStarling.value!);
@@ -496,13 +458,13 @@ export async function operaShow (lizard: CosmosCharacter) {
    game.camera = cam;
    const lowOver = new CosmosAnimation({ resources: content.iooAShowglow, blend: BLEND_MODES.MULTIPLY });
    renderer.attach('above', lowOver);
-   if (save.data.n.bad_lizard < 2) {
+   if (trueLizard() < 2) {
       lizard.alpha.value = 1;
       lizard.position.set(20, 200);
       player.alpha.value = 1;
       await timer.pause(1900);
       await dialogue('dialoguerTop', ...text.a_aerialis.story.opera13);
-   } else if (save.data.n.bad_lizard === 2) {
+   } else if (trueLizard() === 2) {
       await timer.pause(850);
    } else {
       await timer.pause(850);
@@ -511,7 +473,7 @@ export async function operaShow (lizard: CosmosCharacter) {
    }
    lowOver.index = 1;
    assets.sounds.noise.instance(timer);
-   if (save.data.n.bad_lizard < 2) {
+   if (trueLizard() < 2) {
       await timer.pause(1650);
       timer.pause(850).then(async () => {
          lizard.face = 'down';
@@ -528,10 +490,10 @@ export async function operaShow (lizard: CosmosCharacter) {
    timer.pause(450).then(async () => {
       lizard.face = 'right';
    });
-   world.genocide && (goatbro.metadata.override = true);
+   world.genocide && (azzie.metadata.override = true);
    await Promise.all([
-      save.data.n.bad_lizard > 1 ? player.walk(timer, 3, { x: world.genocide ? 247.5 : 240 }) : void 0,
-      world.genocide ? goatbro.walk(timer, 3, { x: 226.5 }) : void 0,
+      trueLizard() > 1 ? player.walk(timer, 3, { x: world.genocide ? 247.5 : 240 }) : void 0,
+      world.genocide ? azzie.walk(timer, 3, { x: 226.5 }) : void 0,
       cam.position.modulate(timer, 2000, { x: 240 }),
       world.genocide ? void 0 : dialogue('dialoguerTop', ...text.a_aerialis.story.opera14c)
    ]);
@@ -544,7 +506,7 @@ export async function operaShow (lizard: CosmosCharacter) {
    await timer.pause(650);
    lowOver.index = 2;
    assets.sounds.noise.instance(timer);
-   world.genocide && timer.pause(850).then(() => (goatbro.face = 'down'));
+   world.genocide && timer.pause(850).then(() => (azzie.face = 'down'));
    await timer.pause(1250);
    await dialogue('dialoguerTop', ...(world.genocide ? text.a_aerialis.story.operaX3 : text.a_aerialis.story.opera15));
    const operaMusic = (world.genocide ? assets.music.operaAlt : assets.music.opera).instance(timer);
@@ -559,14 +521,14 @@ export async function operaShow (lizard: CosmosCharacter) {
    metta.use(content.iocMettatonDressIdle);
    metta.animation.index = 0;
    await timer.pause(850);
-   if (save.data.n.bad_lizard < 2) {
+   if (trueLizard() < 2) {
       await lizard.walk(timer, 3, { x: game.camera.x - 160 });
    } else {
       await timer.pause(450);
    }
    header('x1').then(() => (metta.animation.index = 6));
    header('x2').then(() => (metta.animation.index = 7));
-   if (save.data.n.bad_lizard === 2) {
+   if (trueLizard() === 2) {
       await timer.pause(1850);
       await dialogue('dialoguerTop', ...text.a_aerialis.story.opera16b);
    } else {
@@ -575,7 +537,7 @@ export async function operaShow (lizard: CosmosCharacter) {
          ...(world.genocide ? text.a_aerialis.story.operaX4() : text.a_aerialis.story.opera16)
       );
    }
-   save.data.n.bad_lizard < 2 && lizard.walk(timer, 3, { x: game.camera.x - 180 });
+   trueLizard() < 2 && lizard.walk(timer, 3, { x: game.camera.x - 180 });
    timer.pause(450).then(() => (metta.animation.index = 0));
    const operaText = new CosmosText({
       alpha: 0,
@@ -629,7 +591,7 @@ export async function operaShow (lizard: CosmosCharacter) {
    const pulley = new CosmosAnimation({
       active: true,
       resources: save.data.b.water ? content.iocAsrielEarTugWater : content.iocAsrielEarTug,
-      position: goatbro,
+      position: azzie,
       anchor: { x: 0, y: 1 },
       tint: 0x959595
    });
@@ -666,15 +628,15 @@ export async function operaShow (lizard: CosmosCharacter) {
                   updateSyllables(text.a_aerialis.story.opera25);
                   metta.animation.index = world.genocide ? 10 : 0;
                   metta.position.modulate(timer, 3000, player.position.add(-50, 35));
-                  save.data.n.bad_lizard === 2 ||
+                  trueLizard() === 2 ||
                      timer.pause(500).then(async () => {
-                        if (save.data.n.bad_lizard < 2) {
+                        if (trueLizard() < 2) {
                            dialogue('dialoguerBottom', ...text.a_aerialis.story.opera25a);
                         } else {
                            player.walk(timer, 0.25, { x: 240 });
                            await timer.pause(350);
                            await dialogue('dialoguerBottom', ...text.a_aerialis.story.operaY1);
-                           renderer.detach('main', player, goatbro);
+                           renderer.detach('main', player, azzie);
                            renderer.attach('main', pulley);
                            player.face = 'down';
                         }
@@ -697,17 +659,17 @@ export async function operaShow (lizard: CosmosCharacter) {
                      timer.pause(1000).then(async () => {
                         await dialogue('dialoguerBottom', ...text.a_aerialis.story.operaY3);
                         renderer.detach('main', pulley);
-                        renderer.attach('main', player, goatbro);
-                        await goatbro.walk(timer, 1, { x: player.x - 21 });
+                        renderer.attach('main', player, azzie);
+                        await azzie.walk(timer, 1, { x: player.x - 21 });
                         await timer.pause(1450);
                         await dialogue('dialoguerBottom', ...text.a_aerialis.story.operaY4);
-                        goatbro.face = 'down';
+                        azzie.face = 'down';
                      });
                   break;
                case 7:
                   updateSyllables(text.a_aerialis.story.opera31);
                   metta.position.modulate(timer, 2000, player.position.add(35, 0));
-                  save.data.n.bad_lizard < 2 &&
+                  trueLizard() < 2 &&
                      timer.pause(1500).then(() => {
                         dialogue('dialoguerBottom', ...text.a_aerialis.story.opera31a);
                      });
@@ -725,7 +687,7 @@ export async function operaShow (lizard: CosmosCharacter) {
                   updateSyllables(text.a_aerialis.story.opera20);
                   metta.animation.index = world.genocide ? 7 : 3;
                   metta.position.modulate(timer, 2500, player.position.add(20, -10));
-                  save.data.n.bad_lizard < 2 &&
+                  trueLizard() < 2 &&
                      timer.pause(500).then(() => {
                         dialogue('dialoguerBottom', ...text.a_aerialis.story.opera20a);
                      });
@@ -749,7 +711,7 @@ export async function operaShow (lizard: CosmosCharacter) {
                   updateSyllables(text.a_aerialis.story.opera28);
                   metta.animation.index = world.genocide ? 2 : 7;
                   metta.position.modulate(timer, 3500, player.position.add(70, -20));
-                  save.data.n.bad_lizard < 2 &&
+                  trueLizard() < 2 &&
                      timer.pause(3500).then(() => {
                         dialogue('dialoguerBottom', ...text.a_aerialis.story.opera28a);
                      });
@@ -789,7 +751,7 @@ export async function operaShow (lizard: CosmosCharacter) {
       'dialoguerTop',
       ...(world.genocide ? text.a_aerialis.story.operaX5() : text.a_aerialis.story.opera33)
    );
-   if (save.data.n.bad_lizard < 2) {
+   if (trueLizard() < 2) {
       lizard.walk(timer, 3, { x: game.camera.x - 140 });
       header('x1').then(() => (metta.animation.index = 5));
       header('x2').then(() => (metta.animation.index = 4));
@@ -812,9 +774,9 @@ export async function operaShow (lizard: CosmosCharacter) {
       );
       await timer.pause(1950);
       await dialogue('dialoguerTop', ...text.a_aerialis.story.operaX7);
-      goatbro.metadata.override = false;
-      goatbro.metadata.reposition = true;
-      goatbro.metadata.repositionFace = 'right';
+      azzie.metadata.override = false;
+      azzie.metadata.reposition = true;
+      azzie.metadata.repositionFace = 'right';
       while (world.population > 0) {
          world.bully();
       }
@@ -851,14 +813,14 @@ export async function operaShow (lizard: CosmosCharacter) {
                metta.animation.enable();
                const baseX = game.camera.position.clamp(...renderer.region).x;
                if (save.data.b.a_state_hapstablook) {
-                  metta.position.step(timer, 6, { x: baseX + 135 }).then(async () => {
+                  metta.position.step_legacy(timer, 6, { x: baseX + 135 }).then(async () => {
                      metta.animation.reset();
                      assets.sounds.notify.instance(timer);
                      await notifier(new CosmosEntity({ position: metta }), 650, metta.sprite.compute().y);
                      metta.metadata.sus = true;
                   });
                } else {
-                  metta.position.step(timer, 6, { x: baseX + 195 }).then(() => {
+                  metta.position.step_legacy(timer, 6, { x: baseX + 195 }).then(() => {
                      renderer.detach('main', metta);
                      escaped = true;
                   });
@@ -899,6 +861,35 @@ export async function operaShow (lizard: CosmosCharacter) {
          await cam.position.modulate(timer, 800, { x: 320 });
          await timer.pause(1000);
          await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta36);
+         await timer.pause(650);
+         napsta.face = 'down';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta37);
+         await timer.pause(1000);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta38);
+         await timer.pause(850);
+         napsta.face = 'left';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta39);
+         await timer.pause(1250);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta40);
+         await timer.pause(450);
+         napsta.face = 'down';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta41);
+         await timer.pause(650);
+         metta.position.modulate(timer, 1000, { x: metta.x - 30 });
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta42);
+         finalghost = character('finalghost', characters.finalghost, { x: 470, y: 205 }, 'left', {
+            alpha: 0
+         });
+         finalghost.alpha.modulate(timer, 300, 1).then(() => finalghost.walk(timer, 3, { x: 410 }));
+         await timer.pause(450);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta43);
+         napsta.face = 'left';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta44);
+         await timer.pause(850);
+         lizard.walk(timer, 3, { x: 185 });
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta45);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta46);
+         lizard.face = 'up';
          const time = timer.value;
          const dummy = new CosmosAnimation({
             index: 0,
@@ -911,263 +902,146 @@ export async function operaShow (lizard: CosmosCharacter) {
             dummy.offsets[0].y = CosmosMath.wave(((timer.value - time) % 4000) / 4000) * -2;
          });
          renderer.attach('main', dummy);
-         await dummy.position.step(timer, 2, dummy.position.add(60, 0));
-         timer.pause(450).then(() => (lizard.face = 'down'));
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta37, ...text.a_aerialis.story.hapsta38);
-         timer.pause(450).then(() => (lizard.face = 'right'));
-         await timer.pause(850);
-         finalghost = character('finalghost', characters.finalghost, { x: 470, y: 205 }, 'right', {
-            alpha: 0
-         });
-         finalghost.alpha.modulate(timer, 300, 1).then(() => finalghost.walk(timer, 3, { x: 410 }));
-         await timer.pause(650);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta39);
-         await timer.pause(1450);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta40);
-         await timer.pause(850);
-         napsta.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta41);
-         await timer.pause(850);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta42);
-         await timer.pause(1450);
-         napsta.face = 'left';
-         lizard.walk(timer, 3, { x: 185 });
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta43);
-         lizard.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta44);
-         dummy.scale.x = 1;
-         lizard.face = 'up';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta45);
-         await timer.pause(850);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta46);
-         lizard.face = 'right';
-         await metta.position.step(timer, 2, metta.position.subtract(60, 0));
-         dummy.scale.x = -1;
+         dummy.position.step(timer, 2, dummy.position.add(60, 0));
          await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta47);
-         finalghost.walk(timer, 2, { x: 360 });
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta48);
-         dummy.position.step(timer, 4, { x: 270 });
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta49);
-         await timer.pause(1150);
          lizard.face = 'down';
-         await timer.pause(1550);
+         await timer.pause(850);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta48);
+         await timer.pause(1250);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta49a);
+         await Promise.all([
+            metta.position.step(timer, 1, metta.position.subtract(50, 0)),
+            dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta49b)
+         ]);
+         napsta.walk(timer, 2, { x: napsta.x - 40 });
          await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta50);
-         await timer.pause(1950);
          await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta51a);
          lizard.face = 'right';
+         metta.position.step(timer, 1, metta.position.add(0, 30));
          await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta51b);
+         await timer.pause(850);
+         napsta.walk(timer, 2, { x: metta.x + 50 });
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta52);
          dummy.use(content.ionODummy);
          await timer.pause(650);
-         napsta.walk(timer, 1, { x: 380 });
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta52);
-         await timer.pause(850);
-         // mtt face change
-         await timer.pause(1250);
-         napsta.face = 'down';
          await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta53);
-         dummy.use(content.ionODummyMad);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta54);
-         dummy.use(content.ionODummyBlush);
-         finalghost.face = 'up';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta55);
-         finalghost.face = 'left';
          await timer.pause(850);
-         dummy.use(content.ionODummy);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta56);
          napsta.face = 'left';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta57);
-         await timer.pause(1450);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta58);
-         dummy.use(content.ionODummyMad);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta59);
+         finalghost.walk(timer, 2, { x: 380 });
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta54);
+         napsta.face = 'down';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta55a);
+         finalghost.face = 'down';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta55b);
+         await timer.pause(850);
+         napsta.face = 'right';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta56);
          await timer.pause(450);
-         await metta.position.step(timer, 1, metta.position.add(0, 30));
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta57a);
+         napsta.face = 'down';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta57b);
+         await timer.pause(650);
+         finalghost.walk(timer, 1, { x: 360 });
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta58);
+         napsta.face = 'left';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta59);
          await timer.pause(850);
          await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta60);
-         await timer.pause(450);
-         finalghost.walk(timer, 1, { x: finalghost.x + 30 });
+         dummy.position.step(timer, 2, { y: (player.y + lizard.y) / 2 });
          await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta61);
-         await timer.pause(650);
-         finalghost.walk(timer, 1, { x: finalghost.x - 30 });
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta62);
-         metta.animation.index = 3;
-         await timer.pause(1850);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta63);
-         header('x1').then(() => (finalghost.face = 'left'));
-         const e1 = () => {
-            timer.pause(350).then(() => notifier(new CosmosEntity({ position: metta }), 650, metta.sprite.compute().y));
-         };
-         const e2 = () => {
-            dummy.scale.x = 1;
-            dummy.position.step(timer, 3, { y: 165 });
-         };
-         save.data.b.oops ? e2() : e1();
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta64());
-         save.data.b.oops ? e1() : e2();
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta65());
-         await timer.pause(1450);
-         header('x1').then(() => dummy.use(content.ionODummy));
-         const mus = save.data.b.oops ? assets.music.lab.instance(timer) : assets.music.characutscene.instance(timer);
-         save.data.b.oops && (mus.rate.value = 0.9);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta66());
-         await timer.pause(1450);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta67());
-         mus.gain.modulate(timer, 2000, 0).then(() => mus.stop());
-         await timer.pause(1600);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta68());
-         await timer.pause(1400);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta69());
-         await timer.pause(1150);
-         lizard.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta70());
-         await timer.pause(850);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta71());
-         await timer.pause(650);
-         lizard.face = 'right';
-         await timer.pause(850);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta72());
-         await timer.pause(850);
          finalghost.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta73());
-         await timer.pause(450);
-         header('x1').then(() => (finalghost.face = 'left'));
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta74());
-         dummy.scale.x = -1;
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta75);
-         dummy.use(content.ionODummyBlush);
-         header('x1').then(() => (finalghost.face = 'down'));
-         header('x2').then(() => (napsta.face = 'right'));
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta76);
-         await timer.pause(2000);
-         dummy.use(content.ionODummyMad);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta77);
-         finalghost.face = 'left';
-         napsta.face = 'left';
-         await timer.pause(1450);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta78);
-         await timer.pause(650);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta79);
-         finalghost.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta80);
-         await timer.pause(1000);
-         finalghost.face = 'left';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta81);
-         await timer.pause(850);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta83);
-         await timer.pause(850);
-         finalghost.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta84);
-         await timer.pause(850);
-         dummy.use(content.ionODummy);
-         finalghost.face = 'left';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta86);
-         await timer.pause(1150);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta87);
-         await timer.pause(1650);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta88a);
-         await timer.pause(850);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta89);
-         finalghost.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta90);
-         await timer.pause(1650);
-         napsta.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta92);
-         await timer.pause(1650);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta93);
-         let tx = timer.value;
-         let done = false;
-         timer.when(() => {
-            if (timer.value - tx > 600) {
-               tx = timer.value;
-               dummy.scale.x *= -1;
-               if (done && dummy.scale.x === 1) {
-                  timer.pause(850).then(() => {
-                     dummy.scale.x = -1;
-                     dummy.use(content.ionODummy);
-                  });
-                  return true;
-               }
-            }
-            return false;
-         });
-         dummy.use(content.ionODummyBlush);
-         await timer.pause(650);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta94);
-         done = true;
-         await timer.pause(1150);
-         napsta.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta95);
-         napsta.face = 'left';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta96);
-         finalghost.face = 'left';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta97a);
-         finalghost.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta97b);
-         await timer.pause(850);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta98);
-         finalghost.face = 'left';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta99);
-         await timer.pause(2150);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta100);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta101);
-         await timer.pause(1450);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta102);
-         await timer.pause(850);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta103);
-         await timer.pause(750);
-         napsta.face = 'down';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta104);
-         await timer.pause(850);
-         napsta.face = 'left';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta105);
-         dummy.use(content.ionODummyGlad);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta106);
          await timer.pause(1250);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta107);
-         dummy.use(content.ionODummy);
-         await timer.pause(1450);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta109);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta110);
-         await timer.pause(1850);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta111);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta112);
-         await Promise.all([
-            finalghost
-               .walk(timer, 3, { x: 460 })
-               .then(() => finalghost.alpha.modulate(timer, 300, 0))
-               .then(() => renderer.detach('main', finalghost)),
-            metta.position
-               .step(timer, 4, { x: 460 })
-               .then(() => metta.alpha.modulate(timer, 300, 0))
-               .then(() => renderer.detach('main', metta))
-         ]);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta113);
-         await dummy.position.step(timer, 3, { x: 460, y: 180 }).then(async () => {
-            await dummy.alpha.modulate(timer, 300, 0).then(() => renderer.detach('main', dummy));
-         });
-         await timer.pause(950);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta62);
+         await timer.pause(2250);
          napsta.face = 'down';
-         header('x1').then(() => (napsta.face = 'left'));
-         finalghost.walk(timer, 3, { x: game.camera.position.clamp(...renderer.region).x - 180, y: 160 });
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta114());
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta63);
+         dummy.use(content.ionODummyBlush);
+         await timer.pause(1250);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta64);
+         finalghost.face = 'up';
          await timer.pause(850);
-         await napsta.walk(timer, 3, { y: lizard.y }, { x: lizard.x + 30, y: lizard.y });
-         await timer.pause(1150);
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta115);
-         lizard.face = 'right';
-         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta116);
-         await napsta.walk(timer, 3, { y: 180 }, { y: 180, x: 460 }).then(async () => {
+         timer.pause(650).then(() => (finalghost.face = 'left'));
+         await Promise.all([
+            napsta.walk(timer, 1, { x: napsta.x + 40 }),
+            dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta65a)
+         ]);
+         napsta.face = 'up';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta65b);
+         napsta.walk(timer, 1, { x: napsta.x - 40 });
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta65c);
+         await timer.pause(1250);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta66a);
+         dummy.use(content.ionODummy);
+         dummy.scale.x = 1;
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta66b);
+         await timer.pause(650);
+         napsta.face = 'down';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta67);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta68a);
+         napsta.face = 'left';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta68b);
+         dummy.scale.x = -1;
+         dummy.use(content.ionODummyMad);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta68c);
+         metta.position.step(timer, 3, { y: 160 }).then(async () => {
+            await metta.position.step(timer, 3, { x: 470 });
+            await metta.alpha.modulate(timer, 300, 0);
+            renderer.detach('main', metta);
+         });
+         await timer.pause(650);
+         dummy.position.step(timer, 2, { x: finalghost.x - 50 });
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta69);
+         await timer.pause(1650);
+         finalghost.face = 'down';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta70);
+         await timer.pause(650);
+         napsta.walk(timer, 1, { x: 320 });
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta71);
+         await timer.pause(650);
+         dummy.scale.x = 1;
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta72);
+         dummy.position.step(timer, 3, { x: 150 }).then(async () => {
+            await dummy.alpha.modulate(timer, 300, 0);
+            renderer.detach('main', dummy);
+         });
+         await timer.pause(350);
+         finalghost.face = 'left';
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta73);
+         finalghost.face = 'down';
+         await timer.pause(650);
+         finalghost.walk(timer, 3, { x: 470 }).then(async () => {
+            await finalghost.alpha.modulate(timer, 300, 0);
+            renderer.detach('main', finalghost);
+         });
+         await timer.pause(850);
+         napsta.walk(timer, 2, { y: lizard.y });
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta74);
+         if (save.data.b.oops) {
+            lizard.walk(timer, 3, { x: napsta.x - 30 });
+            await timer.pause(350);
+         } else {
+            await timer.pause(850);
+         }
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta75());
+         await timer.pause(850);
+         napsta.face = 'left';
+         save.data.b.oops || (await napsta.walk(timer, 3, { x: lizard.x + 30 }));
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta76);
+         await timer.pause(850);
+         await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta77);
+         await napsta.walk(timer, 3, { x: 460 }).then(async () => {
             await napsta.alpha.modulate(timer, 300, 0);
             renderer.detach('main', napsta);
          });
+         cam.position.modulate(timer, 1600, { x: player.x });
          typer.on('header', headerListener);
       } else {
          finalghost = new CosmosCharacter({ preset: characters.none, key: 'sus' });
       }
-      if (save.data.n.bad_lizard < 2) {
+      if (trueLizard() < 2) {
          await timer.pause(1450);
-         await lizard.walk(timer, 3, { x: player.position.x });
-         if (save.data.n.bad_lizard < 1) {
+         await lizard.walk(timer, 3, { x: player.x });
+         if (trueLizard() < 1) {
             await lizard.walk(timer, 3, { y: player.y + 25 });
             lizard.face = 'up';
             typer.off('header', headerListener);
@@ -1179,21 +1053,24 @@ export async function operaShow (lizard: CosmosCharacter) {
          await timer.when(() => escaped);
       }
       typer.off('header', headerListener);
-      if (save.data.n.bad_lizard < 2) {
-         if (save.data.n.bad_lizard === 1) {
+      if (trueLizard() < 2) {
+         if (trueLizard() === 1) {
             await timer.pause(450);
             lizard.face = 'left';
             await timer.pause(750);
          } else {
             lizard.face = 'left';
          }
-         if (save.data.n.bad_lizard < 1) {
+         if (trueLizard() < 1) {
             await lizard.walk(timer, 3, { x: game.camera.position.clamp(...renderer.region).x - 140 });
             await timer.pause(450);
             lizard.face = 'right';
             await timer.pause(750);
             await dialogue('dialoguerTop', ...text.a_aerialis.story.opera37);
             await timer.pause(1150);
+            if (!save.data.b.oops) {
+               await dialogue('dialoguerTop', ...text.a_aerialis.story.opera38);
+            }
          }
       }
    }
@@ -1214,7 +1091,7 @@ export function rampup () {
    }
 }
 
-export async function elevate () {
+export async function elevate (long = false) {
    assets.sounds.bell.instance(timer);
    const blockbox = new CosmosHitbox({ metadata: { barrier: true }, size: { x: 40, y: 20 } });
    const blocker = new CosmosObject({
@@ -1237,10 +1114,10 @@ export async function elevate () {
    assets.sounds.pathway.instance(timer);
    shake(1, 300);
    await timer.pause(400);
-   assets.sounds.elevator.instance(timer);
-   await renderer.shake.modulate(timer, 300, 0.5);
-   await renderer.shake.modulate(timer, 2400, 1.5);
-   await renderer.shake.modulate(timer, 800, renderer.shake.value, 0);
+   long ? assets.sounds.long_elevator.instance(timer) : assets.sounds.elevator.instance(timer);
+   await renderer.shake.modulate(timer, long ? 600 : 300, 0.5);
+   await renderer.shake.modulate(timer, long ? 16400 : 2400, 1.5);
+   await renderer.shake.modulate(timer, long ? 1600 : 800, renderer.shake.value, 0);
    await timer.pause(400);
    assets.sounds.bell.instance(timer);
    await Promise.all([
@@ -1252,18 +1129,9 @@ export async function elevate () {
    assets.sounds.pathway.instance(timer);
    blockbox.metadata.barrier = false;
    shake(1, 300);
-}
-
-export async function notifier (entity: CosmosEntity, time: number, hy = entity.sprite.compute().y) {
-   const anim = new CosmosAnimation({
-      anchor: { x: 0, y: 1 },
-      resources: content.ibuNotify
-   }).on('tick', function () {
-      this.position.set(renderer.projection(entity.position.subtract(0, hy + 3)));
-   });
-   renderer.attach('menu', anim);
-   await timer.pause(time);
-   renderer.detach('menu', anim);
+   if (long) {
+      save.data.b.long_elevator = true;
+   }
 }
 
 export function lizard (
@@ -1340,9 +1208,9 @@ export function calcBadLizard () {
 export function partyShift ({ x = 0, y = 0 }) {
    player.x += x;
    player.y += y;
-   goatbro.position.x += x;
-   goatbro.position.y += y;
-   for (const { position } of goatbro.metadata.queue || []) {
+   azzie.x += x;
+   azzie.y += y;
+   for (const { position } of azzie.metadata.queue || []) {
       position.x += x;
       position.y += y;
    }
@@ -1362,7 +1230,7 @@ export async function barricadeFail1 () {
    });
 }
 
-const spire = new CosmosSprite({
+export const spire = new CosmosSprite({
    anchor: { y: 0 },
    frames: [ content.iooAPrimespire ],
    priority: -99999,
@@ -1417,7 +1285,7 @@ export const area = {
                const scalar = Math.min(Math.max(filter1.velocity.y / 40, 0), 1);
                filter2.bloomScale = scalar * 4;
             };
-            await renderer.on('render');
+            await renderer.on('tick');
             renderer.detach('main', player);
             player.position.set(player.position.subtract(inst.object));
             inst.object.attach(player);
@@ -1488,6 +1356,7 @@ export const area = {
             await dialogue('auto', ...text.a_aerialis.riverboi3());
             await timer.pause(2500);
             await fd.alpha.modulate(timer, 500, 1);
+            inst.object.detach(player);
             inst.object.off('tick', tickie2);
             renderer.detach('below', basestar1, basestar2, inst.object);
             inst.object.position.set(origin);
@@ -1560,9 +1429,9 @@ export const area = {
             save.storage.inventory.add('moon_pie');
             save.data.b.item_moonpie = true;
             instance('main', 'moonpie')?.destroy();
-            await instance('main', 'a_moon')?.talk('a', talkFilter(), 'dialoguerBottom', ...text.a_aerialis.moonpie1);
+            await dialogue('auto', ...text.a_aerialis.moonpie1());
          } else {
-            await instance('main', 'a_moon')?.talk('a', talkFilter(), 'dialoguerBottom', ...text.a_aerialis.moonpie2);
+            await dialogue('auto', ...text.a_aerialis.moonpie2);
          }
       },
       async bedsleeper () {
@@ -1578,16 +1447,16 @@ export const area = {
             });
             renderer.attach('main', bedcover);
             player.priority.value = 183;
-            goatbro.priority.value = 183;
-            await player.position.modulate(timer, 1450, { x: bedcover.x, y: player.position.y });
+            azzie.priority.value = 183;
+            await player.position.modulate(timer, 1450, { x: bedcover.x, y: player.y });
             await fd.alpha.modulate(timer, 1850, 1);
             player.priority.value = 0;
-            goatbro.priority.value = 0;
+            azzie.priority.value = 0;
             renderer.detach('main', bedcover);
             save.data.n.hp = Math.max(save.data.n.hp, Math.min(calcHP() + 10, 99));
             player.position.set(player.face === 'left' ? 207 : 133, 165);
             player.face = 'down';
-            world.goatbro && (goatbro.metadata.reposition = true);
+            world.azzie && (azzie.metadata.reposition = true);
             await timer.pause(1850);
             game.movement = true;
             await fd.alpha.modulate(timer, 300, 0);
@@ -1648,6 +1517,7 @@ export const area = {
                if (save.data.n.g < 40) {
                   await dialogue('auto', ...text.a_aerialis.spidershop4);
                } else if (save.storage.inventory.size < 8) {
+                  save.data.n.g -= 40;
                   save.storage.inventory.add('super_pop');
                   instance('main', 'spidershop')?.destroy();
                   await dialogue('auto', ...text.a_aerialis.spidershop2);
@@ -1711,8 +1581,8 @@ export const area = {
          }
       },
       async phonegrabber () {
-         await dialogue('auto', ...text.a_aerialis.story.phonegrabber1);
-         save.flag.b.asriel_phone = true;
+         await dialogue('auto', ...text.a_aerialis.story.phonegrabber1());
+         world.genocide && (save.flag.b.asriel_phone = true);
          save.data.b.a_state_gotphone = true;
          instance('main', 'compactlazerdeluxe')?.destroy();
          assets.sounds.equip.instance(timer);
@@ -1749,7 +1619,7 @@ export const area = {
             !(
                save.data.n.plot > 48 &&
                (save.data.n.plot < 60 || (save.data.n.plot > 64.1 && save.data.n.plot < 68)) &&
-               save.data.n.bad_lizard < 2
+               trueLizard() < 2
             )
          ) {
             const inst = instance('below', 'labdesk')!;
@@ -1794,9 +1664,8 @@ export const area = {
             case 'a_core_exit2':
                teleport('a_core_exit2', 'down', 580, 90, world);
                break;
-            case 'e_elevator':
-               game.movement = false;
-               endarea();
+            case 'c_start':
+               teleport('c_start', 'down', 110, 150, world);
                break;
          }
       },
@@ -1890,13 +1759,13 @@ export const area = {
                         citadelevator = true;
                         await dialogue('auto', ...text.a_aerialis.elevator3);
                         break;
-                     case 'e_elevator':
+                     case 'c_start':
                         citadelevator = true;
                         await dialogue('auto', ...text.a_aerialis.elevator4);
                         break;
                   }
                   if (citadelevator) {
-                     roomState.location = [ 'a_hub5', 'a_core_entry1', 'a_core_exit2', 'e_elevator' ][
+                     roomState.location = [ 'a_hub5', 'a_core_entry1', 'a_core_exit2', 'c_start' ][
                         choicer.result
                      ] as RoomStates['a_lift']['location'];
                   } else {
@@ -1914,7 +1783,7 @@ export const area = {
             if (roomState.location !== prev) {
                roomState.elevating = true;
                game.menu = false;
-               elevate().then(() => {
+               elevate(roomState.location === 'c_start' && !save.data.b.long_elevator).then(() => {
                   roomState.elevating = false;
                   game.menu = true;
                });
@@ -1944,7 +1813,7 @@ export const area = {
          save.data.n.plot < 59 || teleport('a_prepuzzle', 'left', 20, 60, world);
       },
       async labstation () {
-         const left = player.position.x < 410;
+         const left = player.x < 410;
          const inst = instance('below', left ? 'leftbrain' : 'rightbrain')!;
          const anim = inst.object.objects.filter(obj => obj instanceof CosmosAnimation)[0] as CosmosAnimation;
          await dialogue('auto', ...text.a_aerialis.overworld.topdesk1);
@@ -1962,9 +1831,9 @@ export const area = {
       },
       async conveyor (r, s, a) {
          if (a === 'up') {
-            player.position.y -= 3;
+            player.y -= 3;
          } else {
-            player.position.y += 3;
+            player.y += 3;
          }
       },
       async terminal (r, s, a) {
@@ -2018,7 +1887,7 @@ export const area = {
          await dialogue('auto', ...text.a_aerialis.overworld.wallswitch1);
       },
       async notifier (roomState, scriptState: { infobox: CosmosObject | void }, key) {
-         if (!pms().includes(key) && save.data.n.bad_lizard < 2) {
+         if (!pms().includes(key) && trueLizard() < 2) {
             assets.sounds.textnoise.instance(timer);
             save.data.s.pms += `${save.data.s.pms === '' ? '' : ','}${key}`;
             scriptState.infobox && renderer.detach('menu', scriptState.infobox);
@@ -2062,10 +1931,13 @@ export const area = {
          await dialogue('auto', ...text.a_aerialis.overworld.labcamera2);
       },
       async launchpad () {
+         if (!game.movement) {
+            return;
+         }
          if (player.face === 'up') {
             if (save.data.n.plot < 49) {
                await dialogue('auto', ...text.a_aerialis.overworld.platformDeny());
-            } else if (save.data.n.bad_lizard > 1 && !save.data.b.a_state_gotphone) {
+            } else if (trueLizard() > 1 && !save.data.b.a_state_gotphone) {
                await dialogue(
                   'auto',
                   ...text.a_aerialis.overworld.platformDeny(),
@@ -2073,7 +1945,7 @@ export const area = {
                );
             } else {
                game.movement = false;
-               goatbro.metadata.static = true;
+               azzie.metadata.static = true;
                for (const spr of Object.values(characters.asriel.walk)) {
                   spr.reset();
                }
@@ -2099,7 +1971,7 @@ export const area = {
                   gain: 0
                }).instance(timer);
                player.filters = [ glow ];
-               goatbro.filters = [ glow ];
+               azzie.filters = [ glow ];
                player.on('tick', filterTicker);
                str.modulate(timer, 500, 2, 2);
                hum.gain.modulate(timer, 500, 0.25, 0.25);
@@ -2126,10 +1998,10 @@ export const area = {
                await timer.pause(300);
                await player.position.step(timer, 1, liftgates[1].position.add(0, 5));
                player.filters = null;
-               goatbro.filters = null;
+               azzie.filters = null;
                player.off('tick', filterTicker);
                game.movement = true;
-               goatbro.metadata.static = false;
+               azzie.metadata.static = false;
             }
          }
       },
@@ -2217,7 +2089,7 @@ export const area = {
          }
       },
       async barricade4 () {
-         if (save.data.n.plot < 62) {
+         if (save.data.n.plot < 62 && game.movement) {
             game.movement = false;
             await dialogue('auto', ...text.a_aerialis.overworld.barricade);
             assets.sounds.phone.instance(timer);
@@ -2227,6 +2099,9 @@ export const area = {
          }
       },
       async puzzle1 (roomState: RoomStates['a_puzzle1']) {
+         if (!game.movement) {
+            return;
+         }
          if (player.face === 'up') {
             game.movement = false;
             const pterm = instance('main', 'pterm')!.object;
@@ -2261,7 +2136,7 @@ export const area = {
                   spire.metadata.max = Infinity;
                   obj.alpha.modulate(timer, 600, 0).then(() => renderer.detach('menu', obj));
                   roomState.check = false;
-                  if (save.data.n.bad_lizard < 2) {
+                  if (trueLizard() < 2) {
                      assets.sounds.phone.instance(timer);
                      await dialogue('auto', ...text.a_aerialis.story.puzzleReaction1);
                      await endCall('auto');
@@ -2286,6 +2161,9 @@ export const area = {
          }
       },
       async puzzle2 (roomState: RoomStates['a_puzzle2']) {
+         if (!game.movement) {
+            return;
+         }
          if (player.face === 'up') {
             game.movement = false;
             const pterm = instance('main', 'pterm')!.object;
@@ -2325,7 +2203,7 @@ export const area = {
                   }
                   obj.alpha.modulate(timer, 600, 0).then(() => renderer.detach('menu', obj));
                   roomState.check = false;
-                  if (save.data.n.bad_lizard < 2) {
+                  if (trueLizard() < 2) {
                      assets.sounds.phone.instance(timer);
                      if (save.data.n.plot > 58.2) {
                         await dialogue('auto', ...text.a_aerialis.story.puzzleReaction2c);
@@ -2445,7 +2323,7 @@ export const area = {
       async rg1 (roomState: RoomStates['a_rg1']) {
          if (save.data.n.plot < 51) {
             save.data.n.plot = 51;
-            if (!world.genocide) {
+            if (!world.genocide && game.movement) {
                game.movement = false;
                game.music!.gain.value = 0;
                const camX = player.position.clamp(...renderer.region).x - 160;
@@ -2514,6 +2392,9 @@ export const area = {
                await Promise.all([ npc01.walk(timer, 3, { x: camX - 40 }), npc02.walk(timer, 3, { x: camX - 40 }) ]);
                renderer.detach('main', npc01, npc02);
                await timer.pause(1500);
+               if (!save.data.b.oops) {
+                  await dialogue('auto', ...text.a_aerialis.story.rgcc);
+               }
                game.movement = true;
                game.music!.gain.value = world.level;
             }
@@ -2529,7 +2410,7 @@ export const area = {
                const npc01 = new CosmosAnimation({
                   anchor: { x: 0, y: 1 },
                   resources: content.ionARgcatLeft,
-                  position: { x: 40, y: 140 }
+                  position: { y: 140 }
                }).on('tick', function () {
                   if (this.index % 2 === 1 && this.step === this.duration - 1) {
                      assets.sounds.stomp.instance(timer).rate.value = 1.2;
@@ -2538,14 +2419,14 @@ export const area = {
                const npc02 = new CosmosAnimation({
                   anchor: { x: 0, y: 1 },
                   resources: content.ionARgbugLeft,
-                  position: { y: 180 }
+                  position: { x: 40, y: 180 }
                });
                const obj = new CosmosObject({ objects: [ npc01, npc02 ], position: { x: xpos }, priority: 100000 });
                renderer.attach('main', obj);
                npc01.enable();
                npc02.enable();
-               const offsetterX = Math.max(player.x, ...(world.goatbro ? [ goatbro.x ] : []));
-               await obj.position.step(timer, 3, { x: offsetterX + 120 });
+               const offsetterX = Math.max(player.x, ...(world.azzie ? [ azzie.x ] : []));
+               await obj.position.step_legacy(timer, 3, { x: offsetterX + 120 });
                npc01.reset();
                npc02.reset();
                const headers = rgHeaders(npc01, npc02);
@@ -2553,7 +2434,7 @@ export const area = {
                await dialogue('auto', ...text.a_aerialis.story.rg2a);
                npc01.enable();
                npc02.enable();
-               await obj.position.step(timer, 3, { x: offsetterX + 30 });
+               await obj.position.step_legacy(timer, 3, { x: offsetterX + 30 });
                npc01.reset();
                npc02.reset();
                await dialogue('auto', ...text.a_aerialis.story.rg2b());
@@ -2577,18 +2458,22 @@ export const area = {
                typer.off('header', headers);
                await battler.encounter(player, groups.rg);
                game.movement = false;
-               if (save.data.n.state_aerialis_royalguards !== 1) {
+               if (save.data.n.state_aerialis_royalguards === 1) {
+                  updateBadLizard();
+               } else {
                   npc01.use(content.ionARgcatRight);
                   npc02.use(content.ionARgbugRight);
                   npc01.enable();
                   npc02.enable();
-                  await obj.position.step(timer, 3, { x: xpos });
+                  await obj.position.step_legacy(timer, 3, { x: xpos });
                }
                renderer.detach('main', obj);
-               world.goatbro && (await dialogue('auto', ...text.a_aerialis.story.rg3));
+               if (!save.data.b.oops) {
+                  await dialogue('auto', ...text.a_aerialis.story.rg2e);
+               }
                game.movement = true;
                game.music!.gain.value = world.level;
-               if (save.data.n.bad_lizard > 1) {
+               if (trueLizard() > 1) {
                   save.data.n.plot = 64;
                }
             }
@@ -2654,7 +2539,10 @@ export const area = {
          }
       },
       async m2climber (roomState: RoomStates['a_mettaton2']) {
-         roomState.climber = true;
+         if (game.movement) {
+            game.movement = false;
+            roomState.climber = true;
+         }
       },
       async rg1chat () {
          const headers = rgHeaders(
@@ -2716,6 +2604,9 @@ export const area = {
          }
       },
       async sansdate () {
+         if (!game.movement) {
+            return;
+         }
          const sas = instance('main', 'datesans');
          if (sas) {
             game.movement = false;
@@ -2890,11 +2781,11 @@ export const area = {
             await dialogue('auto', ...text.a_aerialis.candy1());
             if (choicer.result === 0) {
                if (save.storage.inventory.size < 8) {
-                  if (save.data.n.g < 15) {
+                  if (save.data.n.g < 40) {
                      await dialogue('auto', ...text.a_aerialis.candy2);
                   } else {
                      assets.sounds.equip.instance(timer);
-                     save.data.n.g -= 15;
+                     save.data.n.g -= 40;
                      save.storage.inventory.add('filament');
                      await dialogue('auto', ...text.a_aerialis.candy4);
                   }
@@ -2977,9 +2868,9 @@ export const area = {
                   teleporter.movement = false;
                   game.movement = false;
                   if (left) {
-                     goatbro.face = 'left';
-                     goatbro.position.set(80, 460);
-                     await goatbro.walk(
+                     azzie.face = 'left';
+                     azzie.position.set(80, 460);
+                     await azzie.walk(
                         timer,
                         3,
                         { x: 60, y: 440 },
@@ -2988,9 +2879,9 @@ export const area = {
                         { x: 40, y: 380 }
                      );
                   } else {
-                     goatbro.face = 'right';
-                     goatbro.position.set(440, 460);
-                     await goatbro.walk(
+                     azzie.face = 'right';
+                     azzie.position.set(440, 460);
+                     await azzie.walk(
                         timer,
                         3,
                         { x: 460, y: 440 },
@@ -3000,15 +2891,15 @@ export const area = {
                      );
                   }
                   await dialogue('auto', ...text.a_aerialis.genotext.core6a());
-                  await goatbro.walk(timer, 3, { y: player.y + 10 });
+                  await azzie.walk(timer, 3, { y: player.y + 10 });
                   if (left) {
-                     await goatbro.walk(timer, 3, { x: player.x - 21 });
+                     await azzie.walk(timer, 3, { x: player.x - 21 });
                   } else {
-                     await goatbro.walk(timer, 3, { x: player.x + 21 });
+                     await azzie.walk(timer, 3, { x: player.x + 21 });
                   }
-                  await goatbro.walk(timer, 3, { y: player.y });
-                  goatbro.metadata.override = false;
-                  goatbro.metadata.reposition = true;
+                  await azzie.walk(timer, 3, { y: player.y });
+                  azzie.metadata.override = false;
+                  azzie.metadata.reposition = true;
                   await timer.pause(850);
                   await dialogue('auto', ...text.a_aerialis.genotext.core6b);
                   game.movement = true;
@@ -3018,7 +2909,7 @@ export const area = {
          }
       },
       async alphys5 () {
-         if (save.data.n.plot < 55 && !save.data.b.a_state_puzzlehelp) {
+         if (save.data.n.plot < 55 && trueLizard() < 2 && !save.data.b.a_state_puzzlehelp) {
             save.data.b.a_state_puzzlehelp = true;
             await dialogue('auto', ...text.a_aerialis.puzzlehelp);
          }
@@ -3032,58 +2923,40 @@ export const area = {
          }
       },
       async a_lab_entry () {
-         if (!save.data.b.oops && player.y < 420 && save.data.n.state_aerialis_monologue < 1) {
-            save.data.n.state_aerialis_monologue = 1;
-            await dialogue('auto', ...text.a_aerialis.truetext.chara1);
-         }
          if (world.genocide && player.y < 420 && save.data.n.state_aerialis_monologue < 1) {
             save.data.n.state_aerialis_monologue = 1;
-            save.data.n.state_aerialis_monologue_iteration1 = ++save.flag.n.ga_asriel46;
-            await dialogue(
-               'auto',
-               ...text.a_aerialis.genotext.asriel46(save.data.n.state_aerialis_monologue_iteration1! - 1)
-            );
-         }
-         if (!save.data.b.oops && player.y < 280 && save.data.n.state_aerialis_monologue < 2) {
-            save.data.n.state_aerialis_monologue = 2;
-            await dialogue('auto', ...text.a_aerialis.truetext.chara2);
+            save.data.n.state_aerialis_monologue_iteration1 = save.flag.n.ga_asriel46++;
+            if (save.data.n.state_aerialis_monologue_iteration1 < 1) {
+               await dialogue('auto', ...text.a_aerialis.genotext.asriel46);
+            }
          }
          if (world.genocide && player.y < 280 && save.data.n.state_aerialis_monologue < 2) {
             save.data.n.state_aerialis_monologue = 2;
-            await dialogue(
-               'auto',
-               ...text.a_aerialis.genotext.asriel47(save.data.n.state_aerialis_monologue_iteration1! - 1)
-            );
-         }
-         if (!save.data.b.oops && player.x > 280 && save.data.n.state_aerialis_monologue < 3) {
-            save.data.n.state_aerialis_monologue = 3;
-            await dialogue('auto', ...text.a_aerialis.truetext.chara3);
+            if (save.data.n.state_aerialis_monologue_iteration1 < 1) {
+               await dialogue('auto', ...text.a_aerialis.genotext.asriel47);
+            }
          }
          if (world.genocide && player.x > 280 && save.data.n.state_aerialis_monologue < 3) {
             save.data.n.state_aerialis_monologue = 3;
-            await dialogue(
-               'auto',
-               ...text.a_aerialis.genotext.asriel48(save.data.n.state_aerialis_monologue_iteration1! - 1)
-            );
+            if (save.data.n.state_aerialis_monologue_iteration1 < 1) {
+               await dialogue('auto', ...text.a_aerialis.genotext.asriel48);
+            }
          }
       },
       async a_lab_main (roomState) {
          if (!roomState.cutscene) {
             roomState.cutscene = true;
             if (save.data.n.plot < 49) {
-               await timer.when(() => game.room === 'a_lab_main' && player.position.x > 450);
+               await timer.when(() => game.room === 'a_lab_main' && player.x > 450 && game.movement);
                game.movement = false;
-               save.data.n.bad_lizard = calcBadLizard();
                save.data.n.plot = 49;
                game.music!.gain.value = 0;
                await timer.pause(850);
                const cam = new CosmosObject({ position: player.position.clamp(...renderer.region) });
                game.camera = cam;
-               if (save.data.n.bad_lizard < 2) {
-                  const mettaBattleAssets = new CosmosInventory(inventories.battleAssets);
-                  const mettaLoader = mettaBattleAssets.load();
+               if (trueLizard() < 2) {
                   cam.position.modulate(timer, 1250, { x: 550 });
-                  const alph = lizard({ x: 800, y: player.position.y }, 'left');
+                  const alph = lizard({ x: 800, y: player.y }, 'left');
                   await alph.walk(timer, 3, { x: 650 });
                   const shocker = new CosmosSprite({
                      anchor: { x: 0, y: 1 },
@@ -3189,11 +3062,10 @@ export const area = {
                   await timer.pause(850);
                   metta.face = 'right';
                   showtime.stop();
-                  await Promise.all([ dialogue('dialoguerBottom', ...text.a_aerialis.story.alphys12), mettaLoader ]);
+                  await dialogue('dialoguerBottom', ...text.a_aerialis.story.alphys12);
                   await battler.encounter(player, groups.mettaton1, false);
                   renderer.detach('main', metta, discospr);
                   renderer.detach('menu', over);
-                  mettaBattleAssets.unload();
                   alph.face = 'left';
                   await alph.walk(timer, 3, player.position.add(40, 0));
                   await timer.pause(1250);
@@ -3201,7 +3073,7 @@ export const area = {
                   await alph.walk(timer, 1.5, player.position.add(30, 0));
                   await timer.pause(1450);
                   await dialogue('dialoguerTop', ...text.a_aerialis.story.alphys14);
-                  await alph.walk(timer, 3, { x: game.camera.x + 180, y: player.position.y });
+                  await alph.walk(timer, 3, { x: game.camera.x + 180, y: player.y });
                   await timer.pause(1650);
                   assets.sounds.alphysfix.instance(timer);
                   await timer.pause(3450);
@@ -3219,25 +3091,20 @@ export const area = {
                   alph.size.set(18, 20);
                   alph.anchor.set(0, 1);
                   alph
-                     .walk(
-                        timer,
-                        3,
-                        { x: 324, y: player.position.y > 150 && player.position.y < 170 ? 180 : 160 },
-                        { y: 145 }
-                     )
+                     .walk(timer, 3, { x: 324, y: player.y > 150 && player.y < 170 ? 180 : 160 }, { y: 145 })
                      .then(() => {
                         assets.sounds.select.instance(timer).rate.value = 0.6;
                         (instance('below', 'labdesk')!.object.objects[0] as CosmosAnimation).index = 1;
                      });
                   await timer.pause(450);
-                  await cam.position.modulate(timer, 1250, { x: player.position.x });
+                  await cam.position.modulate(timer, 1250, { x: player.x });
                   if (!save.data.b.oops) {
                      await dialogue('dialoguerTop', ...text.a_aerialis.story.alphys17);
                   }
                } else {
                   const metta = character('mettaton', mettaton1C, { x: 650, y: player.y }, 'down');
                   await cam.position.modulate(timer, 1250, { x: 550 });
-                  goatbro.face = 'right';
+                  azzie.face = 'right';
                   await timer.pause(650);
                   function mettaEmotes (h: string) {
                      if (h[0] === 'z') {
@@ -3258,16 +3125,12 @@ export const area = {
                      await dialogue('dialoguerTop', ...text.a_aerialis.story.robocaller2);
                   }
                   typer.off('header', mettaEmotes);
-                  metta.walk(timer, 4, { x: game.camera.x + 180, y: player.position.y }).then(() => {
+                  metta.walk(timer, 4, { x: game.camera.x + 180, y: player.y }).then(() => {
                      renderer.detach('main', metta);
                   });
                   await cam.position.modulate(timer, 1250, { x: player.x });
-                  if (world.genocide) {
-                     if (save.flag.n.ga_asrielRobo1++ < 1) {
-                        await dialogue('dialoguerTop', ...text.a_aerialis.story.robocaller2x);
-                     } else {
-                        await dialogue('dialoguerTop', ...text.a_aerialis.story.robocaller2y);
-                     }
+                  if (world.genocide && save.flag.n.ga_asrielRobo1++ < 1) {
+                     await dialogue('dialoguerTop', ...text.a_aerialis.story.robocaller2x);
                   }
                }
                game.camera = player;
@@ -3280,11 +3143,10 @@ export const area = {
          (world.genocide || world.population < 7) && instance('main', 'a_greenfire')?.destroy();
          if (world.genocide && player.y < 240 && save.data.n.state_aerialis_monologue < 4) {
             save.data.n.state_aerialis_monologue = 4;
-            save.data.n.state_aerialis_monologue_iteration2 = ++save.flag.n.ga_asriel49;
-            await dialogue(
-               'auto',
-               ...text.a_aerialis.genotext.asriel49(save.data.n.state_aerialis_monologue_iteration2! - 1)
-            );
+            save.data.n.state_aerialis_monologue_iteration2 = save.flag.n.ga_asriel49++;
+            if (save.data.n.state_aerialis_monologue_iteration2 < 1) {
+               await dialogue('auto', ...text.a_aerialis.genotext.asriel49);
+            }
          }
       },
       async a_path4 () {
@@ -3293,33 +3155,31 @@ export const area = {
       async a_rg1 () {
          if (world.genocide && player.x > 140 && save.data.n.state_aerialis_monologue < 5) {
             save.data.n.state_aerialis_monologue = 5;
-            await dialogue(
-               'auto',
-               ...text.a_aerialis.genotext.asriel50(save.data.n.state_aerialis_monologue_iteration2! - 1)
-            );
+            if (save.data.n.state_aerialis_monologue_iteration2 < 1) {
+               await dialogue('auto', ...text.a_aerialis.genotext.asriel50);
+            }
          }
          if (world.genocide && player.x > 440 && save.data.n.state_aerialis_monologue < 6) {
             save.data.n.state_aerialis_monologue = 6;
-            await dialogue(
-               'auto',
-               ...text.a_aerialis.genotext.asriel51(save.data.n.state_aerialis_monologue_iteration2! - 1)
-            );
+            if (save.data.n.state_aerialis_monologue_iteration2 < 1) {
+               await dialogue('auto', ...text.a_aerialis.genotext.asriel51);
+            }
          }
       },
       async a_puzzle1 (roomState) {
-         if (save.data.n.plot < 55) {
+         if (save.data.n.plot < 55 && game.movement) {
             let di = 0;
             roomState.offset ??= 0;
-            if (player.position.y <= 180) {
+            if (player.y <= 180) {
                di = 200;
                roomState.offset++;
-            } else if (roomState.offset > 0 && player.position.y > 380) {
+            } else if (roomState.offset > 0 && player.y > 380) {
                di = -200;
                roomState.offset--;
             }
             partyShift({ y: di });
             if (roomState.offset === 25) {
-               if (save.data.n.bad_lizard < 2) {
+               if (trueLizard() < 2) {
                   game.movement = false;
                   await dialogue('auto', ...text.a_aerialis.puzzle.puzzlestop1a());
                   const obj = fader({ fill: '#fff' });
@@ -3328,16 +3188,19 @@ export const area = {
                   roomState.offset -= 10;
                   obj.alpha.modulate(timer, 600, 0).then(() => renderer.detach('menu', obj));
                   game.movement = true;
-               } else {
+               } else if (world.genocide) {
                   game.movement = false;
-                  await dialogue(
-                     'auto',
-                     ...(world.genocide ? text.a_aerialis.puzzle.puzzlestop1b() : text.a_aerialis.puzzle.puzzlestop1c1)
-                  );
-                  player.position.y += 3;
+                  await dialogue('auto', ...text.a_aerialis.puzzle.puzzlestop1b());
+                  player.y += 3;
                   player.face = 'down';
                   game.movement = true;
                }
+            } else if (roomState.offset === 30) {
+               game.movement = false;
+               fader({ fill: 'white', priority: Infinity, alpha: 1 });
+               roomState.offset = 100;
+               await timer.pause(3000);
+               exit();
             }
          }
       },
@@ -3350,21 +3213,21 @@ export const area = {
       async a_puzzle2 (roomState) {
          (world.genocide || world.population < 2) && instance('main', 'a_proskater')?.destroy();
          (world.genocide || world.population === 0) && instance('main', 'a_clamguy')?.destroy();
-         if (save.data.n.plot < 59) {
+         if (save.data.n.plot < 59 && game.movement) {
             const di = { x: 0, y: 0 };
             roomState.offset ??= 0;
-            if (player.position.y <= 120) {
+            if (player.y <= 120) {
                di.y = 240;
                save.data.n.state_aerialis_puzzle2os++;
-            } else if (player.position.y > 360) {
+            } else if (player.y > 360) {
                di.y = -240;
                save.data.n.state_aerialis_puzzle2os--;
             }
-            if (player.position.x <= 670) {
+            if (player.x <= 670) {
                di.x = 300;
                roomState.offset++;
                renderer.region[1].x = Infinity;
-            } else if (roomState.offset > 0 && player.position.x > 970) {
+            } else if (roomState.offset > 0 && player.x > 970) {
                di.x = -300;
                roomState.offset--;
                if (roomState.offset === 0) {
@@ -3376,7 +3239,7 @@ export const area = {
             const o2 = save.data.n.state_aerialis_puzzle2os === 25;
             const o3 = save.data.n.state_aerialis_puzzle2os === -25;
             if (o1 || o2 || o3) {
-               if (save.data.n.bad_lizard < 2) {
+               if (trueLizard() < 2) {
                   game.movement = false;
                   await dialogue('auto', ...text.a_aerialis.puzzle.puzzlestop1a());
                   const obj = fader({ fill: '#fff' });
@@ -3387,18 +3250,25 @@ export const area = {
                   o3 && (save.data.n.state_aerialis_puzzle2os += 10);
                   obj.alpha.modulate(timer, 600, 0).then(() => renderer.detach('menu', obj));
                   game.movement = true;
-               } else {
+               } else if (world.genocide) {
                   game.movement = false;
-                  await dialogue(
-                     'auto',
-                     ...(world.genocide ? text.a_aerialis.puzzle.puzzlestop1b() : text.a_aerialis.puzzle.puzzlestop1c1)
-                  );
-                  o1 && (player.position.x -= 3);
-                  o2 && (player.position.y += 3);
-                  o3 && (player.position.y -= 3);
+                  await dialogue('auto', ...text.a_aerialis.puzzle.puzzlestop1b());
+                  o1 && (player.x += 3);
+                  o2 && (player.y += 3);
+                  o3 && (player.y -= 3);
                   player.face = 'down';
                   game.movement = true;
                }
+            } else if (
+               roomState.offset === 30 ||
+               save.data.n.state_aerialis_puzzle2os === 30 ||
+               save.data.n.state_aerialis_puzzle2os === -30
+            ) {
+               game.movement = false;
+               fader({ fill: 'white', priority: Infinity, alpha: 1 });
+               roomState.offset = 100;
+               await timer.pause(3000);
+               exit();
             }
          }
       },
@@ -3431,8 +3301,11 @@ export const area = {
       },
       a_lab_main (roomState) {
          rampup();
-         (save.data.n.bad_lizard < 2 || save.data.b.a_state_gotphone) &&
-            instance('main', 'compactlazerdeluxe')?.destroy();
+         if (save.data.n.plot < 48.1) {
+            save.data.n.bad_lizard = calcBadLizard();
+            save.data.n.plot = 48.1;
+         }
+         (trueLizard() < 2 || save.data.b.a_state_gotphone) && instance('main', 'compactlazerdeluxe')?.destroy();
          // monitor setup
          {
             const w = 240;
@@ -3496,7 +3369,7 @@ export const area = {
          if (
             save.data.n.plot > 48 &&
             (save.data.n.plot < 60 || (save.data.n.plot > 64.1 && save.data.n.plot < 68)) &&
-            save.data.n.bad_lizard < 2
+            trueLizard() < 2
          ) {
             roomState.alph = lizard({ x: 324, y: 145 }, 'up');
             (instance('below', 'labdesk')!.object.objects[0] as CosmosAnimation).index = 1;
@@ -3511,7 +3384,7 @@ export const area = {
                position: { x: 185, y: 50 },
                objects: [
                   new CosmosAnimation({ anchor: { x: 0, y: 1 }, position: { x: 45, y: 35 } }).on('tick', function () {
-                     this.resources = save.data.b.water ? content.ieMonitorguyWater : content.ieMonitorguy;
+                     this.resources = save.data.b.water ? content.iooAMonitorguyWater : content.iooAMonitorguy;
                      player.sprite.active ? this.enable() : this.reset();
                   })
                ],
@@ -3547,7 +3420,7 @@ export const area = {
             const barr = instance('main', tag);
             if (barr) {
                const p = b[tag as keyof typeof b];
-               if (save.data.n.plot < p && save.data.n.bad_lizard < 2) {
+               if (save.data.n.plot < p && trueLizard() < 2) {
                   const m = barr.object.metadata;
                   if (!m.active) {
                      const time = timer.value;
@@ -3583,7 +3456,7 @@ export const area = {
             const barr = instance('main', tag);
             if (barr) {
                const p = b[tag as keyof typeof b];
-               if (save.data.n.plot < p && save.data.n.bad_lizard < 2) {
+               if (save.data.n.plot < p && trueLizard() < 2) {
                   const m = barr.object.metadata;
                   if (!m.active) {
                      const time = timer.value;
@@ -3798,7 +3671,7 @@ export const area = {
          if (save.data.n.plot < 55.1) {
             if (!roomState.active) {
                roomState.active = true;
-               await timer.when(() => game.room === 'a_mettaton1' && player.position.x > 165);
+               await timer.when(() => game.room === 'a_mettaton1' && player.x > 165 && game.movement);
                save.data.n.plot = 55.1;
                game.movement = false;
                game.menu = false;
@@ -3833,7 +3706,7 @@ export const area = {
                   const random3 = random.clone();
                   const sign = new CosmosSprite({
                      anchor: 0,
-                     frames: [ content.ieArtsncrafts ],
+                     frames: [ content.iooAArtsncrafts ],
                      position: { x: 160, y: 80 },
                      metadata: { spark: true }
                   }).on('tick', async function () {
@@ -3959,7 +3832,11 @@ export const area = {
                   });
                   renderer.attach('main', ingredient1, ingredient2, ingredient3);
                   await timer.when(
-                     () => roomState.ingredient1 === 2 && roomState.ingredient2 === 2 && roomState.ingredient3 === 2
+                     () =>
+                        roomState.ingredient1 === 2 &&
+                        roomState.ingredient2 === 2 &&
+                        roomState.ingredient3 === 2 &&
+                        game.movement
                   );
                   game.movement = false;
                   renderer.detach('main', laserbarrier2);
@@ -3970,7 +3847,7 @@ export const area = {
                   if (player.x > tpos - 30 && player.y < 250) {
                      player.walk(timer, 1.5, { x: tpos - 30 }).then(() => (player.face = 'down'));
                   }
-                  await metta.position.step(timer, 6, { x: tpos });
+                  await metta.position.step_legacy(timer, 6, { x: tpos });
                   await timer.pause(1250);
                   assets.sounds.rustle.instance(timer);
                   await timer.pause(650);
@@ -3993,7 +3870,7 @@ export const area = {
                   metta.sprite.disable();
                   // i broke the bad
                   bad.stop();
-                  if (save.data.n.bad_lizard < 2) {
+                  if (trueLizard() < 2) {
                      assets.sounds.phone.instance(timer);
                      await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker7a);
                      metta.face = 'down';
@@ -4250,7 +4127,7 @@ export const area = {
                   });
                   renderer.attach('below', boosterField);
                   renderer.attach('above', bomfield);
-                  cam.position.step(timer, 6, { x: 600 });
+                  cam.position.step_legacy(timer, 6, { x: 600 });
                   metta.preset = mettaton2C;
                   metta.face = 'down';
                   await metta.walk(timer, 3, { x: 480 });
@@ -4330,7 +4207,7 @@ export const area = {
                   timersprite.position.modulate(timer, 1200, { x: 0 }, { x: 0 });
                   distancesprite.position.modulate(timer, 1200, { x: 320 - 101 }, { x: 320 - 101 });
                   await Promise.all([
-                     cam.position.step(timer, 9, { x: player.x }).then(() => {
+                     cam.position.step_legacy(timer, 9, { x: player.x }).then(() => {
                         game.camera = player;
                      }),
                      dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker10)
@@ -4338,13 +4215,16 @@ export const area = {
                   renderer.detach('main', metta);
                   roomState.danger = true;
                   game.movement = true;
-                  await timer.when(() => t <= 10 || player.position.x > 500);
-                  const progress = player.position.x > 500;
+                  await timer.when(() => t <= 10 || player.x > 500);
+                  if (atlas.navigator !== null) {
+                     await typer.text('');
+                  }
+                  const progress = player.x > 500;
                   if (progress) {
                      game.movement = false;
                      renderer.detach('main', laserbarrier1);
                      await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker11);
-                     if (save.data.n.bad_lizard < 2) {
+                     if (trueLizard() < 2) {
                         assets.sounds.phone.instance(timer);
                         await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker12());
                      } else {
@@ -4377,7 +4257,7 @@ export const area = {
                      supriseurdeadWHAT.gain.modulate(timer, 450, 0).then(() => {
                         supriseurdeadWHAT.stop();
                      });
-                     await timer.when(() => player.position.y > dy - 40);
+                     await timer.when(() => player.y > dy - 40);
                      player.gravity.angle = 0;
                      player.gravity.extent = 0;
                      player.velocity.set(0, 0);
@@ -4400,7 +4280,7 @@ export const area = {
                      await fader.alpha.modulate(timer, 650, 0);
                      renderer.detach('menu', fader);
                      await timer.pause(850);
-                     if (save.data.n.bad_lizard < 2) {
+                     if (trueLizard() < 2) {
                         await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker13());
                         assets.sounds.equip.instance(timer);
                      } else {
@@ -4502,9 +4382,9 @@ export const area = {
                      await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker17c);
                      await flyaway();
                      if (!save.data.b.oops) {
-                        await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker17d);
+                        await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker17e);
                      }
-                     if (save.data.n.bad_lizard < 2) {
+                     if (trueLizard() < 2) {
                         assets.sounds.phone.instance(timer);
                         await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker19b);
                      }
@@ -4564,7 +4444,7 @@ export const area = {
                      if (!save.data.b.oops) {
                         await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker17d);
                      }
-                     if (save.data.n.bad_lizard < 2) {
+                     if (trueLizard() < 2) {
                         assets.sounds.phone.instance(timer);
                         await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker19a);
                      }
@@ -4597,7 +4477,7 @@ export const area = {
                      if (!save.data.b.oops) {
                         await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker16f);
                      }
-                     if (save.data.n.bad_lizard < 2) {
+                     if (trueLizard() < 2) {
                         assets.sounds.phone.instance(timer);
                         await dialogue('dialoguerBottom', ...text.a_aerialis.story.cooker19c);
                      }
@@ -4630,7 +4510,7 @@ export const area = {
                   });
                   renderer.attach('main', laserbarrier1);
                   game.movement = true;
-                  await timer.when(() => player.x > 290);
+                  await timer.when(() => player.x > 290 && game.movement);
                   game.movement = false;
                   supriseurdeadWHAT.stop();
                   await timer.pause(950);
@@ -4694,7 +4574,7 @@ export const area = {
                   );
                   renderer.attach('main', metta);
                   metta.use(content.iocMettatonAnchorFlyer);
-                  await timer.when(() => game.room !== 'a_mettaton2' || player.position.x <= 680);
+                  await timer.when(() => (game.room !== 'a_mettaton2' || player.x <= 680) && game.movement);
                   if (game.room !== 'a_mettaton2') {
                      roomState.active = false;
                      renderer.detach('main', metta);
@@ -5024,7 +4904,7 @@ export const area = {
                         await timer.pause(1200);
                         await dialogue('dialoguerTop', ...text.a_aerialis.story.moneyFinal2);
                         await timer.pause(850);
-                        if (save.data.n.bad_lizard < 2) {
+                        if (trueLizard() < 2) {
                            await dialogue('dialoguerBottom', ...text.a_aerialis.story.moneyFinal3);
                            assets.sounds.phone.instance(timer);
                            await dialogue('dialoguerBottom', ...text.a_aerialis.story.moneyFinal4);
@@ -5106,7 +4986,7 @@ export const area = {
                            })
                         ]
                      });
-                     if (special && save.data.n.bad_lizard < 2) {
+                     if (special && trueLizard() < 2) {
                         napsta.face = 'right';
                         await dialogue('dialoguerTop', ...text.a_aerialis.story.moneyWhisper1());
                         if (choicer.result === 0) {
@@ -5346,7 +5226,7 @@ export const area = {
                      area.modulate(timer, duration, size);
                      while (area.value > size) {
                         renderer.zoom.value = 320 / area.value;
-                        await timer.on('tick');
+                        await renderer.on('tick');
                      }
                      renderer.zoom.value = zoom;
                      assets.sounds.rimshot.instance(timer);
@@ -5355,7 +5235,7 @@ export const area = {
                      area.modulate(timer, duration, 320);
                      while (area.value < 320) {
                         renderer.zoom.value = 320 / area.value;
-                        await timer.on('tick');
+                        await renderer.on('tick');
                      }
                      renderer.zoom.value = 1;
                      renderer.region = region;
@@ -5473,7 +5353,10 @@ export const area = {
                         await dialogue('auto', ...text.a_aerialis.story.moneyTrash2);
                      }
                      if ((save.data.b.a_state_moneyitemC = !m1c)) {
-                        if (save.storage.inventory.size < 8) {
+                        if (
+                           save.storage.inventory.size < 8 ||
+                           (!save.data.b.a_state_napstadecline && trueLizard() < 2)
+                        ) {
                            dolly = true;
                            assets.sounds.equip.instance(timer);
                            await dialogue('auto', ...text.a_aerialis.story.moneyItemPut3);
@@ -5488,7 +5371,7 @@ export const area = {
                   await timer.pause(1000);
                   player.position.set(330, 150);
                   player.face = 'left';
-                  const napcondition = !failshow && !save.data.b.a_state_napstadecline && save.data.n.bad_lizard < 2;
+                  const napcondition = !failshow && !save.data.b.a_state_napstadecline && trueLizard() < 2;
                   if (napcondition) {
                      napsta.position.set({ x: 300, y: 150 });
                      napsta.face = 'right';
@@ -5507,14 +5390,17 @@ export const area = {
                   await cam.position.modulate(timer, 2000, player.position.clamp(...renderer.region));
                   if (napcondition) {
                      await timer.pause(1500);
-                     m1c || (await dialogue('auto', ...text.a_aerialis.story.napchat0));
+                     if (!m1c) {
+                        save.data.b.a_state_moneyitemC = false;
+                        await dialogue('auto', ...text.a_aerialis.story.napchat0);
+                     }
                      await dialogue('auto', ...text.a_aerialis.story.napchat1);
                      await timer.pause(850);
                      napsta.face = 'left';
                      await timer.pause(650);
                      napsta.face = 'right';
                      await timer.pause(1350);
-                     if (save.data.n.state_wastelands_napstablook < 2 || save.data.n.state_foundry_blookdate > 1) {
+                     if (!save.data.b.oops) {
                         await dialogue('auto', ...text.a_aerialis.story.napchat2b);
                         save.data.b.a_state_hapstablook = true;
                      } else {
@@ -5533,7 +5419,7 @@ export const area = {
                   game.camera = player;
                   save.data.n.plot = 60;
                } else {
-                  await timer.when(() => game.room === 'a_mettaton2' && player.position.x <= 580);
+                  await timer.when(() => game.room === 'a_mettaton2' && player.x <= 580 && game.movement);
                   save.data.n.plot = 59.1;
                   game.menu = false;
                   game.movement = false;
@@ -5605,15 +5491,15 @@ export const area = {
                   await dialogue('dialoguerBottom', ...text.a_aerialis.story.moneyX2b);
                   await timer.pause(1000);
                   await dialogue('dialoguerBottom', ...text.a_aerialis.story.moneyX3());
-                  goatbro.metadata.override = true;
-                  await goatbro.walk(timer, 3, { y: player.y < 140 ? player.y + 21 : player.y - 21 });
-                  await goatbro.walk(timer, 3, { x: 540 }, { x: 540, y: 123 });
+                  azzie.metadata.override = true;
+                  await azzie.walk(timer, 3, { y: player.y < 140 ? player.y + 21 : player.y - 21 });
+                  await azzie.walk(timer, 3, { x: 540 }, { x: 540, y: 123 });
                   await timer.pause(650);
-                  goatbro.alpha.value = 0;
+                  azzie.alpha.value = 0;
                   const kneelerSprite = new OutertaleMultivisualObject({}, { anchor: { x: 0, y: 1 } });
                   kneelerSprite.use(content.iocAsrielDown);
                   const kneeler = new CosmosHitbox({
-                     position: goatbro,
+                     position: azzie,
                      priority: -10,
                      metadata: { barrier: true, interact: true, name: 'aerialis', args: [ 'm2climber' ] },
                      size: { x: 20, y: 5 },
@@ -5643,21 +5529,20 @@ export const area = {
                   function endkneel () {
                      timer.pause(350).then(async () => {
                         renderer.detach('main', kneeler);
-                        goatbro.alpha.value = 1;
+                        azzie.alpha.value = 1;
                         await timer.pause(450);
-                        goatbro.face = 'down';
+                        azzie.face = 'down';
                      });
                   }
                   if (!done) {
-                     game.movement = false;
                      kneelerSprite.use(content.iocAsrielKneel);
                      await timer.pause(1600);
-                     if (player.x > goatbro.x - 21 && player.y < goatbro.y) {
-                        await player.walk(timer, 3, { y: goatbro.y + 21 });
+                     if (player.x > azzie.x - 21 && player.y < azzie.y) {
+                        await player.walk(timer, 3, { y: azzie.y + 21 });
                      }
-                     await player.walk(timer, 3, { x: goatbro.x - 21 }, { x: goatbro.x - 21, y: goatbro.y });
+                     await player.walk(timer, 3, { x: azzie.x - 21 }, { x: azzie.x - 21, y: azzie.y });
                      await timer.pause(650);
-                     await player.walk(timer, 1, { x: goatbro.x - 14 });
+                     await player.walk(timer, 1, { x: azzie.x - 14 });
                      player.face = 'right';
                      await timer.pause(850);
                      const hugguhRecs = save.data.b.water
@@ -5700,7 +5585,12 @@ export const area = {
                      await dialogue('auto', ...text.a_aerialis.overworld.kneeler2);
                      game.movement = true;
                   }
-                  await timer.when(() => game.movement && (done || roomState.killswitch === true));
+                  await timer.when(() => done || roomState.killswitch === true);
+                  if (atlas.navigator !== null) {
+                     await typer.text('');
+                  } else {
+                     game.movement || (await timer.when(() => game.movement));
+                  }
                   const youReallyJustWaitedFor15AndAHalfMinutes = done;
                   done = true;
                   game.movement = false;
@@ -5746,7 +5636,7 @@ export const area = {
                   await timer.pause(450 + 850);
                   await dialogue('dialoguerBottom', ...text.a_aerialis.story.moneyX6b);
                   await timer.pause(800);
-                  goatbro.face = 'left';
+                  azzie.face = 'left';
                   if (roomState.climber) {
                      await dialogue('dialoguerBottom', ...text.a_aerialis.story.moneyX7);
                      await player.walk(timer, 3, { x: 460 }, { x: 460, y: 100 });
@@ -5756,7 +5646,7 @@ export const area = {
                         player.position.modulate(timer, 1000, midPoint, endPoint).then(async () => {
                            resolve();
                         });
-                        while (player.position.y < endPoint.y) {
+                        while (player.y < endPoint.y) {
                            await timer.pause(99);
                            player.face = (
                               { up: 'left', left: 'down', down: 'right', right: 'up' } as CosmosKeyed<
@@ -5771,19 +5661,19 @@ export const area = {
                      await timer.pause(850);
                   }
                   const idealX = player.x > 600 ? player.x - 21 : player.x + 21;
-                  if (Math.abs(idealX - player.x) < Math.abs(idealX - goatbro.x)) {
-                     await goatbro.walk(timer, 3, {
+                  if (Math.abs(idealX - player.x) < Math.abs(idealX - azzie.x)) {
+                     await azzie.walk(timer, 3, {
                         y: player.y < 140 ? player.y + 21 : player.y - 21
                      });
-                     await goatbro.walk(timer, 3, { x: idealX });
-                     await goatbro.walk(timer, 3, { y: player.y });
+                     await azzie.walk(timer, 3, { x: idealX });
+                     await azzie.walk(timer, 3, { y: player.y });
                   } else {
-                     await goatbro.walk(timer, 3, { y: player.y }, { x: idealX, y: player.y });
+                     await azzie.walk(timer, 3, { y: player.y }, { x: idealX, y: player.y });
                   }
-                  goatbro.face = player.x > 600 ? 'right' : 'left';
-                  goatbro.metadata.repositionFace = goatbro.face;
-                  goatbro.metadata.override = false;
-                  goatbro.metadata.reposition = true;
+                  azzie.face = player.x > 600 ? 'right' : 'left';
+                  azzie.metadata.repositionFace = azzie.face;
+                  azzie.metadata.override = false;
+                  azzie.metadata.reposition = true;
                   await timer.pause(1000);
                   await dialogue('dialoguerBottom', ...text.a_aerialis.story.moneyX8);
                   save.data.n.plot = 60;
@@ -5817,7 +5707,10 @@ export const area = {
             if (save.data.b.a_state_hapstablook) {
                const napsta = character('napstablook', characters.napstablook, { x: 250, y: 170 }, 'up');
                roomState.napsta = napsta;
-               await Promise.race([ events.on('teleport'), timer.when(() => game.room === 'a_split' && player.y < 240) ]);
+               await Promise.race([
+                  events.on('teleport'),
+                  timer.when(() => game.room === 'a_split' && player.y < 240 && game.movement)
+               ]);
                if (game.room === 'a_split') {
                   game.movement = false;
                   await timer.pause(650);
@@ -5957,7 +5850,7 @@ export const area = {
                   await dialogue('dialoguerBottom', ...text.a_aerialis.story.hapsta29);
                   await dialogue('dialoguerTop', ...text.a_aerialis.story.hapsta30);
                   await dialogue('dialoguerBottom', ...text.a_aerialis.story.hapsta31);
-                  dummy.position.step(timer, 3, { x: 10 }).then(async () => {
+                  dummy.position.step_legacy(timer, 3, { x: 10 }).then(async () => {
                      await dummy.alpha.modulate(timer, 300, 0);
                      renderer.detach('main', dummy);
                   });
@@ -6000,8 +5893,8 @@ export const area = {
          }
          roomState.active = true;
          if (save.data.n.plot < 64) {
-            if (save.data.n.bad_lizard < 2) {
-               await timer.when(() => game.room === 'a_elevator3' && player.x < 280);
+            if (trueLizard() < 2) {
+               await timer.when(() => game.room === 'a_elevator3' && player.x < 280 && game.movement);
                game.movement = false;
                game.music!.stop();
                save.data.n.plot = 64;
@@ -6026,9 +5919,7 @@ export const area = {
                lizard.position.set(160, 180);
                lizard.face = 'down';
                lizard.alpha.value = 1;
-               timer.pause(500).then(() => {
-                  player.walk(timer, 3, { y: 215 });
-               });
+               player.walk(timer, 3, { y: 215 });
                await timer.pause(850);
                lizard.face = 'up';
                await timer.pause(1150);
@@ -6042,9 +5933,9 @@ export const area = {
                await dialogue('auto', ...text.a_aerialis.story.opera4());
                await player.walk(timer, 3, { y: 210 });
                player.walk(timer, 3, { x: 130 }).then(() => (player.face = 'up'));
-               await lizard.walk(timer, 3, { y: 240 });
+               await lizard.walk(timer, 3, { y: 235 });
                lizard.alpha.modulate(timer, 300, 0);
-               await player.walk(timer, 3, { x: 160 }, { x: 160, y: 240 });
+               await player.walk(timer, 3, { x: 160 }, { x: 160, y: 235 });
                game.music?.gain.modulate(timer, 300, 0).then(() => game.music?.stop());
                await teleport('a_elevator4', 'down', 60, 110, world);
                lizard.position.set(player.position.add(0, 30));
@@ -6139,7 +6030,7 @@ export const area = {
                await operaShow(lizard);
                await Promise.race([
                   lizard
-                     .walk(timer, save.data.n.bad_lizard === 1 ? 4 : 3, { x: 10 })
+                     .walk(timer, trueLizard() === 1 ? 4 : 3, { x: 10 })
                      .then(() => lizard.alpha.modulate(timer, 300, 0)),
                   events.on('teleport')
                ]);
@@ -6168,10 +6059,10 @@ export const area = {
                   (save.flag.b.asriel_electrics ? save.flag.n.ga_asrielElectrics1 : save.flag.n.ga_asrielHotel1) < 1 &&
                   save.data.n.plot_approach < 2
                ) {
-                  await timer.when(() => game.room === 'a_elevator4' && player.x > 300);
+                  await timer.when(() => game.room === 'a_elevator4' && player.x > 300 && game.movement);
                   game.movement = false;
-                  const goatface = goatbro.face;
-                  header('x1').then(() => (goatbro.face = 'left'));
+                  const goatface = azzie.face;
+                  header('x1').then(() => (azzie.face = 'left'));
                   if (save.flag.b.asriel_electrics) {
                      save.flag.n.ga_asrielElectrics1++;
                   } else {
@@ -6179,7 +6070,7 @@ export const area = {
                   }
                   await dialogue('auto', ...text.a_aerialis.genotext.hotel1());
                   save.data.n.plot_approach = 2;
-                  goatbro.face = goatface;
+                  azzie.face = goatface;
                   game.movement = true;
                }
             }
@@ -6210,17 +6101,17 @@ export const area = {
       async a_lookout (roomState) {
          if (!roomState.active && !save.data.b.onionsan && !!instance('main', 'warpmarker') && player.y > 40) {
             roomState.active = true;
-            await timer.when(() => game.room === 'a_lookout' && player.y < 40);
+            await timer.when(() => game.room === 'a_lookout' && player.y < 50 && game.movement);
             game.movement = false;
             const onionB = new OutertaleMultivisualObject({}, { anchor: { x: 0, y: 1 }, active: true });
             const onionA1 = onionArm(-12, 1, 'out');
             const onionA2 = onionArm(25, -1, 'left');
             const tV = timer.value;
+            const tY = 120;
             const onion = new CosmosObject({
-               position: { x: 170, y: 180 },
+               position: { x: 170, y: tY },
                priority: -5,
                area: renderer.area,
-               scale: 2,
                objects: [ onionB, onionA1, onionA2 ],
                offsets: [ 0 ],
                filters: [ new AdvancedBloomFilter({ threshold: 0.8, bloomScale: 0.3, quality: 5 }) ]
@@ -6229,18 +6120,22 @@ export const area = {
             });
             onionB.use(content.ionAOnionsanKawaii);
             renderer.attach('below', onion);
-            await onion.position.modulate(timer, 3000, { y: 25 });
+            await onion.position.modulate(timer, 2500, { y: 20 });
+            await timer.pause(750);
+            const OGY = renderer.region[0].y;
+            renderer.region[0].y = renderer.region[1].y = -10;
+            renderer.zoom.value = 3;
             await timer.pause(1000);
             await dialogue('auto', ...text.a_aerialis.onionsan1);
             onionB.use(content.ionAOnionsanYhear);
-            timer.pause(300).then(() => {
-               onionA1.x = -20;
-               onionA1.metadata.frame = 'wave';
-               onionA1.position.modulate(timer, 750, { y: 50 });
-               onionA2.x = 20;
-               onionA2.metadata.frame = 'wave';
-               onionA2.position.modulate(timer, 750, { y: 50 });
-            });
+            onionA1.x = -12.5;
+            onionA1.y += 10;
+            onionA1.metadata.frame = 'wave';
+            onionA1.position.modulate(timer, 750, { y: 50 });
+            onionA2.x = 12.5;
+            onionA2.y += 10;
+            onionA2.metadata.frame = 'wave';
+            onionA2.position.modulate(timer, 750, { y: 50 });
             await dialogue('auto', ...text.a_aerialis.onionsan1a);
             await timer.pause(1000);
             onionB.use(content.ionAOnionsanWistful);
@@ -6251,20 +6146,38 @@ export const area = {
             await timer.pause(1000);
             onionB.use(content.ionAOnionsanWistful);
             await dialogue('auto', ...text.a_aerialis.onionsan3);
-            onionB.use(content.ionAOnionsanYhear);
-            await dialogue('auto', ...text.a_aerialis.onionsan3a);
             await timer.pause(1000);
-            await dialogue('auto', ...text.a_aerialis.onionsan3b());
+            onionB.use(content.ionAOnionsanYhear);
+            await dialogue('auto', ...text.a_aerialis.onionsan3a());
             onionB.use(content.ionAOnionsanWistful);
             await dialogue('auto', ...text.a_aerialis.onionsan4);
-            onionA1.x = 0;
+            onionA2.x = -25;
             dialogue('auto', ...text.a_aerialis.onionsan4a);
-            await onionA1.position.modulate(timer, 750, { y: 0 });
-            await onion.position.modulate(timer, 2250, { y: 90 });
+            await onionA2.position.modulate(timer, 1000, { y: 0 });
+            await onion.position.modulate(timer, 2500, { y: tY });
             typer.text('');
-            await onion.position.modulate(timer, 2250, { y: 180 });
             renderer.detach('below', onion);
-            if (world.goatbro && save.flag.n.ga_asrielOnion++ < 1) {
+            await timer.pause(1500);
+            game.camera = new CosmosObject({ position: { y: renderer.region[0].y } });
+            renderer.region[0].y = -Infinity;
+            renderer.region[1].y = Infinity;
+            const zoom = 1;
+            const time = 500;
+            const area = new CosmosValue(320 / renderer.zoom.value);
+            function zoomerTicker () {
+               renderer.zoom.value = 320 / area.value;
+            }
+            renderer.on('tick', zoomerTicker);
+            await Promise.all([
+               area.modulate(timer, time, 320 / zoom),
+               game.camera.position.modulate(timer, time, { y: OGY })
+            ]);
+            renderer.off('tick', zoomerTicker);
+            renderer.zoom.value = zoom;
+            game.camera = player;
+            renderer.region[0].y = renderer.region[1].y = OGY;
+            if (world.azzie && save.flag.n.ga_asrielOnion++ < 1) {
+               await timer.pause(500);
                await dialogue('auto', ...text.a_aerialis.onionsan4x);
             }
             game.movement = true;
@@ -6341,13 +6254,13 @@ export const area = {
          instance('main', 'pottedtable')!.object.priority.value = 208;
          if (childEvac()) {
             instance('main', 'a_artgirl')?.destroy();
+            instance('main', 'a_sorry')?.destroy();
          }
          if (evac()) {
             instance('main', 'a_thisisnotabomb')?.destroy();
             instance('main', 'ringerNPC')?.destroy();
-            instance('main', 'a_moon')?.destroy();
          }
-         if (evac() || save.data.b.item_moonpie) {
+         if (save.data.b.item_moonpie) {
             instance('main', 'moonpie')?.destroy();
          }
          if (!save.data.b.a_state_moneyitemA || save.data.b.item_tvm_radio) {
@@ -6369,7 +6282,7 @@ export const area = {
             instance('main', 'a_boomer')?.destroy();
          }
          if (2 <= save.data.n.plot_date) {
-            save.data.n.plot < 68 &&
+            (save.data.n.plot < 68 || save.data.b.a_state_hapstablook) &&
                temporary(
                   character('papyrus', characters.papyrus, { x: 245, y: 190 }, 'down', {
                      anchor: { x: 0, y: 1 },
@@ -6391,7 +6304,7 @@ export const area = {
          }
       },
       async a_hub5 (roomState) {
-         if (save.data.n.bad_lizard < 2 && save.data.b.a_state_corecall && save.data.n.plot < 68) {
+         if (trueLizard() < 2 && save.data.b.a_state_corecall && save.data.n.plot < 68) {
             teleporter.movement = false;
             save.data.b.a_state_corecall = false;
             await dialogue('dialoguerBottom', ...text.a_aerialis.core2b());
@@ -6400,8 +6313,8 @@ export const area = {
          }
          if (!roomState.active) {
             roomState.active = true;
-            if (save.data.n.bad_lizard < 2 && save.data.n.plot_call < 7) {
-               await timer.when(() => game.room === 'a_hub5' && player.x < 200 && player.y < 200);
+            if (trueLizard() < 2 && save.data.n.plot_call < 7) {
+               await timer.when(() => game.room === 'a_hub5' && player.x < 200 && player.y < 200 && game.movement);
                save.data.n.plot_call = 7;
                assets.sounds.phone.instance(timer);
                await dialogue('dialoguerBottom', ...text.a_aerialis.core1);
@@ -6411,7 +6324,7 @@ export const area = {
          }
       },
       async a_core_entry1 (roomState) {
-         if (save.data.n.bad_lizard < 2 && !save.data.b.a_state_corecall && save.data.n.plot < 68) {
+         if (trueLizard() < 2 && !save.data.b.a_state_corecall && save.data.n.plot < 68) {
             teleporter.movement = false;
             save.data.b.a_state_corecall = true;
             assets.sounds.phone.instance(timer);
@@ -6426,7 +6339,7 @@ export const area = {
          if (!roomState.active) {
             roomState.active = true;
             if (!world.genocide && save.data.n.plot < 66.1) {
-               await timer.when(() => game.room === 'a_core_entry1' && player.y < 360);
+               await timer.when(() => game.room === 'a_core_entry1' && player.y < 360 && game.movement);
                game.movement = false;
                const darkmans = new CosmosEntity({
                   position: { x: 340, y: 240 },
@@ -6434,14 +6347,14 @@ export const area = {
                   face: 'down'
                });
                renderer.attach('main', darkmans);
-               save.data.n.bad_lizard < 2 && dialogue('dialoguerBottom', ...text.a_aerialis.core3);
+               trueLizard() < 2 && dialogue('dialoguerBottom', ...text.a_aerialis.core3);
                await darkmans.walk(timer, 3, { y: player.y - 60 });
                dialogueSession.movement = false;
                typer.text('');
                await battler.encounter(player, groups.madjick, false, true);
                game.movement = false;
                renderer.detach('main', darkmans);
-               save.data.n.bad_lizard < 2 && (await dialogue('dialoguerBottom', ...text.a_aerialis.core4()));
+               trueLizard() < 2 && (await dialogue('dialoguerBottom', ...text.a_aerialis.core4()));
                save.data.n.plot = 66.1;
                game.movement = true;
             }
@@ -6458,7 +6371,9 @@ export const area = {
                  );
             if (!roomState.active) {
                roomState.active = true;
-               await timer.when(() => game.room === 'a_core_entry2' && player.y < (world.genocide ? 170 : 190));
+               await timer.when(
+                  () => game.room === 'a_core_entry2' && player.y < (world.genocide ? 170 : 190) && game.movement
+               );
                if (world.genocide) {
                   if (save.data.n.plot_approach < 5 && save.flag.n.ga_asrielCore1++ < 1) {
                      await dialogue('auto', ...text.a_aerialis.genotext.core1);
@@ -6466,14 +6381,14 @@ export const area = {
                   }
                } else {
                   game.movement = false;
-                  save.data.n.bad_lizard < 2 && dialogue('dialoguerBottom', ...text.a_aerialis.core5);
+                  trueLizard() < 2 && dialogue('dialoguerBottom', ...text.a_aerialis.core5);
                   await darkmans.walk(timer, 3, { y: player.y - 60 });
                   dialogueSession.movement = false;
                   typer.text('');
                   await battler.encounter(player, groups.knightknight, false, true);
                   game.movement = false;
                   renderer.detach('main', darkmans);
-                  save.data.n.bad_lizard < 2 && (await dialogue('dialoguerBottom', ...text.a_aerialis.core6()));
+                  trueLizard() < 2 && (await dialogue('dialoguerBottom', ...text.a_aerialis.core6()));
                   save.data.n.plot = 66.2;
                   game.movement = true;
                }
@@ -6485,8 +6400,13 @@ export const area = {
          if (67 <= save.data.n.plot) {
             instance('below', 'coredoor')?.destroy();
          }
-         if (
-            save.data.n.bad_lizard < 2 &&
+         if (trueLizard() < 2 && save.data.n.plot_call < 7.1) {
+            teleporter.movement = false;
+            save.data.n.plot_call = 7.1;
+            await dialogue('dialoguerBottom', ...text.a_aerialis.core7);
+            game.movement = true;
+         } else if (
+            trueLizard() < 2 &&
             !save.data.b.a_state_backtracker &&
             ((save.data.n.state_aerialis_corepath_state === 1 && save.data.n.state_aerialis_corepath_puzzle === 2) ||
                (save.data.n.state_aerialis_corepath_state === 2 && save.data.n.state_aerialis_corepath_warrior === 2))
@@ -6498,8 +6418,8 @@ export const area = {
          } else if (world.genocide && save.data.n.plot_approach < 6) {
             teleporter.movement = false;
             await dialogue('auto', ...text.a_aerialis.genotext.core2());
-            goatbro.metadata.override = true;
-            await goatbro.walk(timer, 3, { x: player.x - 21 }, { x: player.x - 21, y: 531 });
+            azzie.metadata.override = true;
+            await azzie.walk(timer, 3, { x: player.x - 21 }, { x: player.x - 21, y: 531 });
             await timer.pause(1500);
             typer.variables.x = CosmosUtils.populate(8, () => Math.floor(random.next() * 10)).join('-');
             await dialogue('auto', ...text.a_aerialis.genotext.core3());
@@ -6536,7 +6456,7 @@ export const area = {
             await timer.pause(1000);
             access || (await dialogue('auto', ...text.a_aerialis.genotext.core4a));
             timer
-               .when(() => goatbro.y < 460)
+               .when(() => azzie.y < 460)
                .then(async () => {
                   shake(1, 500);
                   assets.sounds.pathway.instance(timer).rate.value = 1.3;
@@ -6554,7 +6474,7 @@ export const area = {
                   shake(1, 500);
                   assets.sounds.pathway.instance(timer).rate.value = 1.3;
                });
-            await goatbro.walk(timer, 3, { x: player.x }, { x: player.x, y: 440 });
+            await azzie.walk(timer, 3, { x: player.x }, { x: player.x, y: 440 });
             await dialogue('auto', ...text.a_aerialis.genotext.core4b());
             save.data.n.plot_approach = 6;
             game.movement = true;
@@ -6577,7 +6497,10 @@ export const area = {
             puzzler.update(roomState, state === '' ? [] : state.split(',').map(id => +id), true);
             instance('main', 'puzzleholder1')!.object.area = renderer.area;
          }
-         if (save.data.n.bad_lizard < 2) {
+         if (68 <= save.data.n.plot) {
+            return;
+         }
+         if (trueLizard() < 2) {
             if (save.data.n.state_aerialis_corepath_state === 0) {
                save.data.n.state_aerialis_corepath_state = 1;
                teleporter.movement = false;
@@ -6608,7 +6531,7 @@ export const area = {
          } else if (
             save.data.n.plot > 66.2 &&
             world.genocide &&
-            !goatbro.metadata.override &&
+            !azzie.metadata.override &&
             !save.data.b.a_state_asrielTimewaster
          ) {
             save.data.b.a_state_asrielTimewaster = true;
@@ -6618,12 +6541,16 @@ export const area = {
          }
          if (
             !roomState.active &&
-            save.data.n.bad_lizard < 2 &&
+            trueLizard() < 2 &&
             save.data.n.state_aerialis_corepath_warrior < 2 &&
             save.data.n.state_aerialis_corepath_puzzle < 1
          ) {
             roomState.active = true;
-            await timer.when(() => save.data.n.state_aerialis_corepath_puzzle === 1);
+            await timer.when(() => 68 <= save.data.n.plot || save.data.n.state_aerialis_corepath_puzzle === 1);
+            if (68 <= save.data.n.plot) {
+               roomState.active = false;
+               return;
+            }
             save.data.b.a_state_flipflopper = false;
             save.data.n.state_aerialis_corepath_state = 1;
             await dialogue('dialoguerBottom', ...text.a_aerialis.core8b);
@@ -6639,14 +6566,21 @@ export const area = {
             instance('main', 'puzzleholder1')!.object.area = renderer.area;
             instance('main', 'puzzleholder2')!.object.area = renderer.area;
          }
+         if (68 <= save.data.n.plot) {
+            return;
+         }
          if (
             !roomState.active &&
-            save.data.n.bad_lizard < 2 &&
+            trueLizard() < 2 &&
             save.data.n.state_aerialis_corepath_warrior < 3 &&
             save.data.n.state_aerialis_corepath_puzzle < 2
          ) {
             roomState.active = true;
-            await timer.when(() => save.data.n.state_aerialis_corepath_puzzle === 2);
+            await timer.when(() => 68 <= save.data.n.plot || save.data.n.state_aerialis_corepath_puzzle === 2);
+            if (68 <= save.data.n.plot) {
+               roomState.active = false;
+               return;
+            }
             save.data.n.state_aerialis_corepath_state = 1;
             if (save.data.n.state_aerialis_corepath_warrior < 2) {
                save.data.b.a_state_flipflopper = false;
@@ -6661,7 +6595,7 @@ export const area = {
             roomState.active = false;
          } else if (
             !save.data.b.a_state_backtracker &&
-            save.data.n.bad_lizard < 2 &&
+            trueLizard() < 2 &&
             save.data.n.state_aerialis_corepath_warrior === 3 &&
             save.data.n.state_aerialis_corepath_puzzle < 3
          ) {
@@ -6675,27 +6609,39 @@ export const area = {
          world.genocide || instance('main', 'deathnote')?.destroy();
          if (save.data.n.state_aerialis_corepath_puzzle === 3) {
             (instance('below', 'exitswitch')!.object.objects[0] as CosmosAnimation).index = 1;
-         } else if (!roomState.active && save.data.n.bad_lizard < 2 && save.data.n.state_aerialis_corepath_puzzle < 3) {
-            roomState.active = true;
-            await timer.when(() => save.data.n.state_aerialis_corepath_puzzle === 3);
-            if (save.data.n.state_aerialis_corepath_warrior < 3) {
-               if (save.data.b.a_state_backtracker) {
-                  if (save.data.n.state_aerialis_corepath_state === 1) {
-                     await dialogue('dialoguerBottom', ...text.a_aerialis.core10b);
+         } else {
+            if (68 <= save.data.n.plot) {
+               return;
+            }
+            if (!roomState.active && trueLizard() < 2 && save.data.n.state_aerialis_corepath_puzzle < 3) {
+               roomState.active = true;
+               await timer.when(() => 68 <= save.data.n.plot || save.data.n.state_aerialis_corepath_puzzle === 3);
+               if (68 <= save.data.n.plot) {
+                  roomState.active = false;
+                  return;
+               }
+               if (save.data.n.state_aerialis_corepath_warrior < 3) {
+                  if (save.data.b.a_state_backtracker) {
+                     if (save.data.n.state_aerialis_corepath_state === 1) {
+                        await dialogue('dialoguerBottom', ...text.a_aerialis.core10b);
+                     } else {
+                        await dialogue('dialoguerBottom', ...text.a_aerialis.core10c);
+                     }
                   } else {
-                     await dialogue('dialoguerBottom', ...text.a_aerialis.core10c);
+                     await dialogue('dialoguerBottom', ...text.a_aerialis.core10a);
                   }
                } else {
-                  await dialogue('dialoguerBottom', ...text.a_aerialis.core10a);
+                  await dialogue('dialoguerBottom', ...text.a_aerialis.core13);
                }
-            } else {
-               await dialogue('dialoguerBottom', ...text.a_aerialis.core13);
+               roomState.active = false;
             }
-            roomState.active = false;
          }
       },
       async a_core_right1 (roomState) {
-         if (save.data.n.bad_lizard < 2) {
+         if (68 <= save.data.n.plot) {
+            return;
+         }
+         if (trueLizard() < 2) {
             if (save.data.n.state_aerialis_corepath_state === 0) {
                save.data.n.state_aerialis_corepath_state = 2;
                teleporter.movement = false;
@@ -6724,7 +6670,7 @@ export const area = {
          } else if (
             save.data.n.plot > 66.2 &&
             world.genocide &&
-            !goatbro.metadata.override &&
+            !azzie.metadata.override &&
             !save.data.b.a_state_asrielTimewaster
          ) {
             save.data.b.a_state_asrielTimewaster = true;
@@ -6734,8 +6680,14 @@ export const area = {
          }
          if (!roomState.active && save.data.n.state_aerialis_corepath_warrior < 1) {
             roomState.active = true;
-            const dialogueCondition = save.data.n.bad_lizard < 2 && save.data.n.state_aerialis_corepath_puzzle < 2;
-            await timer.when(() => game.movement && game.room === 'a_core_right1' && 160 <= player.x);
+            const dialogueCondition = trueLizard() < 2 && save.data.n.state_aerialis_corepath_puzzle < 2;
+            await timer.when(
+               () => 68 <= save.data.n.plot || (game.movement && game.room === 'a_core_right1' && 160 <= player.x)
+            );
+            if (68 <= save.data.n.plot) {
+               roomState.active = false;
+               return;
+            }
             await battler.encounter(player, groups.froggitexWhimsalot, true, true);
             save.data.n.state_aerialis_corepath_warrior = 1;
             if (dialogueCondition) {
@@ -6747,10 +6699,19 @@ export const area = {
          }
       },
       async a_core_right2 (roomState) {
+         if (68 <= save.data.n.plot) {
+            return;
+         }
          if (!roomState.active && save.data.n.state_aerialis_corepath_warrior < 2) {
-            const dialogueCondition = save.data.n.bad_lizard < 2 && save.data.n.state_aerialis_corepath_puzzle < 3;
+            const dialogueCondition = trueLizard() < 2 && save.data.n.state_aerialis_corepath_puzzle < 3;
             roomState.active = true;
-            await timer.when(() => game.movement && game.room === 'a_core_right2' && 160 <= player.x);
+            await timer.when(
+               () => 68 <= save.data.n.plot || (game.movement && game.room === 'a_core_right2' && 160 <= player.x)
+            );
+            if (68 <= save.data.n.plot) {
+               roomState.active = false;
+               return;
+            }
             await battler.encounter(player, groups.astigmatismMigospel, true, true);
             save.data.n.state_aerialis_corepath_warrior = 2;
             save.data.n.state_aerialis_corepath_state = 2;
@@ -6769,7 +6730,7 @@ export const area = {
             roomState.active = false;
          } else if (
             !save.data.b.a_state_backtracker &&
-            save.data.n.bad_lizard < 2 &&
+            trueLizard() < 2 &&
             save.data.n.state_aerialis_corepath_puzzle === 3 &&
             save.data.n.state_aerialis_corepath_warrior < 3
          ) {
@@ -6781,9 +6742,16 @@ export const area = {
       },
       async a_core_right3 (roomState) {
          world.genocide || instance('main', 'deathnote')?.destroy();
-         if (!roomState.active && save.data.n.bad_lizard < 2 && save.data.n.state_aerialis_corepath_warrior < 3) {
+         if (68 <= save.data.n.plot) {
+            return;
+         }
+         if (!roomState.active && trueLizard() < 2 && save.data.n.state_aerialis_corepath_warrior < 3) {
             roomState.active = true;
-            await timer.when(() => save.data.n.state_aerialis_corepath_warrior === 3);
+            await timer.when(() => 68 <= save.data.n.plot || save.data.n.state_aerialis_corepath_warrior === 3);
+            if (68 <= save.data.n.plot) {
+               roomState.active = false;
+               return;
+            }
             if (save.data.n.state_aerialis_corepath_puzzle < 3) {
                if (save.data.b.a_state_backtracker) {
                   if (save.data.n.state_aerialis_corepath_state === 2) {
@@ -6804,8 +6772,8 @@ export const area = {
          world.genocide || instance('main', 'deathnote')?.destroy();
          if (!roomState.active) {
             roomState.active = true;
-            if (save.data.n.bad_lizard < 2 && save.data.n.plot_call < 8) {
-               await timer.when(() => game.room === 'a_core_bridge' && player.x > 220);
+            if (trueLizard() < 2 && save.data.n.plot_call < 8) {
+               await timer.when(() => game.room === 'a_core_bridge' && player.x > 220 && game.movement);
                save.data.n.plot_call = 8;
                await dialogue('dialoguerBottom', ...text.a_aerialis.core14);
             }
@@ -6813,7 +6781,7 @@ export const area = {
                await timer.when(() => game.movement && game.room === 'a_core_bridge' && player.x > 560);
                await battler.encounter(player, groups.mushketeer, true, true);
                save.data.n.plot = 67.1;
-               if (save.data.n.bad_lizard < 2) {
+               if (trueLizard() < 2) {
                   await dialogue('dialoguerBottom', ...text.a_aerialis.core15);
                } else if (world.genocide && save.data.b.spared_mushketeer && save.flag.n.ga_asrielSpareketeer++ < 1) {
                   await dialogue('dialoguerBottom', ...text.a_aerialis.genotext.spareketeer);
@@ -6825,27 +6793,27 @@ export const area = {
          if (!roomState.active) {
             roomState.active = true;
             if (world.genocide && save.flag.n.ga_asrielCore6 < 1 && save.data.n.plot_approach < 7) {
-               await timer.when(() => game.room === 'a_core_checkpoint' && player.x > 40);
+               await timer.when(() => game.room === 'a_core_checkpoint' && player.x > 40 && game.movement);
                save.flag.n.ga_asrielCore6++;
                game.movement = false;
                save.data.n.plot_approach = 7;
                await dialogue('auto', ...text.a_aerialis.genotext.core7a);
                await timer.pause(650);
-               goatbro.metadata.override = true;
-               const ox = goatbro.x;
-               await goatbro.walk(timer, 3, { y: player.y + 21 }, { y: player.y + 21, x: 160 });
+               azzie.metadata.override = true;
+               const ox = azzie.x;
+               await azzie.walk(timer, 3, { y: player.y + 21 }, { y: player.y + 21, x: 160 });
                await timer.pause(800);
-               goatbro.face = 'up';
+               azzie.face = 'up';
                await timer.pause(1950);
-               goatbro.face = 'left';
+               azzie.face = 'left';
                await dialogue('auto', ...text.a_aerialis.genotext.core7b);
-               await goatbro.walk(timer, 3, { x: ox }, { x: ox, y: player.y });
+               await azzie.walk(timer, 3, { x: ox }, { x: ox, y: player.y });
                await timer.pause(650);
-               goatbro.face = 'right';
+               azzie.face = 'right';
                await timer.pause(850);
                await dialogue('auto', ...text.a_aerialis.genotext.core7c);
-               goatbro.metadata.override = false;
-               goatbro.metadata.reposition = true;
+               azzie.metadata.override = false;
+               azzie.metadata.reposition = true;
                game.movement = true;
             }
          }
@@ -6868,7 +6836,7 @@ export const area = {
             events.on('teleport').then(() => renderer.detach('main', neo));
             if (!roomState.active) {
                roomState.active = true;
-               await timer.when(() => game.room === 'a_core_battle' && player.y < 190);
+               await timer.when(() => game.room === 'a_core_battle' && player.y < 190 && game.movement);
                game.movement = false;
                save.data.n.plot = 68;
                const playerY = player.y;
@@ -6996,7 +6964,7 @@ export const area = {
                   void 0,
                   { x: 160, y: 160 }
                );
-               player.x = 160;
+               world.genocide || (player.x = 160);
                inventories.exAssets.unload();
                groups.mettaton2.assets.unload();
                player.y = playerY;
@@ -7022,17 +6990,17 @@ export const area = {
                   const lizard = character(
                      'alphys',
                      characters.alphys,
-                     { x: 160, y: save.data.n.bad_lizard < 2 ? 360 : 0 },
+                     { x: 160, y: trueLizard() < 2 ? 360 : 0 },
                      'down'
                   );
-                  if (save.data.n.bad_lizard < 2) {
+                  if (trueLizard() < 2) {
                      await lizard.walk(timer, 3, { y: player.y + 40 });
                   } else {
                      await lizard.walk(timer, 3, { y: player.y - 100 });
                      await timer.pause(2500);
                   }
                   await dialogue('dialoguerBottom', ...text.a_aerialis.story.end5());
-                  if (save.data.n.bad_lizard < 2) {
+                  if (trueLizard() < 2) {
                      await lizard.walk(timer, 3, { x: player.x - 30 }, { x: player.x - 30, y: mtt2.y });
                      lizard.face = 'right';
                      await timer.pause(850);
@@ -7046,7 +7014,7 @@ export const area = {
                      await timer.pause(2700);
                   }
                   await dialogue('dialoguerBottom', ...text.a_aerialis.story.end6());
-                  if (save.data.n.bad_lizard < 2) {
+                  if (trueLizard() < 2) {
                      await lizard.walk(
                         timer,
                         3,
@@ -7057,21 +7025,27 @@ export const area = {
                      header('x1').then(() => (lizard.face = 'right'));
                      await dialogue('dialoguerBottom', ...text.a_aerialis.story.end7());
                      await timer.pause(1500);
-                     await dialogue('dialoguerBottom', ...text.a_aerialis.story.end8a);
-                     lizard.walk(timer, 3, { x: player.x + 50 });
-                     await dialogue('dialoguerBottom', ...text.a_aerialis.story.end8b);
+                     lizard.face = 'down';
+                     await dialogue('dialoguerBottom', ...text.a_aerialis.story.end8);
                      await timer.pause(1500);
-                     await dialogue('dialoguerBottom', ...text.a_aerialis.story.end9a);
-                     lizard.face = 'left';
-                     await dialogue('dialoguerBottom', ...text.a_aerialis.story.end9b);
+                     await dialogue('dialoguerBottom', ...text.a_aerialis.story.end9);
                      await timer.pause(1200);
-                     await lizard.walk(timer, 3, { y: mtt2.y - 20 }, { x: mtt2.x, y: mtt2.y - 20 });
+                     await lizard.walk(
+                        timer,
+                        3,
+                        { x: mtt2.x - 30 },
+                        { x: mtt2.x - 30, y: mtt2.y - 20 },
+                        { x: mtt2.x, y: mtt2.y - 20 }
+                     );
                   } else {
                      await timer.pause(1200);
                   }
                   await lizard.walk(timer, 3, { y: 0 });
                   renderer.detach('main', lizard);
                   await dialogue('dialoguerBottom', ...text.a_aerialis.story.end10());
+                  if (!save.data.b.oops) {
+                     await dialogue('dialoguerBottom', ...text.a_aerialis.story.end11);
+                  }
                   events.on('teleport').then(() => renderer.detach('main', mtt2));
                }
                game.movement = true;
@@ -7102,7 +7076,7 @@ export const area = {
             teleporter.movement = false;
             game.movement = false;
             await timer.pause(1300);
-            await dialogue('dialoguerBottom', ...text.a_aerialis.story.endwalk0);
+            await dialogue('dialoguerBottom', ...text.a_aerialis.story.endwalk0());
             await player.walk(timer, 3, lizard.position.add(0, di));
             await Promise.all([ lizard.walk(timer, 3, { x: 220 }), player.walk(timer, 3, { y: 140 }, { x: 220 - di }) ]);
             await dialogue('dialoguerBottom', ...text.a_aerialis.story.endwalk1());
@@ -7185,7 +7159,7 @@ events.on('script', (name, ...args) => {
 });
 
 events.on('step', () => {
-   if (game.movement) {
+   if (game.movement && save.data.n.plot < 65) {
       switch (game.room) {
          case 'a_path2':
          case 'a_path3':
@@ -7194,7 +7168,7 @@ events.on('step', () => {
          case 'a_pacing':
          case 'a_prepuzzle':
          case 'a_puzzle2':
-            return runEncounter(
+            const enc = runEncounter(
                (save.data.n.kills_aerialis + save.data.n.bully_aerialis) / 7,
                (() => {
                   if (game.room === 'a_puzzle1') {
@@ -7210,11 +7184,11 @@ events.on('step', () => {
                   [ groups.pyrope, 4 ],
                   [ groups.spacetopTsundere, 4 ],
                   [ groups.pyropeTsundere, 5 ],
-                  ...(!save.data.b.spared_perigee && !save.data.b.killed_perigee && !save.data.b.fled_perigee
-                     ? [ [ groups.perigee, 5 ] as [OutertaleGroup, number] ]
-                     : [])
+                  [ groups.perigee, 5 ]
                ]
             );
+            enc && enc.then(() => updateBadLizard());
+            return !!enc;
       }
    }
 });
@@ -7318,12 +7292,12 @@ events.on('teleport', (from, to) => {
 });
 
 events.on('teleport-start', async (a, to) => {
-   if (to === 'a_auditorium' && save.data.n.plot < 65 && save.data.n.bad_lizard > 1) {
+   if (to === 'a_auditorium' && save.data.n.plot < 65 && trueLizard() > 1) {
       save.data.n.plot = 64.1;
       game.music?.gain.modulate(timer, 300, 0);
       game.movement = false;
       events.on('teleport').then(() => {
-         operaShow(world.genocide ? goatbro : new CosmosCharacter({ preset: characters.none, key: 'amogus' }));
+         operaShow(world.genocide ? azzie : new CosmosCharacter({ preset: characters.none, key: 'amogus' }));
       });
    }
 });
@@ -7549,6 +7523,8 @@ export const shops = {
          if (buy) {
             if (save.storage.inventory.size < 8) {
                if (world.genocide) {
+                  shops.bpants.vars.purchase = 1;
+                  save.data.n.g = Math.max(save.data.n.g - CosmosUtils.provide(shops.bpants.price), 0);
                   success = true;
                } else {
                   const price = CosmosUtils.provide(shops.bpants.price);
@@ -7563,7 +7539,7 @@ export const shops = {
             } else {
                shops.bpants.vars.purchase = 4;
             }
-         } else if (save.data.n.bad_lizard < 2) {
+         } else if (trueLizard() < 2) {
             shops.bpants.vars.purchase = 2;
          }
          if (success) {
@@ -7638,7 +7614,7 @@ export const shops = {
                   await gossiper.dialogue(...text.n_shop_gossip.sell1());
                }
             } else if (shopper.index === 3) {
-               atlas.switch(save.data.n.bad_lizard < 2 ? 'shopTextGossip' : 'shopText');
+               atlas.switch(trueLizard() < 2 ? 'shopTextGossip' : 'shopText');
                await gossiper.dialogue(...text.n_shop_gossip.exit());
                const music = shops.gossip.music!.instances.slice(-1)[0];
                await Promise.all([
@@ -7892,7 +7868,7 @@ export const shops = {
             } else {
                shops.gossip.vars.purchase = 4;
             }
-         } else if (save.data.n.bad_lizard < 2) {
+         } else if (trueLizard() < 2) {
             shops.gossip.vars.purchase = 2;
          }
          if (success) {

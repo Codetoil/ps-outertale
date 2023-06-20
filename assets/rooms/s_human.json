@@ -1,92 +1,140 @@
 {
    "$schema": "./room.schema.json",
    "background": "below",
-   "preload": [ "amStarton", "amStartonEmpty", "iocPapyrus", "iocSans", "idcSans", "avSans", "ieBiodome" ],
+   "preload": [
+      "amStarton",
+      "amStartonEmpty",
+      "iocPapyrus",
+      "iocSans",
+      "idcSans",
+      "avSans",
+      "iooSBiodome",
+      "iocPapyrusStark"
+   ],
    "layers": {
       "below": [
          {
-            "position": { "x": 0, "y": 0 },
-            "attachments": [],
+            "position": {
+               "x": 0,
+               "y": 0
+            },
             "barriers": [
-               { "position": { "x": 10, "y": 0 }, "size": { "x": -20, "y": 240 } },
-               { "position": { "x": 130, "y": 0 }, "size": { "x": 20, "y": 240 } }
+               {
+                  "position": {
+                     "x": 0,
+                     "y": 100
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": -20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 40,
+                     "y": 80
+                  },
+                  "size": {
+                     "x": 240,
+                     "y": -20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 0,
+                     "y": 140
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 40,
+                     "y": 160
+                  },
+                  "size": {
+                     "x": 240,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 280,
+                     "y": 100
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": -20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 280,
+                     "y": 140
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 20
+                  }
+               }
             ],
             "triggers": [
                {
-                  "position": { "x": 10, "y": 5 },
+                  "position": {
+                     "x": 5,
+                     "y": 100
+                  },
                   "name": "teleport",
-                  "args": [ "s_crossroads", "up", "60", "230" ],
-                  "size": { "x": 120, "y": -20 }
+                  "args": [
+                     "s_crossroads",
+                     "left",
+                     "300",
+                     "60"
+                  ],
+                  "size": {
+                     "x": -20,
+                     "y": 40
+                  }
                },
                {
-                  "position": { "x": 10, "y": 235 },
-                  "size": { "x": 120, "y": 20 },
+                  "position": {
+                     "x": 315,
+                     "y": 100
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 40
+                  },
                   "name": "teleport",
-                  "args": [ "s_papyrus", "down", "60", "10" ]
+                  "args": [
+                     "s_papyrus",
+                     "right",
+                     "20",
+                     "40"
+                  ]
                }
             ]
          }
-      ],
-      "main": [
-         {
-            "tags": [ "s_lamp" ],
-            "attachments": [
-               {
-                  "auto": true,
-                  "type": "animation",
-                  "anchor": { "x": 0, "y": 1 },
-                  "resources": "iooSLamp",
-                  "position": { "x": 0, "y": 0 }
-               }
-            ],
-            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
-            "position": { "x": 25, "y": 20 }
-         },
-         {
-            "tags": [ "s_lamp" ],
-            "attachments": [
-               {
-                  "auto": true,
-                  "type": "animation",
-                  "anchor": { "x": 0, "y": 1 },
-                  "resources": "iooSLamp",
-                  "position": { "x": 0, "y": 0 }
-               }
-            ],
-            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
-            "position": { "x": 25, "y": 230 }
-         },
-         {
-            "tags": [ "s_lamp" ],
-            "attachments": [
-               {
-                  "auto": true,
-                  "type": "animation",
-                  "anchor": { "x": 0, "y": 1 },
-                  "resources": "iooSLamp",
-                  "position": { "x": 0, "y": 0 }
-               }
-            ],
-            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
-            "position": { "x": 115, "y": 20 }
-         },
-         {
-            "tags": [ "s_lamp" ],
-            "attachments": [
-               {
-                  "auto": true,
-                  "type": "animation",
-                  "anchor": { "x": 0, "y": 1 },
-                  "resources": "iooSLamp",
-                  "position": { "x": 0, "y": 0 }
-               }
-            ],
-            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
-            "position": { "x": 115, "y": 230 }
-         }
       ]
    },
-   "neighbors": [ "s_crossroads", "s_papyrus" ],
-   "region": [ { "x": 70, "y": 120 }, { "x": 70, "y": 120 } ],
-   "score": { "music": "starton", "gain": 0.8 }
+   "neighbors": [
+      "s_crossroads",
+      "s_papyrus"
+   ],
+   "region": [
+      {
+         "x": 160,
+         "y": 120
+      },
+      {
+         "x": 160,
+         "y": 100
+      }
+   ],
+   "score": {
+      "music": "starton",
+      "gain": 0.8
+   }
 }

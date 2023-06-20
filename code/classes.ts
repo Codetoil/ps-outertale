@@ -1,30 +1,17 @@
 import { Graphics, Texture } from 'pixi.js';
 import {
-   CosmosAnimation,
-   CosmosAnimationInfo,
-   CosmosAnimationResources,
-   CosmosArea,
-   CosmosAsset,
    CosmosBaseEvents,
-   CosmosBasic,
-   CosmosDaemon,
-   CosmosDirection,
    CosmosHitbox,
-   CosmosImage,
-   CosmosInventory,
-   CosmosKeyed,
    CosmosMetadata,
    CosmosObject,
-   CosmosObjectProperties,
-   CosmosPoint,
-   CosmosPointSimple,
-   CosmosProvider,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosSpriteProperties,
-   CosmosUtils,
-   CosmosValue
-} from './engine';
+   CosmosObjectProperties
+} from './engine/renderer';
+import { CosmosDaemon } from './engine/audio';
+import { CosmosArea, CosmosPoint, CosmosPointSimple, CosmosValue } from './engine/numerics';
+import { CosmosAnimation, CosmosAnimationInfo, CosmosAnimationResources, CosmosImage, CosmosSprite, CosmosSpriteProperties } from './engine/image';
+import { CosmosRectangle } from './engine/shapes';
+import { CosmosBasic, CosmosDirection, CosmosKeyed, CosmosProvider, CosmosUtils } from './engine/utils';
+import { CosmosAsset, CosmosInventory } from './engine/core';
 
 export type OutertaleArmor = { invulnerability: number };
 
@@ -146,6 +133,7 @@ export type OutertaleVolatile = {
    alive: boolean;
    container: CosmosObject & { objects: CosmosSprite[] };
    dead: boolean;
+   flirted: boolean;
    opponent: OutertaleOpponent;
    hp: number;
    sparable: boolean;
@@ -392,6 +380,7 @@ export interface OutertaleOpponentProperties {
    df?: number;
    dramatic?: boolean;
    exp?: number;
+   flirted?: () => boolean;
    g?: number;
    ghost?: boolean;
    goodbye?: ((volatile: OutertaleVolatile) => CosmosSprite) | null;
@@ -417,6 +406,7 @@ export class OutertaleOpponent {
    df: number;
    dramatic: boolean;
    exp: number;
+   flirted: () => boolean;
    g: number;
    ghost: boolean;
    goodbye: ((volatile: OutertaleVolatile) => CosmosSprite) | null;
@@ -434,6 +424,7 @@ export class OutertaleOpponent {
       bullyable = false,
       df = 0,
       dramatic = false,
+      flirted = () => false,
       exp = 0,
       g = 0,
       ghost = false,
@@ -453,6 +444,7 @@ export class OutertaleOpponent {
       this.df = df;
       this.dramatic = dramatic;
       this.exp = exp;
+      this.flirted = flirted;
       this.g = g;
       this.ghost = ghost;
       this.goodbye = goodbye;

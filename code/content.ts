@@ -1,15 +1,3 @@
-import {
-   CosmosAnimationResources,
-   CosmosAudio,
-   CosmosColor,
-   CosmosData,
-   CosmosImage,
-   CosmosInventory,
-   CosmosMath,
-   CosmosStringData,
-   CosmosUtils
-} from './engine';
-
 import amAerialis from '../assets/audio/music/aerialis.ogg?url';
 import amAerialisEmpty from '../assets/audio/music/aerialisEmpty.ogg?url';
 import amArms from '../assets/audio/music/arms.ogg?url';
@@ -49,12 +37,13 @@ import amGhostbattle from '../assets/audio/music/ghostbattle.ogg?url';
 import amGrandfinale from '../assets/audio/music/grandfinale.ogg?url';
 import amHome from '../assets/audio/music/home.ogg?url';
 import amHomeAlt from '../assets/audio/music/home_alt.ogg?url';
-import amHope from '../assets/audio/music/hope.ogg?url';
+import amKnightknightSting from '../assets/audio/music/knightknight_sting.ogg?url';
 import amLab from '../assets/audio/music/lab.ogg?url';
 import amLegs from '../assets/audio/music/legs.ogg?url';
 import amLegsIntro from '../assets/audio/music/legsIntro.ogg?url';
 import amLetsflyajetpackwhydontwe from '../assets/audio/music/letsflyajetpackwhydontwe.ogg?url';
 import amLetsmakeabombwhydontwe from '../assets/audio/music/letsmakeabombwhydontwe.ogg?url';
+import amMadjickSting from '../assets/audio/music/madjick_sting.ogg?url';
 import amMall from '../assets/audio/music/mall.ogg?url';
 import amMemory from '../assets/audio/music/memory.ogg?url';
 import amMenu0 from '../assets/audio/music/menu0.ogg?url';
@@ -165,6 +154,7 @@ import asJetpack from '../assets/audio/sounds/jetpack.ogg?url';
 import asKick from '../assets/audio/sounds/kick.ogg?url';
 import asKnock from '../assets/audio/sounds/knock.wav?url';
 import asLanding from '../assets/audio/sounds/landing.ogg?url';
+import asLongElevator from '../assets/audio/sounds/long_elevator.ogg?url';
 import asLove from '../assets/audio/sounds/love.ogg?url';
 import asMenu from '../assets/audio/sounds/menu.ogg?url';
 import asMetapproach from '../assets/audio/sounds/metapproach.wav?url';
@@ -276,6 +266,7 @@ import ibGalaxy$info from '../assets/images/backdrops/galaxy.json?url';
 import ibGalaxy from '../assets/images/backdrops/galaxy.png?url';
 import ibGrey$info from '../assets/images/backdrops/grey.json?url';
 import ibGrey from '../assets/images/backdrops/grey.png?url';
+import ibbArmBullet$info from '../assets/images/battleBullets/armBullet.json?url';
 import ibbArmBullet from '../assets/images/battleBullets/armBullet.png?url';
 import ibbArrow$info from '../assets/images/battleBullets/arrow.json?url';
 import ibbArrow from '../assets/images/battleBullets/arrow.png?url';
@@ -541,8 +532,8 @@ import ibcMadjickCape from '../assets/images/battleCharacters/madjick/cape.png?u
 import ibcMadjickDress from '../assets/images/battleCharacters/madjick/dress.png?url';
 import ibcMadjickHat from '../assets/images/battleCharacters/madjick/hat.png?url';
 import ibcMadjickHead from '../assets/images/battleCharacters/madjick/head.png?url';
-import ibcMadjickLapel from '../assets/images/battleCharacters/madjick/lapel.png?url';
 import ibcMadjickHurt from '../assets/images/battleCharacters/madjick/hurt.png?url';
+import ibcMadjickLapel from '../assets/images/battleCharacters/madjick/lapel.png?url';
 import ibcMettatonArmsBruh$info from '../assets/images/battleCharacters/mettaton/armsBruh.json?url';
 import ibcMettatonArmsBruh from '../assets/images/battleCharacters/mettaton/armsBruh.png?url';
 import ibcMettatonArmsNoticard$info from '../assets/images/battleCharacters/mettaton/armsNoticard.json?url';
@@ -611,6 +602,7 @@ import ibcMigospelHappi$info from '../assets/images/battleCharacters/migospel/mi
 import ibcMigospelHappi from '../assets/images/battleCharacters/migospel/migospelHappi.png?url';
 import ibcMigospelHurt from '../assets/images/battleCharacters/migospel/migospelHurt.png?url';
 import ibcMigospelLegs from '../assets/images/battleCharacters/migospel/migospelLegs.png?url';
+import ibcMoldbyggDefeated from '../assets/images/battleCharacters/moldbygg/defeated.png?url';
 import ibcMoldbyggHead$info from '../assets/images/battleCharacters/moldbygg/head.json?url';
 import ibcMoldbyggHead from '../assets/images/battleCharacters/moldbygg/head.png?url';
 import ibcMoldbyggPart from '../assets/images/battleCharacters/moldbygg/part.png?url';
@@ -745,8 +737,8 @@ import ibcTorielScram from '../assets/images/battleCharacters/toriel/scram.png?u
 import ibcTsundereBlush$info from '../assets/images/battleCharacters/tsundere/blush.json?url';
 import ibcTsundereBlush from '../assets/images/battleCharacters/tsundere/blush.png?url';
 import ibcTsundereBody from '../assets/images/battleCharacters/tsundere/body.png?url';
-import ibcTsundereHurt from '../assets/images/battleCharacters/tsundere/hurt.png?url';
 import ibcTsundereExhaust from '../assets/images/battleCharacters/tsundere/exhaust.png?url';
+import ibcTsundereHurt from '../assets/images/battleCharacters/tsundere/hurt.png?url';
 import ibcUndyneArm1 from '../assets/images/battleCharacters/undyne/arm1.png?url';
 import ibcUndyneArm1Ex from '../assets/images/battleCharacters/undyne/arm1Ex.png?url';
 import ibcUndyneArm2 from '../assets/images/battleCharacters/undyne/arm2.png?url';
@@ -962,6 +954,8 @@ import idcKiddAww$info from '../assets/images/dialogueCharacters/kidd/aww.json?u
 import idcKiddAww from '../assets/images/dialogueCharacters/kidd/aww.png?url';
 import idcKiddCutscene1$info from '../assets/images/dialogueCharacters/kidd/cutscene1.json?url';
 import idcKiddCutscene1 from '../assets/images/dialogueCharacters/kidd/cutscene1.png?url';
+import idcKiddDetermined$info from '../assets/images/dialogueCharacters/kidd/determined.json?url';
+import idcKiddDetermined from '../assets/images/dialogueCharacters/kidd/determined.png?url';
 import idcKiddHuh$info from '../assets/images/dialogueCharacters/kidd/huh.json?url';
 import idcKiddHuh from '../assets/images/dialogueCharacters/kidd/huh.png?url';
 import idcKiddHuhSlave$info from '../assets/images/dialogueCharacters/kidd/huhSlave.json?url';
@@ -1139,20 +1133,11 @@ import idcUndyneYouKilledHimSide from '../assets/images/dialogueCharacters/undyn
 import idcUndyneYouKilledHimSmile from '../assets/images/dialogueCharacters/undyne/youKilledHimSmile.png?url';
 import idcUndyneYouKilledHimStare from '../assets/images/dialogueCharacters/undyne/youKilledHimStare.png?url';
 import ieSOUL from '../assets/images/extras/SOUL.png?url';
-import ieArtsncrafts from '../assets/images/extras/artsncrafts.png?url';
-import ieBiodome from '../assets/images/extras/biodome.png?url';
 import ieButtonC from '../assets/images/extras/buttonC.png?url';
 import ieButtonM from '../assets/images/extras/buttonM.png?url';
 import ieButtonX from '../assets/images/extras/buttonX.png?url';
 import ieButtonZ from '../assets/images/extras/buttonZ.png?url';
-import ieCrossword from '../assets/images/extras/crossword.png?url';
 import ieHomeworld from '../assets/images/extras/homeworld.png?url';
-import ieMonitorguy$info from '../assets/images/extras/monitorguy.json?url';
-import ieMonitorguy from '../assets/images/extras/monitorguy.png?url';
-import ieMonitorguyWater$info from '../assets/images/extras/monitorguyWater.json?url';
-import ieMonitorguyWater from '../assets/images/extras/monitorguyWater.png?url';
-import ieNapster from '../assets/images/extras/napster.png?url';
-import ieOuternet from '../assets/images/extras/outernet.png?url';
 import iePunchcard from '../assets/images/extras/punchcard.png?url';
 import ieSplashBackground from '../assets/images/extras/splash-background.png?url';
 import ieSplashForeground from '../assets/images/extras/splash-foreground.png?url';
@@ -1168,6 +1153,7 @@ import imAerialisAOverlay from '../assets/images/maps/aerialis-a-overlay.png?url
 import imAerialisA from '../assets/images/maps/aerialis-a.png?url';
 import imAerialisBDark from '../assets/images/maps/aerialis-b-dark.png?url';
 import imAerialisB from '../assets/images/maps/aerialis-b.png?url';
+import imCitadel from '../assets/images/maps/citadel.png?url';
 import imFoundryOverlay from '../assets/images/maps/foundry-overlay.png?url';
 import imFoundry from '../assets/images/maps/foundry.png?url';
 import imOutlands from '../assets/images/maps/outlands.png?url';
@@ -1289,6 +1275,8 @@ import iocKiddDownTalkSad$info from '../assets/images/overworldCharacters/kidd/d
 import iocKiddDownTalkSad from '../assets/images/overworldCharacters/kidd/downTalkSad.png?url';
 import iocKiddDownTalkSlave$info from '../assets/images/overworldCharacters/kidd/downTalkSlave.json?url';
 import iocKiddDownTalkSlave from '../assets/images/overworldCharacters/kidd/downTalkSlave.png?url';
+import iocKiddJetpack$info from '../assets/images/overworldCharacters/kidd/jetpack.json?url';
+import iocKiddJetpack from '../assets/images/overworldCharacters/kidd/jetpack.png?url';
 import iocKiddLeft$info from '../assets/images/overworldCharacters/kidd/left.json?url';
 import iocKiddLeft from '../assets/images/overworldCharacters/kidd/left.png?url';
 import iocKiddLeftSad$info from '../assets/images/overworldCharacters/kidd/leftSad.json?url';
@@ -1652,8 +1640,6 @@ import ionAHarpy$info from '../assets/images/overworldNPCs/aerialis/harpy.json?u
 import ionAHarpy from '../assets/images/overworldNPCs/aerialis/harpy.png?url';
 import ionAHeats$info from '../assets/images/overworldNPCs/aerialis/heats.json?url';
 import ionAHeats from '../assets/images/overworldNPCs/aerialis/heats.png?url';
-import ionAMoon$info from '../assets/images/overworldNPCs/aerialis/moon.json?url';
-import ionAMoon from '../assets/images/overworldNPCs/aerialis/moon.png?url';
 import ionAOni$info from '../assets/images/overworldNPCs/aerialis/oni.json?url';
 import ionAOni from '../assets/images/overworldNPCs/aerialis/oni.png?url';
 import ionAOnionsanArmLeft from '../assets/images/overworldNPCs/aerialis/onionsanArmLeft.png?url';
@@ -1796,6 +1782,8 @@ import ionOTomCryme$info from '../assets/images/overworldNPCs/outlands/tom_cryme
 import ionOTomCryme from '../assets/images/overworldNPCs/outlands/tom_cryme.png?url';
 import ionOTomCrymeGeno$info from '../assets/images/overworldNPCs/outlands/tom_cryme_geno.json?url';
 import ionOTomCrymeGeno from '../assets/images/overworldNPCs/outlands/tom_cryme_geno.png?url';
+import ionRiverboi$info from '../assets/images/overworldNPCs/riverboi.json?url';
+import ionRiverboi from '../assets/images/overworldNPCs/riverboi.png?url';
 import ionS98$info from '../assets/images/overworldNPCs/starton/98.json?url';
 import ionS98 from '../assets/images/overworldNPCs/starton/98.png?url';
 import ionSBeautifulfish$info from '../assets/images/overworldNPCs/starton/beautifulfish.json?url';
@@ -1856,8 +1844,6 @@ import ionSRabbit$info from '../assets/images/overworldNPCs/starton/rabbit.json?
 import ionSRabbit from '../assets/images/overworldNPCs/starton/rabbit.png?url';
 import ionSRedbird$info from '../assets/images/overworldNPCs/starton/redbird.json?url';
 import ionSRedbird from '../assets/images/overworldNPCs/starton/redbird.png?url';
-import ionRiverboi$info from '../assets/images/overworldNPCs/riverboi.json?url';
-import ionRiverboi from '../assets/images/overworldNPCs/riverboi.png?url';
 import ionSSnakeboi$info from '../assets/images/overworldNPCs/starton/snakeboi.json?url';
 import ionSSnakeboi from '../assets/images/overworldNPCs/starton/snakeboi.png?url';
 import ionSSweetie$info from '../assets/images/overworldNPCs/starton/sweetie.json?url';
@@ -1868,6 +1854,7 @@ import ionSWisconsin$info from '../assets/images/overworldNPCs/starton/wisconsin
 import ionSWisconsin from '../assets/images/overworldNPCs/starton/wisconsin.png?url';
 import iooACORE$info from '../assets/images/overworldObjects/aerialis/CORE.json?url';
 import iooACORE from '../assets/images/overworldObjects/aerialis/CORE.png?url';
+import iooAArtsncrafts from '../assets/images/overworldObjects/aerialis/artsncrafts.png?url';
 import iooABarricade$info from '../assets/images/overworldObjects/aerialis/barricade.json?url';
 import iooABarricade from '../assets/images/overworldObjects/aerialis/barricade.png?url';
 import iooABeaker from '../assets/images/overworldObjects/aerialis/beaker.png?url';
@@ -1929,6 +1916,10 @@ import iooAMirrortableShort from '../assets/images/overworldObjects/aerialis/mir
 import iooAMoneyFireworks from '../assets/images/overworldObjects/aerialis/moneyFireworks.png?url';
 import iooAMoneyMew from '../assets/images/overworldObjects/aerialis/moneyMew.png?url';
 import iooAMoneyRadio from '../assets/images/overworldObjects/aerialis/moneyRadio.png?url';
+import iooAMonitorguy$info from '../assets/images/overworldObjects/aerialis/monitorguy.json?url';
+import iooAMonitorguy from '../assets/images/overworldObjects/aerialis/monitorguy.png?url';
+import iooAMonitorguyWater$info from '../assets/images/overworldObjects/aerialis/monitorguyWater.json?url';
+import iooAMonitorguyWater from '../assets/images/overworldObjects/aerialis/monitorguyWater.png?url';
 import iooAMoonPie from '../assets/images/overworldObjects/aerialis/moon_pie.png?url';
 import iooAOneOilyBoi from '../assets/images/overworldObjects/aerialis/oneOilyBoi.png?url';
 import iooAPathtile from '../assets/images/overworldObjects/aerialis/pathtile.png?url';
@@ -1953,7 +1944,6 @@ import iooAReccolumnLeft from '../assets/images/overworldObjects/aerialis/reccol
 import iooAReccolumnRight$info from '../assets/images/overworldObjects/aerialis/reccolumnRight.json?url';
 import iooAReccolumnRight from '../assets/images/overworldObjects/aerialis/reccolumnRight.png?url';
 import iooARecycler from '../assets/images/overworldObjects/aerialis/recycler.png?url';
-import iooFRedcouch from '../assets/images/overworldObjects/foundry/redcouch.png?url';
 import iooARoombed from '../assets/images/overworldObjects/aerialis/roombed.png?url';
 import iooARoombedCover from '../assets/images/overworldObjects/aerialis/roombedCover.png?url';
 import iooARoomtable from '../assets/images/overworldObjects/aerialis/roomtable.png?url';
@@ -1986,6 +1976,11 @@ import iooAWishflower from '../assets/images/overworldObjects/aerialis/wishflowe
 import iooAWorkstation$info from '../assets/images/overworldObjects/aerialis/workstation.json?url';
 import iooAWorkstation from '../assets/images/overworldObjects/aerialis/workstation.png?url';
 import iooAXterm from '../assets/images/overworldObjects/aerialis/xterm.png?url';
+import iooCChair from '../assets/images/overworldObjects/citadel/chair.png?url';
+import iooCFireplace from '../assets/images/overworldObjects/citadel/fireplace.png?url';
+import iooCMirror from '../assets/images/overworldObjects/citadel/mirror.png?url';
+import iooCTable from '../assets/images/overworldObjects/citadel/table.png?url';
+import iooCTrash from '../assets/images/overworldObjects/citadel/trash.png?url';
 import iooDimbox$info from '../assets/images/overworldObjects/dimbox.json?url';
 import iooDimbox from '../assets/images/overworldObjects/dimbox.png?url';
 import iooFCookpotWrecked$info from '../assets/images/overworldObjects/foundry/THATSTHESTUFF.json?url';
@@ -2028,7 +2023,6 @@ import iooFEchoflower from '../assets/images/overworldObjects/foundry/echoflower
 import iooFEchoflower01 from '../assets/images/overworldObjects/foundry/echoflower_01.png?url';
 import iooFEchoflower02 from '../assets/images/overworldObjects/foundry/echoflower_02.png?url';
 import iooFEggo from '../assets/images/overworldObjects/foundry/eggo.png?url';
-import iooFErrorTrue from '../assets/images/overworldObjects/foundry/error_true.png?url';
 import iooFFenceBottomleft from '../assets/images/overworldObjects/foundry/fence_bottomleft.png?url';
 import iooFFenceBottomleftcap from '../assets/images/overworldObjects/foundry/fence_bottomleftcap.png?url';
 import iooFFenceBottomright from '../assets/images/overworldObjects/foundry/fence_bottomright.png?url';
@@ -2054,6 +2048,9 @@ import iooFGunk2 from '../assets/images/overworldObjects/foundry/gunk2.png?url';
 import iooFGunk3$info from '../assets/images/overworldObjects/foundry/gunk3.json?url';
 import iooFGunk3 from '../assets/images/overworldObjects/foundry/gunk3.png?url';
 import iooFJumpsuit from '../assets/images/overworldObjects/foundry/jumpsuit.png?url';
+import iooFMazeshadow$info from '../assets/images/overworldObjects/foundry/mazeshadow.json?url';
+import iooFMazeshadow from '../assets/images/overworldObjects/foundry/mazeshadow.png?url';
+import iooFNapster from '../assets/images/overworldObjects/foundry/napster.png?url';
 import iooFOverhead from '../assets/images/overworldObjects/foundry/overhead.png?url';
 import iooFPiano from '../assets/images/overworldObjects/foundry/piano.png?url';
 import iooFPianoOver1 from '../assets/images/overworldObjects/foundry/piano_over1.png?url';
@@ -2070,6 +2067,7 @@ import iooFPianoarrowUp$info from '../assets/images/overworldObjects/foundry/pia
 import iooFPianoarrowUp from '../assets/images/overworldObjects/foundry/pianoarrow_up.png?url';
 import iooFPianosolution$info from '../assets/images/overworldObjects/foundry/pianosolution.json?url';
 import iooFPianosolution from '../assets/images/overworldObjects/foundry/pianosolution.png?url';
+import iooFPlankBridge from '../assets/images/overworldObjects/foundry/plank_bridge.png?url';
 import iooFPrechaseBridge from '../assets/images/overworldObjects/foundry/prechase_bridge.png?url';
 import iooFPuzzle1Over from '../assets/images/overworldObjects/foundry/puzzle1_over.png?url';
 import iooFPuzzle2Over from '../assets/images/overworldObjects/foundry/puzzle2_over.png?url';
@@ -2078,12 +2076,14 @@ import iooFPuzzlepylon$info from '../assets/images/overworldObjects/foundry/puzz
 import iooFPuzzlepylon from '../assets/images/overworldObjects/foundry/puzzlepylon.png?url';
 import iooFPuzzlepylonOverlay from '../assets/images/overworldObjects/foundry/puzzlepylon_overlay.png?url';
 import iooFRaft from '../assets/images/overworldObjects/foundry/raft.png?url';
+import iooFRedcouch from '../assets/images/overworldObjects/foundry/redcouch.png?url';
 import iooFRedsword from '../assets/images/overworldObjects/foundry/redsword.png?url';
 import iooFRug from '../assets/images/overworldObjects/foundry/rug.png?url';
 import iooFSign from '../assets/images/overworldObjects/foundry/sign.png?url';
 import iooFSnack from '../assets/images/overworldObjects/foundry/snack.png?url';
 import iooFSpaghetti from '../assets/images/overworldObjects/foundry/spaghetti.png?url';
 import iooFSpear from '../assets/images/overworldObjects/foundry/spear.png?url';
+import iooFSpearHole from '../assets/images/overworldObjects/foundry/spear_hole.png?url';
 import iooFSpearSpawn$info from '../assets/images/overworldObjects/foundry/spear_spawn.json?url';
 import iooFSpearSpawn from '../assets/images/overworldObjects/foundry/spear_spawn.png?url';
 import iooFSpearStab from '../assets/images/overworldObjects/foundry/spear_stab.png?url';
@@ -2109,8 +2109,6 @@ import iooFTronsnail2$info from '../assets/images/overworldObjects/foundry/trons
 import iooFTronsnail2 from '../assets/images/overworldObjects/foundry/tronsnail2.png?url';
 import iooFTronsnail3$info from '../assets/images/overworldObjects/foundry/tronsnail3.json?url';
 import iooFTronsnail3 from '../assets/images/overworldObjects/foundry/tronsnail3.png?url';
-import iooFTruth$info from '../assets/images/overworldObjects/foundry/truth.json?url';
-import iooFTruth from '../assets/images/overworldObjects/foundry/truth.png?url';
 import iooFUndyneDoor$info from '../assets/images/overworldObjects/foundry/undyne_door.json?url';
 import iooFUndyneDoor from '../assets/images/overworldObjects/foundry/undyne_door.png?url';
 import iooFUndyneDrawer$info from '../assets/images/overworldObjects/foundry/undyne_drawer.json?url';
@@ -2196,6 +2194,7 @@ import iooStarling from '../assets/images/overworldObjects/starling.png?url';
 import iooStarlingPotted from '../assets/images/overworldObjects/starling_potted.png?url';
 import iooSBarski from '../assets/images/overworldObjects/starton/barski.png?url';
 import iooSBedcover from '../assets/images/overworldObjects/starton/bedcover.png?url';
+import iooSBiodome from '../assets/images/overworldObjects/starton/biodome.png?url';
 import iooSBonehouseTop from '../assets/images/overworldObjects/starton/bonehouse_top.png?url';
 import iooSBookdesk from '../assets/images/overworldObjects/starton/bookdesk.png?url';
 import iooSBooktable from '../assets/images/overworldObjects/starton/booktable.png?url';
@@ -2203,6 +2202,7 @@ import iooSChew from '../assets/images/overworldObjects/starton/chew.png?url';
 import iooSCottonball from '../assets/images/overworldObjects/starton/cottonball.png?url';
 import iooSCouch from '../assets/images/overworldObjects/starton/couch.png?url';
 import iooSCrossword from '../assets/images/overworldObjects/starton/crossword.png?url';
+import iooSCrosswordScreen from '../assets/images/overworldObjects/starton/crosswordScreen.png?url';
 import iooSCtower from '../assets/images/overworldObjects/starton/ctower.png?url';
 import iooSCtowerback from '../assets/images/overworldObjects/starton/ctowerback.png?url';
 import iooSCtowerleft from '../assets/images/overworldObjects/starton/ctowerleft.png?url';
@@ -2239,6 +2239,7 @@ import iooSMicrowave from '../assets/images/overworldObjects/starton/microwave.p
 import iooSNoise$info from '../assets/images/overworldObjects/starton/noise.json?url';
 import iooSNoise from '../assets/images/overworldObjects/starton/noise.png?url';
 import iooSNtower from '../assets/images/overworldObjects/starton/ntower.png?url';
+import iooSOuternet from '../assets/images/overworldObjects/starton/outernet.png?url';
 import iooSPapBed from '../assets/images/overworldObjects/starton/pap_bed.png?url';
 import iooSPapBones from '../assets/images/overworldObjects/starton/pap_bones.png?url';
 import iooSPapComputer$info from '../assets/images/overworldObjects/starton/pap_computer.json?url';
@@ -2292,16 +2293,20 @@ import iooSWidescreenPlayer$info from '../assets/images/overworldObjects/starton
 import iooSWidescreenPlayer from '../assets/images/overworldObjects/starton/widescreen_player.png?url';
 import iooSWidescreenReticle$info from '../assets/images/overworldObjects/starton/widescreen_reticle.json?url';
 import iooSWidescreenReticle from '../assets/images/overworldObjects/starton/widescreen_reticle.png?url';
-import iooTaxi$info from '../assets/images/overworldObjects/taxi.json?url';
-import iooTaxi from '../assets/images/overworldObjects/taxi.png?url';
 import iooTaxiOverlay$info from '../assets/images/overworldObjects/taxi-overlay.json?url';
 import iooTaxiOverlay from '../assets/images/overworldObjects/taxi-overlay.png?url';
+import iooTaxi$info from '../assets/images/overworldObjects/taxi.json?url';
+import iooTaxi from '../assets/images/overworldObjects/taxi.png?url';
 import iooToby1$info from '../assets/images/overworldObjects/toby1.json?url';
 import iooToby1 from '../assets/images/overworldObjects/toby1.png?url';
 import iooToby2$info from '../assets/images/overworldObjects/toby2.json?url';
 import iooToby2 from '../assets/images/overworldObjects/toby2.png?url';
 import iooToby3$info from '../assets/images/overworldObjects/toby3.json?url';
 import iooToby3 from '../assets/images/overworldObjects/toby3.png?url';
+import iooToby4$info from '../assets/images/overworldObjects/toby4.json?url';
+import iooToby4 from '../assets/images/overworldObjects/toby4.png?url';
+import iooToby5$info from '../assets/images/overworldObjects/toby5.json?url';
+import iooToby5 from '../assets/images/overworldObjects/toby5.png?url';
 import isbBackground from '../assets/images/shops/blook/background.png?url';
 import isbEyes$info from '../assets/images/shops/blook/eyes.json?url';
 import isbEyes from '../assets/images/shops/blook/eyes.png?url';
@@ -2356,15 +2361,25 @@ import sClipper$vert from '../assets/shaders/clipper.vert?url';
 import sWaver$frag from '../assets/shaders/waver.frag?url';
 import sWaver$vert from '../assets/shaders/waver.vert?url';
 
-const dark01 = (color: CosmosColor) =>
-   [ color[0] * (1 / 3), color[1] * (1 / 3), color[2] * (1 / 3), color[3] ] as CosmosColor;
-const dark02 = (color: CosmosColor) => [ color[0] * 0.55, color[1] * 0.55, color[2] * 0.55, color[3] ] as CosmosColor;
+import { CosmosAudio } from './engine/audio';
+import { CosmosData, CosmosInventory, CosmosStringData } from './engine/core';
+import { CosmosAnimationResources, CosmosColor, CosmosImage } from './engine/image';
+import { CosmosMath } from './engine/numerics';
+import { CosmosUtils } from './engine/utils';
+
+export const ratio01 = 0x55 / 0xff;
+export const ratio02 = 0x75 / 0xff;
+
 const contrast = (color: CosmosColor): CosmosColor => [
    CosmosMath.bezier(color[0] / 256, 0, 0, 256, 256),
    CosmosMath.bezier(color[1] / 256, 0, 0, 256, 256),
    CosmosMath.bezier(color[2] / 256, 0, 0, 256, 256),
    color[3]
 ];
+const dark01 = (color: CosmosColor) =>
+   [ color[0] * ratio01, color[1] * ratio01, color[2] * ratio01, color[3] ] as CosmosColor;
+const dark02 = (color: CosmosColor) =>
+   [ color[0] * ratio02, color[1] * ratio02, color[2] * ratio02, color[3] ] as CosmosColor;
 
 /**
  * ```ts
@@ -2411,12 +2426,13 @@ const content = {
    amGrandfinale: new CosmosAudio(amGrandfinale),
    amHome: new CosmosAudio(amHome),
    amHomeAlt: new CosmosAudio(amHomeAlt),
-   amHope: new CosmosAudio(amHope),
+   amKnightknightSting: new CosmosAudio(amKnightknightSting),
    amLab: new CosmosAudio(amLab),
    amLegs: new CosmosAudio(amLegs),
    amLegsIntro: new CosmosAudio(amLegsIntro),
    amLetsflyajetpackwhydontwe: new CosmosAudio(amLetsflyajetpackwhydontwe),
    amLetsmakeabombwhydontwe: new CosmosAudio(amLetsmakeabombwhydontwe),
+   amMadjickSting: new CosmosAudio(amMadjickSting),
    amMall: new CosmosAudio(amMall),
    amMemory: new CosmosAudio(amMemory),
    amMenu0: new CosmosAudio(amMenu0),
@@ -2528,6 +2544,7 @@ const content = {
    asKick: new CosmosAudio(asKick),
    asKnock: new CosmosAudio(asKnock),
    asLanding: new CosmosAudio(asLanding),
+   asLongElevator: new CosmosAudio(asLongElevator),
    asLove: new CosmosAudio(asLove),
    asMenu: new CosmosAudio(asMenu),
    asMetapproach: new CosmosAudio(asMetapproach),
@@ -2639,12 +2656,15 @@ const content = {
       };
       return new CosmosInventory(...data.content.map(source => new CosmosImage(`${data.header}${source}`)));
    })(),
-   ibbArmBullet: new CosmosImage(ibbArmBullet, (color, position) => [
-      color[0],
-      color[1],
-      color[2],
-      color[3] * Math.min(position.y / 25, 1)
-   ]),
+   ibbArmBullet: new CosmosAnimationResources(
+      new CosmosImage(ibbArmBullet, (color, position) => [
+         color[0],
+         color[1],
+         color[2],
+         color[3] * Math.min(position.y / 25, 1)
+      ]),
+      new CosmosData(ibbArmBullet$info)
+   ),
    ibbArrow: new CosmosAnimationResources(new CosmosImage(ibbArrow), new CosmosData(ibbArrow$info)),
    ibbArrowportal: new CosmosAnimationResources(new CosmosImage(ibbArrowportal), new CosmosData(ibbArrowportal$info)),
    ibbAx: new CosmosAnimationResources(new CosmosImage(ibbAx), new CosmosData(ibbAx$info)),
@@ -2890,8 +2910,8 @@ const content = {
    ibcMadjickDress: new CosmosImage(ibcMadjickDress),
    ibcMadjickHat: new CosmosImage(ibcMadjickHat),
    ibcMadjickHead: new CosmosImage(ibcMadjickHead),
-   ibcMadjickLapel: new CosmosImage(ibcMadjickLapel),
    ibcMadjickHurt: new CosmosImage(ibcMadjickHurt),
+   ibcMadjickLapel: new CosmosImage(ibcMadjickLapel),
    ibcMettatonArmsBruh: new CosmosAnimationResources(
       new CosmosImage(ibcMettatonArmsBruh),
       new CosmosData(ibcMettatonArmsBruh$info)
@@ -3009,6 +3029,7 @@ const content = {
    ibcMigospelHurt: new CosmosImage(ibcMigospelHurt),
    ibcMigospelLegs: new CosmosImage(ibcMigospelLegs),
    ibcMigospHappi: new CosmosAnimationResources(new CosmosImage(ibcMigospHappi), new CosmosData(ibcMigospHappi$info)),
+   ibcMoldbyggDefeated: new CosmosImage(ibcMoldbyggDefeated),
    ibcMoldbyggHead: new CosmosAnimationResources(
       new CosmosImage(ibcMoldbyggHead),
       new CosmosData(ibcMoldbyggHead$info)
@@ -3169,9 +3190,9 @@ const content = {
       new CosmosImage(ibcTsundereBlush),
       new CosmosData(ibcTsundereBlush$info)
    ),
-   ibcTsundereHurt: new CosmosImage(ibcTsundereHurt),
    ibcTsundereBody: new CosmosImage(ibcTsundereBody),
    ibcTsundereExhaust: new CosmosImage(ibcTsundereExhaust),
+   ibcTsundereHurt: new CosmosImage(ibcTsundereHurt),
    ibcUndyneArm1: new CosmosImage(ibcUndyneArm1),
    ibcUndyneArm1Ex: new CosmosImage(ibcUndyneArm1Ex),
    ibcUndyneArm2: new CosmosImage(ibcUndyneArm2),
@@ -3386,6 +3407,10 @@ const content = {
    idcKiddCutscene1: new CosmosAnimationResources(
       new CosmosImage(idcKiddCutscene1),
       new CosmosData(idcKiddCutscene1$info)
+   ),
+   idcKiddDetermined: new CosmosAnimationResources(
+      new CosmosImage(idcKiddDetermined),
+      new CosmosData(idcKiddDetermined$info)
    ),
    idcKiddHuh: new CosmosAnimationResources(new CosmosImage(idcKiddHuh), new CosmosData(idcKiddHuh$info)),
    idcKiddHuhSlave: new CosmosAnimationResources(
@@ -3622,21 +3647,22 @@ const content = {
    idcUndyneYouKilledHimSide: new CosmosImage(idcUndyneYouKilledHimSide),
    idcUndyneYouKilledHimSmile: new CosmosImage(idcUndyneYouKilledHimSmile),
    idcUndyneYouKilledHimStare: new CosmosImage(idcUndyneYouKilledHimStare),
-   ieArtsncrafts: new CosmosImage(ieArtsncrafts),
-   ieBiodome: new CosmosImage(ieBiodome),
+   iooAArtsncrafts: new CosmosImage(iooAArtsncrafts),
+   iooSBiodome: new CosmosImage(iooSBiodome),
    ieButtonC: new CosmosImage(ieButtonC),
    ieButtonM: new CosmosImage(ieButtonM),
    ieButtonX: new CosmosImage(ieButtonX),
    ieButtonZ: new CosmosImage(ieButtonZ),
-   ieCrossword: new CosmosImage(ieCrossword),
+   iooSCrosswordScreen: new CosmosImage(iooSCrosswordScreen),
    ieHomeworld: new CosmosImage(ieHomeworld),
-   ieMonitorguy: new CosmosAnimationResources(new CosmosImage(ieMonitorguy), new CosmosData(ieMonitorguy$info)),
-   ieMonitorguyWater: new CosmosAnimationResources(
-      new CosmosImage(ieMonitorguyWater),
-      new CosmosData(ieMonitorguyWater$info)
+   iooFMazeshadow: new CosmosAnimationResources(new CosmosImage(iooFMazeshadow), new CosmosData(iooFMazeshadow$info)),
+   iooAMonitorguy: new CosmosAnimationResources(new CosmosImage(iooAMonitorguy), new CosmosData(iooAMonitorguy$info)),
+   iooAMonitorguyWater: new CosmosAnimationResources(
+      new CosmosImage(iooAMonitorguyWater),
+      new CosmosData(iooAMonitorguyWater$info)
    ),
-   ieNapster: new CosmosImage(ieNapster),
-   ieOuternet: new CosmosImage(ieOuternet),
+   iooFNapster: new CosmosImage(iooFNapster),
+   iooSOuternet: new CosmosImage(iooSOuternet),
    iePunchcard: new CosmosImage(iePunchcard),
    ieSOUL: new CosmosImage(ieSOUL),
    ieSplashBackground: new CosmosImage(ieSplashBackground),
@@ -3650,6 +3676,7 @@ const content = {
    imAerialisAOverlay: new CosmosImage(imAerialisAOverlay),
    imAerialisB: new CosmosImage(imAerialisB),
    imAerialisBDark: new CosmosImage(imAerialisBDark),
+   imCitadel: new CosmosImage(imCitadel),
    imFoundry: new CosmosImage(imFoundry),
    imFoundryOverlay: new CosmosImage(imFoundryOverlay),
    imOutlands: new CosmosImage(imOutlands),
@@ -3702,10 +3729,7 @@ const content = {
       new CosmosImage(iocAsrielEarTugWater),
       new CosmosData(iocAsrielEarTugWater$info)
    ),
-   iocAsrielHug1: new CosmosAnimationResources(
-      new CosmosImage(iocAsrielHug1, dark01),
-      new CosmosData(iocAsrielHug1$info)
-   ),
+   iocAsrielHug1: new CosmosAnimationResources(new CosmosImage(iocAsrielHug1), new CosmosData(iocAsrielHug1$info)),
    iocAsrielHug1Normal: new CosmosAnimationResources(
       new CosmosImage(iocAsrielHug1),
       new CosmosData(iocAsrielHug1$info)
@@ -3799,14 +3823,6 @@ const content = {
    iocGrillbyDown: new CosmosAnimationResources(new CosmosImage(iocGrillbyDown), new CosmosData(iocGrillbyDown$info)),
    iocGrillbyUp: new CosmosAnimationResources(new CosmosImage(iocGrillbyUp), new CosmosData(iocGrillbyUp$info)),
    iocKiddCrouch: new CosmosImage(iocKiddCrouch),
-   iocKiddDarkLeftTrip: new CosmosAnimationResources(
-      new CosmosImage(iocKiddLeftTrip, dark01),
-      new CosmosData(iocKiddLeftTrip$info)
-   ),
-   iocKiddDarkRightTrip: new CosmosAnimationResources(
-      new CosmosImage(iocKiddRightTrip, dark01),
-      new CosmosData(iocKiddRightTrip$info)
-   ),
    iocKiddDown: new CosmosAnimationResources(new CosmosImage(iocKiddDown), new CosmosData(iocKiddDown$info)),
    iocKiddDownSad: new CosmosAnimationResources(new CosmosImage(iocKiddDownSad), new CosmosData(iocKiddDownSad$info)),
    iocKiddDownSlave: new CosmosAnimationResources(
@@ -3825,6 +3841,7 @@ const content = {
       new CosmosImage(iocKiddDownTalkSlave),
       new CosmosData(iocKiddDownTalkSlave$info)
    ),
+   iocKiddJetpack: new CosmosAnimationResources(new CosmosImage(iocKiddJetpack), new CosmosData(iocKiddJetpack$info)),
    iocKiddLeft: new CosmosAnimationResources(new CosmosImage(iocKiddLeft), new CosmosData(iocKiddLeft$info)),
    iocKiddLeftSad: new CosmosAnimationResources(new CosmosImage(iocKiddLeftSad), new CosmosData(iocKiddLeftSad$info)),
    iocKiddLeftSlave: new CosmosAnimationResources(
@@ -4386,7 +4403,6 @@ const content = {
    ionAGyftrot: new CosmosAnimationResources(new CosmosImage(ionAGyftrot), new CosmosData(ionAGyftrot$info)),
    ionAHarpy: new CosmosAnimationResources(new CosmosImage(ionAHarpy), new CosmosData(ionAHarpy$info)),
    ionAHeats: new CosmosAnimationResources(new CosmosImage(ionAHeats), new CosmosData(ionAHeats$info)),
-   ionAMoon: new CosmosAnimationResources(new CosmosImage(ionAMoon), new CosmosData(ionAMoon$info)),
    ionAOni: new CosmosAnimationResources(new CosmosImage(ionAOni), new CosmosData(ionAOni$info)),
    ionAOnionsanArmLeft: new CosmosImage(ionAOnionsanArmLeft),
    ionAOnionsanArmOut: new CosmosImage(ionAOnionsanArmOut),
@@ -4455,7 +4471,7 @@ const content = {
    ),
    ionAVulkin: new CosmosAnimationResources(new CosmosImage(ionAVulkin), new CosmosData(ionAVulkin$info)),
    ionAWoshua: new CosmosAnimationResources(new CosmosImage(ionAWoshua), new CosmosData(ionAWoshua$info)),
-   ionF86: new CosmosAnimationResources(new CosmosImage(ionF86, dark02), new CosmosData(ionF86$info)),
+   ionF86: new CosmosAnimationResources(new CosmosImage(ionF86, dark01), new CosmosData(ionF86$info)),
    ionFBird: new CosmosAnimationResources(new CosmosImage(ionFBird), new CosmosData(ionFBird$info)),
    ionFBirdCry: new CosmosAnimationResources(new CosmosImage(ionFBirdCry), new CosmosData(ionFBirdCry$info)),
    ionFBirdFly: new CosmosAnimationResources(new CosmosImage(ionFBirdFly), new CosmosData(ionFBirdFly$info)),
@@ -4494,11 +4510,11 @@ const content = {
    ),
    ionODummy: new CosmosAnimationResources(new CosmosImage(ionODummy), new CosmosData(ionODummy$info)),
    ionODummyBlush: new CosmosAnimationResources(new CosmosImage(ionODummyBlush), new CosmosData(ionODummyBlush$info)),
-   ionODummyDark: new CosmosAnimationResources(new CosmosImage(ionODummy, dark02), new CosmosData(ionODummy$info)),
+   ionODummyDark: new CosmosAnimationResources(new CosmosImage(ionODummy, dark01), new CosmosData(ionODummy$info)),
    ionODummyGlad: new CosmosAnimationResources(new CosmosImage(ionODummyGlad), new CosmosData(ionODummyGlad$info)),
    ionODummyMad: new CosmosAnimationResources(new CosmosImage(ionODummyMad), new CosmosData(ionODummyMad$info)),
    ionODummyMadDark: new CosmosAnimationResources(
-      new CosmosImage(ionODummyMad, dark02),
+      new CosmosImage(ionODummyMad, dark01),
       new CosmosData(ionODummyMad$info)
    ),
    ionODummyRage: new CosmosAnimationResources(new CosmosImage(ionODummyRage), new CosmosData(ionODummyRage$info)),
@@ -4537,6 +4553,7 @@ const content = {
       new CosmosImage(ionOTomCrymeGeno),
       new CosmosData(ionOTomCrymeGeno$info)
    ),
+   ionRiverboi: new CosmosAnimationResources(new CosmosImage(ionRiverboi), new CosmosData(ionRiverboi$info)),
    ionS98: new CosmosAnimationResources(new CosmosImage(ionS98), new CosmosData(ionS98$info)),
    ionSBeautifulfish: new CosmosAnimationResources(
       new CosmosImage(ionSBeautifulfish),
@@ -4582,7 +4599,6 @@ const content = {
    ),
    ionSRabbit: new CosmosAnimationResources(new CosmosImage(ionSRabbit), new CosmosData(ionSRabbit$info)),
    ionSRedbird: new CosmosAnimationResources(new CosmosImage(ionSRedbird), new CosmosData(ionSRedbird$info)),
-   ionRiverboi: new CosmosAnimationResources(new CosmosImage(ionRiverboi), new CosmosData(ionRiverboi$info)),
    ionSSnakeboi: new CosmosAnimationResources(new CosmosImage(ionSSnakeboi), new CosmosData(ionSSnakeboi$info)),
    ionSSweetie: new CosmosAnimationResources(new CosmosImage(ionSSweetie), new CosmosData(ionSSweetie$info)),
    ionSVegetoid: new CosmosAnimationResources(new CosmosImage(ionSVegetoid), new CosmosData(ionSVegetoid$info)),
@@ -4673,7 +4689,6 @@ const content = {
       new CosmosData(iooAReccolumnRight$info)
    ),
    iooARecycler: new CosmosImage(iooARecycler),
-   iooFRedcouch: new CosmosImage(iooFRedcouch),
    iooARoombed: new CosmosImage(iooARoombed),
    iooARoombedCover: new CosmosImage(iooARoombedCover),
    iooARoomtable: new CosmosImage(iooARoomtable),
@@ -4707,10 +4722,15 @@ const content = {
       new CosmosData(iooAWorkstation$info)
    ),
    iooAXterm: new CosmosImage(iooAXterm),
+   iooCChair: new CosmosImage(iooCChair),
+   iooCFireplace: new CosmosImage(iooCFireplace),
+   iooCMirror: new CosmosImage(iooCMirror),
+   iooCTable: new CosmosImage(iooCTable),
+   iooCTrash: new CosmosImage(iooCTrash),
    iooDimbox: new CosmosAnimationResources(new CosmosImage(iooDimbox), new CosmosData(iooDimbox$info)),
    iooFArtifact: new CosmosAnimationResources(new CosmosImage(iooFArtifact), new CosmosData(iooFArtifact$info)),
    iooFAsteroid1: new CosmosImage(iooFAsteroid1, contrast),
-   iooFBench: new CosmosImage(iooFBench, dark01),
+   iooFBench: new CosmosImage(iooFBench, dark02),
    iooFBlookComputer: new CosmosAnimationResources(
       new CosmosImage(iooFBlookComputer),
       new CosmosData(iooFBlookComputer$info)
@@ -4762,7 +4782,6 @@ const content = {
       new CosmosData(iooFEchoflower$info)
    ),
    iooFEggo: new CosmosImage(iooFEggo),
-   iooFErrorTrue: new CosmosImage(iooFErrorTrue),
    iooFFenceBottomleft: new CosmosImage(iooFFenceBottomleft),
    iooFFenceBottomleftcap: new CosmosImage(iooFFenceBottomleftcap),
    iooFFenceBottomright: new CosmosImage(iooFFenceBottomright),
@@ -4783,7 +4802,7 @@ const content = {
    iooFGunk1: new CosmosAnimationResources(new CosmosImage(iooFGunk1, dark02), new CosmosData(iooFGunk1$info)),
    iooFGunk2: new CosmosAnimationResources(new CosmosImage(iooFGunk2, dark02), new CosmosData(iooFGunk2$info)),
    iooFGunk3: new CosmosAnimationResources(new CosmosImage(iooFGunk3, dark02), new CosmosData(iooFGunk3$info)),
-   iooFJumpsuit: new CosmosImage(iooFJumpsuit),
+   iooFJumpsuit: new CosmosImage(iooFJumpsuit, dark02),
    iooFOverhead: new CosmosImage(iooFOverhead),
    iooFPiano: new CosmosImage(iooFPiano),
    iooFPianoarrowDot: new CosmosAnimationResources(
@@ -4812,6 +4831,7 @@ const content = {
       new CosmosImage(iooFPianosolution),
       new CosmosData(iooFPianosolution$info)
    ),
+   iooFPlankBridge: new CosmosImage(iooFPlankBridge),
    iooFPrechaseBridge: new CosmosImage(iooFPrechaseBridge),
    iooFPuzzle1Over: new CosmosImage(iooFPuzzle1Over),
    iooFPuzzle2Over: new CosmosImage(iooFPuzzle2Over),
@@ -4822,12 +4842,14 @@ const content = {
    ),
    iooFPuzzlepylonOverlay: new CosmosImage(iooFPuzzlepylonOverlay),
    iooFRaft: new CosmosImage(iooFRaft, dark02),
+   iooFRedcouch: new CosmosImage(iooFRedcouch),
    iooFRedsword: new CosmosImage(iooFRedsword),
    iooFRug: new CosmosImage(iooFRug),
    iooFSign: new CosmosImage(iooFSign),
    iooFSnack: new CosmosImage(iooFSnack),
    iooFSpaghetti: new CosmosImage(iooFSpaghetti),
    iooFSpear: new CosmosImage(iooFSpear),
+   iooFSpearHole: new CosmosImage(iooFSpearHole),
    iooFSpearSpawn: new CosmosAnimationResources(new CosmosImage(iooFSpearSpawn), new CosmosData(iooFSpearSpawn$info)),
    iooFSpearStab: new CosmosImage(iooFSpearStab),
    iooFSpiderflower: new CosmosImage(iooFSpiderflower),
@@ -4848,7 +4870,6 @@ const content = {
    iooFTronsnail1: new CosmosAnimationResources(new CosmosImage(iooFTronsnail1), new CosmosData(iooFTronsnail1$info)),
    iooFTronsnail2: new CosmosAnimationResources(new CosmosImage(iooFTronsnail2), new CosmosData(iooFTronsnail2$info)),
    iooFTronsnail3: new CosmosAnimationResources(new CosmosImage(iooFTronsnail3), new CosmosData(iooFTronsnail3$info)),
-   iooFTruth: new CosmosAnimationResources(new CosmosImage(iooFTruth), new CosmosData(iooFTruth$info)),
    iooFUndyneDoor: new CosmosAnimationResources(new CosmosImage(iooFUndyneDoor), new CosmosData(iooFUndyneDoor$info)),
    iooFUndyneDrawer: new CosmosAnimationResources(
       new CosmosImage(iooFUndyneDrawer),
@@ -4891,7 +4912,7 @@ const content = {
    iooOBreakfast: new CosmosImage(iooOBreakfast),
    iooOBucket: new CosmosImage(iooOBucket),
    iooOButton: new CosmosAnimationResources(new CosmosImage(iooOButton), new CosmosData(iooOButton$info)),
-   iooOButtonDark: new CosmosAnimationResources(new CosmosImage(iooOButton, dark01), new CosmosData(iooOButton$info)),
+   iooOButtonDark: new CosmosAnimationResources(new CosmosImage(iooOButton, dark02), new CosmosData(iooOButton$info)),
    iooOChairiel: new CosmosAnimationResources(new CosmosImage(iooOChairiel), new CosmosData(iooOChairiel$info)),
    iooOCoatrack: new CosmosImage(iooOCoatrack),
    iooODesk: new CosmosImage(iooODesk),
@@ -4910,7 +4931,7 @@ const content = {
       new CosmosData(iooOPaintBlaster$info)
    ),
    iooOPaintBlasterDark: new CosmosAnimationResources(
-      new CosmosImage(iooOPaintBlaster, dark02),
+      new CosmosImage(iooOPaintBlaster, dark01),
       new CosmosData(iooOPaintBlaster$info)
    ),
    iooOPan: new CosmosAnimationResources(new CosmosImage(iooOPan), new CosmosData(iooOPan$info)),
@@ -4961,7 +4982,7 @@ const content = {
    iooSCottonball: new CosmosImage(iooSCottonball),
    iooSCouch: new CosmosImage(iooSCouch),
    iooSCrossword: new CosmosImage(iooSCrossword),
-   iooSCrosswordDark: new CosmosImage(iooSCrossword, dark02),
+   iooSCrosswordDark: new CosmosImage(iooSCrossword, dark01),
    iooSCtower: new CosmosImage(iooSCtower),
    iooSCtowerback: new CosmosImage(iooSCtowerback),
    iooSCtowerleft: new CosmosImage(iooSCtowerleft),
@@ -5039,9 +5060,6 @@ const content = {
    iooStarling: new CosmosImage(iooStarling),
    iooStarlingPotted: new CosmosImage(iooStarlingPotted),
    iooSTelescope: new CosmosImage(iooSTelescope),
-   iooSToby1: new CosmosAnimationResources(new CosmosImage(iooToby1), new CosmosData(iooToby1$info)),
-   iooSToby2: new CosmosAnimationResources(new CosmosImage(iooToby2), new CosmosData(iooToby2$info)),
-   iooSToby3: new CosmosAnimationResources(new CosmosImage(iooToby3), new CosmosData(iooToby3$info)),
    iooSTownBlookshop: new CosmosImage(iooSTownBlookshop),
    iooSTownBonehouse: new CosmosImage(iooSTownBonehouse),
    iooSTownBonerail: new CosmosImage(iooSTownBonerail),
@@ -5072,6 +5090,11 @@ const content = {
    ),
    iooTaxi: new CosmosAnimationResources(new CosmosImage(iooTaxi), new CosmosData(iooTaxi$info)),
    iooTaxiOverlay: new CosmosAnimationResources(new CosmosImage(iooTaxiOverlay), new CosmosData(iooTaxiOverlay$info)),
+   iooToby1: new CosmosAnimationResources(new CosmosImage(iooToby1), new CosmosData(iooToby1$info)),
+   iooToby2: new CosmosAnimationResources(new CosmosImage(iooToby2), new CosmosData(iooToby2$info)),
+   iooToby3: new CosmosAnimationResources(new CosmosImage(iooToby3), new CosmosData(iooToby3$info)),
+   iooToby4: new CosmosAnimationResources(new CosmosImage(iooToby4), new CosmosData(iooToby4$info)),
+   iooToby5: new CosmosAnimationResources(new CosmosImage(iooToby5), new CosmosData(iooToby5$info)),
    isbBackground: new CosmosImage(isbBackground),
    isbEyes: new CosmosAnimationResources(new CosmosImage(isbEyes), new CosmosData(isbEyes$info)),
    isbKeeper: new CosmosAnimationResources(new CosmosImage(isbKeeper), new CosmosData(isbKeeper$info)),
@@ -5312,6 +5335,7 @@ export const inventories = {
       content.idcKiddShockedSlave,
       content.idcKiddKiller,
       content.idcKiddKillerSlave,
+      content.idcKiddDetermined,
       content.idcKiddSide
    ),
    idcPapyrusBattle: new CosmosInventory(
@@ -5660,7 +5684,8 @@ export const inventories = {
       content.iocFriskRightWater,
       content.iocFriskUpWater,
       content.asPurchase,
-      content.ieSplashBackground
+      content.ieSplashBackground,
+      content.avAsgore
    ),
    splashAssets: new CosmosInventory(content.asSplash, content.ieSplashForeground, content.avAsriel),
    ionAOnionsan: new CosmosInventory(

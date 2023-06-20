@@ -21,8 +21,7 @@
                   "name": "teleport",
                   "args": [ "a_core_checkpoint", "down", "160", "90" ]
                }
-            ],
-            "interacts": []
+            ]
          }
       ]
    },

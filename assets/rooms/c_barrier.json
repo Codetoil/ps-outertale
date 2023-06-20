@@ -1,0 +1,7 @@
+{
+   "$schema": "./room.schema.json",
+   "background": "below",
+   "layers": {
+      "below": []
+   }
+}

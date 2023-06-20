@@ -6,14 +6,16 @@ import commonPatterns from '../common/patterns';
 import commonText from '../common/text';
 import content from '../content';
 import { events, random, renderer, timer } from '../core';
-import { CosmosAnimation, CosmosInventory, CosmosUtils } from '../engine';
+import { CosmosInventory } from '../engine/core';
+import { CosmosAnimation } from '../engine/image';
+import { CosmosUtils } from '../engine/utils';
 import { battler, world } from '../mantle';
 import save from '../save';
 import opponents from './opponents';
 import patterns from './patterns';
 import text from './text';
 
-function fixMigosp () {
+export function fixMigosp () {
    battler.status = text.b_opponent_migosp.soloStatus;
    const volatile = battler.alive[0];
    volatile.sparable = true;
@@ -23,7 +25,7 @@ function fixMigosp () {
    anim.enable();
 }
 
-function active0 () {
+export function active0 () {
    switch (battler.alive[0].opponent) {
       case opponents.froggit:
          return 'froggit';
@@ -154,7 +156,7 @@ const groups = {
          switch (choice.type) {
             case 'fight':
                if (battler.alive.length < (vars.enemies || 2)) {
-                  battler.status = text.b_group_froggitWhimsun;
+                  battler.status = battler.opponents.includes(opponents.froggit) ? text.b_group_froggitWhimsun2a : text.b_group_froggitWhimsun2b;
                }
                break;
             case 'spare':
@@ -376,7 +378,11 @@ const groups = {
       status: text.b_opponent_toriel.status1,
       music: assets.music.torielboss,
       assets: new CosmosInventory(content.amTorielboss),
-      opponents: [ [ opponents.toriel, { x: 160, y: 120 } ] ]
+      opponents: [ [ opponents.toriel, { x: 160, y: 120 } ] ],
+      init () {
+         battler.volatile[0].flirted = save.data.b.cell_flirt;
+         return true;
+      }
    })
 };
 

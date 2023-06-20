@@ -4,31 +4,18 @@ import { OutertaleChoice, OutertaleOpponent, OutertaleTurnState, OutertaleVolati
 import commonGroups, { resetBox, standardSize } from '../common/groups';
 import commonOpponents, { MadDummyMetadata } from '../common/opponents';
 import content, { inventories } from '../content';
-import { events, game, items, random, renderer, speech, timer, typer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosAnimationResources,
-   CosmosBitmap,
-   CosmosColor,
-   CosmosEventHost,
-   CosmosInventory,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosPointSimple,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosText,
-   CosmosUtils,
-   CosmosValue,
-   CosmosValueRandom
-} from '../engine';
-import { battler, calcHP, fader, header, oops, shake, sineWaver, world } from '../mantle';
+import { atlas, events, game, items, random, renderer, speech, timer, typer } from '../core';
+import { CosmosEventHost, CosmosInventory } from '../engine/core';
+import { CosmosAnimation, CosmosAnimationResources, CosmosBitmap, CosmosColor, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPoint, CosmosPointSimple, CosmosValue, CosmosValueRandom } from '../engine/numerics';
+import { CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosText } from '../engine/text';
+import { CosmosUtils } from '../engine/utils';
+import { battler, calcHP, dialogue, fader, header, oops, shake, sineWaver, world } from '../mantle';
 import save from '../save';
 import patterns from './patterns';
-import text from './text';
-
-const ratingsgain = save.data.b.a_state_hapstablook ? -0.2 : save.data.n.bad_lizard < 2 ? -0.4 : -0.6;
+import text, { trueLizard } from './text';
 
 export const graphMetadata = {
    next: -3,
@@ -36,9 +23,13 @@ export const graphMetadata = {
    ratingsbase: 4000,
    ratingstier: 10000,
    ratingscap: 14000,
-   ratingsgain,
+   ratingsgain: null as number | null,
    eventQueue: [] as { label: string; score: number }[]
 };
+
+function computeRatingsGain () {
+   return save.data.b.a_state_hapstablook ? -0.2 : trueLizard() < 2 ? -0.4 : -0.6;
+}
 
 function rg (type: 0 | 1) {
    let t = type * 10;
@@ -193,7 +184,13 @@ function useOld (key: string, state: OutertaleTurnState<any>, spare = true) {
 }
 
 function ratings (label: string, score: number) {
-   world.genocide || graphMetadata.eventQueue.push({ label, score });
+   if (!world.genocide) {
+      const scaled = Math.round(score * CosmosMath.bezier(Math.min((world.trueKills + save.data.n.bully) / 60, 1), 1, 1, 0, 0));
+      graphMetadata.eventQueue.push({
+         label,
+         score: scaled === 0 ? (score > 0 ? 1 : score < 0 ? -1 : 0) : scaled
+      });
+   }
 }
 
 export function graphGen (random3 = random.clone()) {
@@ -221,7 +218,7 @@ export function graphGen (random3 = random.clone()) {
       ]
    }).on('tick', function () {
       this.objects[0].y = -3 - (this.metadata.ratingstier / this.metadata.ratingscap) * (this.size.y - 6);
-      this.metadata.ratingsbase += this.metadata.ratingsgain;
+      this.metadata.ratingsbase += this.metadata.ratingsgain ??= computeRatingsGain();
       this.metadata.ratingsbase < 0 && (this.metadata.ratingsbase = 0);
       const basefloor = Math.floor(this.metadata.ratingsbase);
       (this.objects[1] as CosmosText).content = text.a_aerialis.ratings.replace('$(x)', basefloor.toString());
@@ -286,6 +283,7 @@ export function selectMTT () {
 
 const opponents = {
    mettaton1: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_mettaton,
       assets: new CosmosInventory(
          content.ibcMettatonBody,
          content.ibcMettatonBodySOUL,
@@ -446,11 +444,12 @@ const opponents = {
                         )
                      );
                      idle = false;
-                     if (save.data.n.plot < 67) {
-                        save.data.b.flirt_mettaton = true;
-                     } else {
-                        state.vars.flirted = false;
-                     }
+                  }
+                  if (save.data.n.plot < 67) {
+                     state.volatile.flirted = true;
+                     save.data.b.flirt_mettaton = true;
+                  } else {
+                     state.vars.flirted = false;
                   }
                } else if (state.choice.type === 'act') {
                   if (state.choice.act === 'turn') {
@@ -531,6 +530,7 @@ const opponents = {
                      const volatile2 = battler.volatile[battler.add(opponents.mettaton2, { x: 160, y: 120 })];
                      volatile2.container.alpha.value = 0;
                      volatile2.container.objects[0].tint = 0;
+                     volatile2.flirted = save.data.b.flirt_mettaton;
                      await volatile2.container.alpha.modulate(timer, 1000, 1);
                      await timer.pause(1000);
                      const mus3 = assets.music.ohmy.instance(timer);
@@ -538,7 +538,7 @@ const opponents = {
                         false,
                         { x: 160, y: 128 },
                         battler.bubbles.mtt,
-                        ...text.b_opponent_mettaton1.turnTalk4
+                        ...text.b_opponent_mettaton1.turnTalk4()
                      );
                      await fd.alpha.modulate(timer, 300, 1);
                      battler.overlay.detach(lightbox);
@@ -556,6 +556,7 @@ const opponents = {
                         ...text.b_opponent_mettaton1.turnTalk5
                      );
                      battler.alpha.value = 1;
+                     graphMetadata.ratingsbase = [ 4000, 3000, 500, 0 ][trueLizard()];
                      const graph = graphGen(random3);
                      battler.overlay.attach(graph);
                      state.status = text.b_opponent_mettaton2.statusX;
@@ -616,15 +617,15 @@ const opponents = {
                quizzer.index = 0;
                state.vars.armRezo = content.ibcMettatonArmsNoticard;
                await state.dialogue(false, ...text.b_opponent_mettaton1.turn1a2);
-               quizzer.index = save.data.n.bad_lizard < 1 ? 3 : 7;
+               quizzer.index = trueLizard() < 1 ? 3 : 7;
                await state.vars.rtext(false, quizzerBody, ...text.b_opponent_mettaton1.turn1b1());
-               quizzer.index = save.data.n.bad_lizard < 1 ? 4 : 8;
+               quizzer.index = trueLizard() < 1 ? 4 : 8;
                await state.vars.rtext(false, quizzerBody, ...text.b_opponent_mettaton1.turn1b2());
                await battler.box.size.modulate(timer, 300, { x: 100, y: 65 });
-               Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+               battler.SOUL.position.set(160);
                battler.SOUL.alpha.value = 1;
                game.movement = true;
-               quizzer.index = save.data.n.bad_lizard < 1 ? 4 : 7;
+               quizzer.index = trueLizard() < 1 ? 4 : 7;
                await patterns.alphys1(0);
                quizzer.index = 0;
                await timer.pause(950);
@@ -633,7 +634,7 @@ const opponents = {
                body.reset();
                body.use(content.ibcMettatonBody);
                await timer.pause(250);
-               quizzer.index = save.data.n.bad_lizard < 1 ? 8 : 15;
+               quizzer.index = trueLizard() < 1 ? 8 : 15;
                await state.vars.rtext(true, quizzerBody, ...text.b_opponent_mettaton1.turn1d());
                await timer.pause(1250);
                quizzer.index = 6;
@@ -672,7 +673,7 @@ const opponents = {
                         await state.dialogue(false, ...text.b_opponent_mettaton1.turn4a2);
                      }
                      mettamover.idealX = 235;
-                     quizzerBody.position.step(timer, amspeed, { x: 290 });
+                     quizzerBody.position.step_legacy(timer, amspeed, { x: 290 });
                      body.index = 4;
                      state.vars.armRezo = content.ibcMettatonArmsThonk;
                      const shytime = timer.value;
@@ -694,13 +695,13 @@ const opponents = {
                      });
                      save.data.b.killed_shyren || agent.attach(shy);
                      battler.overlay.attach(agent);
-                     await agent.position.step(timer, 3, { x: 55 });
+                     await agent.position.step_legacy(timer, 3, { x: 55 });
                      host.on('x', x => {
                         if (x === 2) {
                            save.data.b.bullied_shyren || shy.use(content.ibcShyrenFront);
                         } else if (x === 3 && state.vars.turns === 4) {
                            shy.reset().use(content.ibcShyrenBack);
-                           agent.position.step(timer, 3, { x: -30 }).then(() => {
+                           agent.position.step_legacy(timer, 3, { x: -30 }).then(() => {
                               battler.overlay.objects.splice(battler.overlay.objects.indexOf(agent), 1);
                            });
                         }
@@ -716,13 +717,13 @@ const opponents = {
                            agent.position.subtract(5, 0),
                            ...text.b_opponent_mettaton1.turn4f
                         );
-                        agent.position.step(timer, 3, { x: -30 }).then(() => {
+                        agent.position.step_legacy(timer, 3, { x: -30 }).then(() => {
                            battler.overlay.objects.splice(battler.overlay.objects.indexOf(agent), 1);
                         });
                         await timer.pause(1000);
                         await state.dialogue(false, ...text.b_opponent_mettaton1.turn4g);
                         mettamover.idealX = 160;
-                        quizzerBody.position.step(timer, amspeed, { x: 265 });
+                        quizzerBody.position.step_legacy(timer, amspeed, { x: 265 });
                         body.index = 3;
                         state.vars.armRezo = content.ibcMettatonArmsWhatevs;
                         await timer.pause(850);
@@ -752,7 +753,7 @@ const opponents = {
                         await state.dialogue(false, ...text.b_opponent_mettaton1.turn5a2());
                      }
                      mettamover.idealX = 235;
-                     quizzerBody.position.step(timer, amspeed, { x: 290 });
+                     quizzerBody.position.step_legacy(timer, amspeed, { x: 290 });
                      break;
                   case 5:
                      await state.dialogue(false, ...text.b_opponent_mettaton1.turn6);
@@ -766,7 +767,7 @@ const opponents = {
                         state.dialogue(false, ...text.b_opponent_mettaton1.turn7a)
                      ]);
                      mettamover.idealX = 235;
-                     quizzerBody.position.step(timer, amspeed, { x: 290 });
+                     quizzerBody.position.step_legacy(timer, amspeed, { x: 290 });
                      if (save.data.n.state_foundry_maddummy === 1) {
                         skip = true;
                         await timer.pause(2250);
@@ -787,7 +788,7 @@ const opponents = {
                         volatyle.vars.face = 4;
                         MDM.speed = 1;
                         MDM.multiplier = 0.5;
-                        await obj.position.step(timer, 4, { x: 55 });
+                        await obj.position.step_legacy(timer, 4, { x: 55 });
                         await timer.pause(850);
                         if (save.data.b.toriel_phone) {
                            volatyle.vars.face = 8;
@@ -841,7 +842,7 @@ const opponents = {
                            volatyle.vars.face = 0;
                         }
                         host.on('x', x => {
-                           x === 3 && obj.position.step(timer, 4, { x: -20 }).then(() => (obj.alpha.value = 0));
+                           x === 3 && obj.position.step_legacy(timer, 4, { x: -20 }).then(() => (obj.alpha.value = 0));
                         });
                         state.vars.maddummy = true;
                      }
@@ -853,13 +854,13 @@ const opponents = {
                         await state.dialogue(false, ...text.b_opponent_mettaton1.turn8a2);
                      }
                      mettamover.idealX = 235;
-                     quizzerBody.position.step(timer, amspeed, { x: 290 });
+                     quizzerBody.position.step_legacy(timer, amspeed, { x: 290 });
                      break;
                   case 8:
                      await state.dialogue(false, ...text.b_opponent_mettaton1.turn9a);
                      quizzer.index = 9;
                      await state.vars.rtext(false, quizzerBody, ...text.b_opponent_mettaton1.turn9b());
-                     quizzer.index = save.data.n.bad_lizard < 1 ? 11 : 4;
+                     quizzer.index = trueLizard() < 1 ? 11 : 4;
                      mettamover.idealX = 55;
                      break;
                }
@@ -945,7 +946,7 @@ const opponents = {
                      host.fire('x', 3);
                      await timer.pause(850);
                      mettamover.idealX = 160;
-                     quizzerBody.position.step(timer, amspeed, { x: 265 });
+                     quizzerBody.position.step_legacy(timer, amspeed, { x: 265 });
                      await timer.pause(1250);
                      await state.dialogue(false, ...text.b_opponent_mettaton1.turn5end1());
                      state.vars.armRezo = content.ibcMettatonArmsNoticard;
@@ -970,7 +971,7 @@ const opponents = {
                      host.fire('x', 3);
                      await timer.pause(500);
                      mettamover.idealX = 160;
-                     quizzerBody.position.step(timer, amspeed, { x: 265 });
+                     quizzerBody.position.step_legacy(timer, amspeed, { x: 265 });
                      await timer.pause(450);
                      const lastAggregate =
                         state.vars.turnResults[1] +
@@ -1009,7 +1010,7 @@ const opponents = {
                   }
                   if (mettamover.idealX !== 160) {
                      mettamover.idealX = 160;
-                     quizzerBody.position.step(timer, amspeed, { x: 265 });
+                     quizzerBody.position.step_legacy(timer, amspeed, { x: 265 });
                   }
                   body.index = 0;
                   state.vars.armRezo = content.ibcMettatonArmsWelcome;
@@ -1068,7 +1069,7 @@ const opponents = {
                      await bpos.modulate(timer, 1500, bpos.value(), { y: 0 });
                      battler.overlay.objects.splice(battler.overlay.objects.indexOf(anim), 1);
                      await timer.pause(650);
-                     await quizzerBody.position.step(timer, 3, { x: 160 });
+                     await quizzerBody.position.step_legacy(timer, 3, { x: 160 });
                      await timer.pause(850);
                      quizzer.index = 8;
                      battler.music?.stop();
@@ -1086,7 +1087,7 @@ const opponents = {
       }),
       sprite (volatile) {
          let time = timer.value;
-         const originX = volatile.container.position.x;
+         const originX = volatile.container.x;
          const mettamover = {
             wobble: new CosmosValue(3),
             idealX: 160,
@@ -1106,7 +1107,7 @@ const opponents = {
             scale: 1.15,
             objects: [
                new CosmosSprite({ frames: [ content.ibcMettatonWheel ], anchor: 0 }).on('tick', function () {
-                  const posX = volatile.container.position.x + body.position.x;
+                  const posX = volatile.container.x + body.position.x;
                   this.rotation.value = -body.rotation.value + 360 * ((posX - originX) / 30);
                }),
                new CosmosAnimation({
@@ -1148,6 +1149,7 @@ const opponents = {
       }
    }),
    mettaton2: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_mettaton,
       hp: 20000,
       df: 0,
       exp: 2000,
@@ -1174,6 +1176,7 @@ const opponents = {
             fighto: 0,
             fightprimer: false,
             ap: 0,
+            assistStatus: 0,
             neoTurns: 0,
             boast: { hit: false, origin: 0, value: false },
             villian: { hit: false, value: false },
@@ -1181,8 +1184,7 @@ const opponents = {
             artifact: false,
             ratings,
             hurtListener () {
-               const vars = battler.target.vars;
-               save.data.b.a_state_hapstablook && save.data.n.hp < 1 && (save.data.n.hp = 1);
+               const vars = battler.target!.vars;
                if (vars.boast.value) {
                   if (vars.boast.hit) {
                      ratings(
@@ -1199,10 +1201,10 @@ const opponents = {
                   }
                } else if (vars.villian.value) {
                   if (vars.villian.hit) {
-                     ratings(text.b_opponent_mettaton2.ratings.heel2, save.data.b.a_state_hapstablook ? 30 : 40);
+                     ratings(text.b_opponent_mettaton2.ratings.heel2, !save.data.b.oops ? 30 : 40);
                   } else {
                      vars.villian.hit = true;
-                     ratings(text.b_opponent_mettaton2.ratings.heel1, save.data.b.a_state_hapstablook ? 60 : 80);
+                     ratings(text.b_opponent_mettaton2.ratings.heel1, !save.data.b.oops ? 60 : 80);
                   }
                } else {
                   ratings(text.b_opponent_mettaton2.ratings.hurt, 10);
@@ -1349,6 +1351,7 @@ const opponents = {
                            position: { x: 160, y: 125 }
                         })
                   }),
+                  flirted: false,
                   hp: 1,
                   sparable: false,
                   vars: {}
@@ -1378,6 +1381,14 @@ const opponents = {
                spr.index = volatile.hp < 1000 ? 2 : volatile.hp < volatile.opponent.hp / 4 ? 1 : 0;
                spr.metadata.freeze = false;
                volatile.opponent.ghost = true;
+               switch (battler.music?.rate.value) {
+                  case 1:
+                     volatile.hp < volatile.opponent.hp / 4 && battler.music?.rate.modulate(timer, 1000, 0.85);
+                     break;
+                  case 0.85:
+                     volatile.hp < 1000 && battler.music?.rate.modulate(timer, 1000, 0.7);
+                     break;
+               }
             }
             return result;
          },
@@ -1455,6 +1466,11 @@ const opponents = {
                }
             }
          },
+         async prestatus (state) {
+            if (state.vars.assistStatus++ === 1 && battler.alive.length > 0 && !save.data.b.oops) {
+               battler.status = text.b_opponent_mettaton2.hint;
+            }
+         },
          async poststatus (state) {
             const { vars, dialogue, volatile } = state;
             if (battler.alive.length > 0) {
@@ -1476,7 +1492,7 @@ const opponents = {
                   if (state.vars.villian.hit) {
                      state.vars.villian.hit = false;
                   } else {
-                     ratings(text.b_opponent_mettaton2.ratings.heel3, save.data.b.a_state_hapstablook ? -120 : -160);
+                     ratings(text.b_opponent_mettaton2.ratings.heel3, !save.data.b.oops ? -120 : -160);
                   }
                }
                game.movement = false;
@@ -1537,7 +1553,7 @@ const opponents = {
                   } else {
                      await timer.pause(1000);
                   }
-                  await dialogue(false, ...text.b_opponent_mettaton2.turnTalk21());
+                  await dialogue(false, ...text.b_opponent_mettaton2.turnTalk21(10000 <= graphMetadata.ratingsbase));
                   const fans = assets.music.forthefans.instance(timer);
                   await timer.pause(500);
                   assets.sounds.phone.instance(timer);
@@ -1571,12 +1587,12 @@ const opponents = {
                   );
                   await timer.pause(1600);
                   fans.gain.modulate(timer, 2000, 0).then(() => fans.stop());
-                  await dialogue(false, ...text.b_opponent_mettaton2.audienceRec4);
+                  await dialogue(false, ...text.b_opponent_mettaton2.audienceRec4());
                   volatile.alive = false;
                   events.fire('exit');
                } else {
                   volatile.container.objects[0].metadata.dance = true;
-                  graphMetadata.ratingsgain = ratingsgain;
+                  graphMetadata.ratingsgain = computeRatingsGain();
                }
             }
          },
@@ -1953,6 +1969,7 @@ const opponents = {
       }
    }),
    rg03: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_rg03,
       assets: new CosmosInventory(content.ibcRGCatHead, content.ibcRGCatHurt),
       hp: 350,
       df: 4,
@@ -1975,6 +1992,7 @@ const opponents = {
          })
    }),
    rg04: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_rg04,
       assets: new CosmosInventory(content.ibcRGBugHead, content.ibcRGBugHurt),
       hp: 350,
       df: 4,
@@ -1997,6 +2015,7 @@ const opponents = {
          })
    }),
    glyde: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_glyde,
       assets: new CosmosInventory(
          content.ibcGlydeAntenna,
          content.ibcGlydeBody,
@@ -2030,6 +2049,7 @@ const opponents = {
             secreted: false,
             checked: false,
             itemcount: 0,
+            intermediateItem: false,
             async rtext (cutscene: boolean, ar: CosmosPointSimple, ...lines: string[]) {
                await battler.monster(cutscene, new CosmosPoint(27.5, -70).add(ar), battler.bubbles.twinkly, ...lines);
             }
@@ -2038,15 +2058,20 @@ const opponents = {
          act: {
             async flirt (state) {
                state.vars.flirted = true;
+               save.data.b.flirt_glyde = true;
+               state.volatile.flirted = true;
                if (state.vars.turns === 0) {
-                  save.data.b.flirt_glyde = true;
-                  await battler.human(...text.b_opponent_glyde.act_flirt1);
+                  if (save.data.b.genocide) {
+                     await battler.human(...text.b_opponent_glyde.act_flirt3);
+                  } else {
+                     await battler.human(...text.b_opponent_glyde.act_flirt1);
+                  }
                } else {
                   await battler.human(...text.b_opponent_glyde.act_flirt2);
                }
             },
             secret (state) {
-               if (save.data.b.w_state_steak && save.data.b.w_state_soda) {
+               if (save.data.b.w_state_steak && save.data.b.w_state_soda && !save.data.b.genocide) {
                   state.vars.secreted = true;
                }
             },
@@ -2068,7 +2093,8 @@ const opponents = {
                return;
             }
             const talkText = [] as string[];
-            if (state.vars.itemcount === 1) {
+            if (state.vars.itemcount === 1 && !state.vars.intermediateItem) {
+               state.vars.intermediateItem = true;
                talkText.push(...text.b_opponent_glyde.fightItem1);
             }
             switch (state.vars.turns) {
@@ -2144,15 +2170,15 @@ const opponents = {
                   battler.bubbles.twinkly,
                   ...text.b_opponent_glyde.fightItem2
                );
-               await body.position.step(timer, 5, { x: -80 });
+               await body.position.step_legacy(timer, 5, { x: -80 });
                save.data.b.spared_glyde = true;
                state.volatile.sparable = true;
                battler.spare();
                return;
             } else if (state.vars.turns === 4) {
-               if (save.data.n.bad_lizard < 2) {
+               if (trueLizard() < 2) {
                   quizzer!.index = 6;
-                  await quizzerBody!.position.step(timer, 4, { x: 10 });
+                  await quizzerBody!.position.step_legacy(timer, 4, { x: 10 });
                   await state.vars.rtext(false, quizzerBody!, ...text.b_opponent_glyde.turn5a);
                   await timer.pause(850);
                   header('x1').then(() => (quizzer!.index = 23));
@@ -2163,7 +2189,7 @@ const opponents = {
                      ...text.b_opponent_glyde.turn5b
                   );
                   await timer.pause(350);
-                  quizzerBody!.position.step(timer, 3, { x: -25 });
+                  quizzerBody!.position.step_legacy(timer, 3, { x: -25 });
                   await timer.pause(850);
                   await battler.monster(
                      false,
@@ -2239,9 +2265,9 @@ const opponents = {
                   idealX: number;
                };
                mettamover.idealX = 70;
-               if (save.data.n.bad_lizard < 2) {
+               if (trueLizard() < 2) {
                   quizzer!.index = 0;
-                  quizzerBody!.position.step(timer, 3, { x: 15 });
+                  quizzerBody!.position.step_legacy(timer, 3, { x: 15 });
                }
                await timer.pause(1250);
                await battler.monster(
@@ -2283,14 +2309,14 @@ const opponents = {
                bpants.index = 10;
                battler.music.stop();
                await timer.pause(850);
-               bpants.position.step(timer, 7, { x: 360 });
+               bpants.position.step_legacy(timer, 7, { x: 360 });
                await timer.pause(1150);
                events.fire('exit');
                return;
             }
             await battler.resume(async () => {
                await standardSize({ x: 100, y: 100 }, true);
-               Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+               battler.SOUL.position.set(160);
                battler.SOUL.alpha.value = 1;
                await patterns.glyde();
                battler.SOUL.alpha.value = 0;
@@ -2337,6 +2363,7 @@ const opponents = {
          })
    }),
    pyrope: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_pyrope,
       assets: new CosmosInventory(
          content.ibbPyropefire,
          content.ibbRope,
@@ -2382,23 +2409,29 @@ const opponents = {
          kill: () => world.kill(),
          defaultStatus: ({ vars }) =>
             [
-               [
-                  text.b_opponent_pyrope.status1,
-                  text.b_opponent_pyrope.status2,
-                  text.b_opponent_pyrope.status3,
-                  text.b_opponent_pyrope.status4,
-                  text.b_opponent_pyrope.status5
-               ],
-               [
-                  text.b_opponent_pyrope.sparkStatus1A,
-                  text.b_opponent_pyrope.sparkStatus2A,
-                  text.b_opponent_pyrope.sparkStatus3A
-               ],
-               [
-                  text.b_opponent_pyrope.sparkStatus1B,
-                  text.b_opponent_pyrope.sparkStatus2B,
-                  text.b_opponent_pyrope.sparkStatus3B
-               ]
+               world.azzie
+                  ? text.b_opponent_pyrope.genoStatus
+                  : [
+                       text.b_opponent_pyrope.status1,
+                       text.b_opponent_pyrope.status2,
+                       text.b_opponent_pyrope.status3,
+                       text.b_opponent_pyrope.status4,
+                       text.b_opponent_pyrope.status5
+                    ],
+               world.azzie
+                  ? text.b_opponent_pyrope.genoStatus
+                  : [
+                       text.b_opponent_pyrope.sparkStatus1A,
+                       text.b_opponent_pyrope.sparkStatus2A,
+                       text.b_opponent_pyrope.sparkStatus3A
+                    ],
+               world.azzie
+                  ? text.b_opponent_pyrope.genoSpareStatus
+                  : [
+                       text.b_opponent_pyrope.sparkStatus1B,
+                       text.b_opponent_pyrope.sparkStatus2B,
+                       text.b_opponent_pyrope.sparkStatus3B
+                    ]
             ][vars.charge],
          defaultTalk: ({ vars }) =>
             [
@@ -2425,6 +2458,7 @@ const opponents = {
          act: {
             flirt (state) {
                save.data.b.flirt_pyrope = true;
+               state.volatile.flirted = true;
                state.talk = [
                   text.b_opponent_pyrope.flirtTalk,
                   text.b_opponent_pyrope.sparkFlirtTalkA,
@@ -2439,7 +2473,7 @@ const opponents = {
             }
          },
          prestatus (state) {
-            battler.hurt.includes(state.volatile) && (state.status = [ text.b_opponent_pyrope.hurtStatus ]);
+            battler.hurt.includes(state.volatile) && (state.status = [ text.b_opponent_pyrope.hurtStatus() ]);
          }
       }),
       sprite () {
@@ -2488,6 +2522,7 @@ const opponents = {
       }
    }),
    tsundere: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_tsundere,
       assets: new CosmosInventory(
          content.ibcTsundereBody,
          content.ibcTsundereExhaust,
@@ -2555,6 +2590,7 @@ const opponents = {
          act: {
             flirt (state) {
                save.data.b.flirt_tsundere = true;
+               state.volatile.flirted = true;
                state.talk = [
                   text.b_opponent_tsundere.flirtTalk1,
                   text.b_opponent_tsundere.flirtTalk2,
@@ -2574,7 +2610,7 @@ const opponents = {
                      text.b_opponent_tsundere.upgradeStatus2(),
                      text.b_opponent_tsundere.upgradeStatus3()
                   ];
-                  if (++state.vars.upgrade === 3) {
+                  if (++state.vars.upgrade === 2) {
                      state.pacify = true;
                      save.data.b.spared_tsundere = true;
                   }
@@ -2592,7 +2628,11 @@ const opponents = {
             }
          },
          prestatus (state) {
-            battler.hurt.includes(state.volatile) && (state.status = [ text.b_opponent_tsundere.hurtStatus() ]);
+            if (battler.hurt.includes(state.volatile)) {
+               state.status = [ text.b_opponent_tsundere.hurtStatus() ];
+            } else if (state.volatile.sparable) {
+               state.status = [ text.b_opponent_tsundere.status6() ];
+            }
          }
       }),
       sprite () {
@@ -2648,6 +2688,7 @@ const opponents = {
       }
    }),
    perigee: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_perigee,
       assets: new CosmosInventory(
          content.ibcPerigeeBody,
          content.ibcPerigeeHurt,
@@ -2674,7 +2715,9 @@ const opponents = {
          kill: () => world.kill(),
          defaultStatus: state =>
             state.volatile.sparable
-               ? [ text.b_opponent_perigee.status6 ]
+               ? [ text.b_opponent_perigee.status6() ]
+               : world.genocide
+               ? text.b_opponent_perigee.genoStatus
                : [
                     text.b_opponent_perigee.status1,
                     text.b_opponent_perigee.status2,
@@ -2694,6 +2737,7 @@ const opponents = {
          act: {
             flirt (state) {
                save.data.b.flirt_perigee = true;
+               state.volatile.flirted = true;
                state.talk = text.b_opponent_perigee.flirtTalk;
             },
             whistle (state) {
@@ -2708,7 +2752,7 @@ const opponents = {
             vars.whistle = choice.type === 'act' && choice.act === 'whistle';
          },
          prestatus (state) {
-            battler.hurt.includes(state.volatile) && (state.status = [ text.b_opponent_perigee.hurtStatus ]);
+            battler.hurt.includes(state.volatile) && (state.status = [ text.b_opponent_perigee.hurtStatus() ]);
          }
       }),
       sprite () {
@@ -2719,6 +2763,7 @@ const opponents = {
       }
    }),
    madjick: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_madjick,
       assets: new CosmosInventory(
          content.ibbOrb,
          content.ibbLightning,
@@ -2729,7 +2774,9 @@ const opponents = {
          content.ibcMadjickHead,
          content.ibcMadjickDress,
          content.ibcMadjickHurt,
-         content.ibbFroggitWarn
+         content.ibbFroggitWarn,
+         content.asSavior,
+         content.amMadjickSting
       ),
       g: 120,
       hp: 590,
@@ -2753,7 +2800,7 @@ const opponents = {
          [
             'flirt',
             ({ vars }) =>
-               (world.flirt < 15
+               (world.flirt < (save.data.b.oops ? 15 : 10)
                   ? text.b_opponent_madjick.flirtText0
                   : vars.result
                   ? text.b_opponent_madjick.flirtText3
@@ -2762,7 +2809,7 @@ const opponents = {
       ],
       metadata: { reactOld: true },
       handler: battler.opponentHandler({
-         vars: { result: 0, flirtProgress: 0, danceProgress: 0, attacktype: 0, crazy: false },
+         vars: { result: 0, flirtProgress: 0, danceProgress: 0, attacktype: 0, crazy: false, instaSpare: false },
          defaultStatus: () => [
             text.b_opponent_madjick.idleStatus1(),
             text.b_opponent_madjick.idleStatus2(),
@@ -2778,6 +2825,29 @@ const opponents = {
             text.b_opponent_madjick.idleTalk5
          ],
          bubble: pos => [ pos.add(22, -52), battler.bubbles.twinkly ],
+         async assist (state) {
+            game.music && (game.music.gain.value = 0);
+            await state.dialogue(false, ...text.b_opponent_madjick.assistTalk1);
+            const overlay = fader({ priority: 1 });
+            await overlay.alpha.modulate(timer, 1350, 1);
+            await timer.pause(1000);
+            assets.sounds.savior.instance(timer);
+            await timer.pause(1350);
+            assets.music.madjickSting.instance(timer);
+            atlas.navigators.of('dialoguerBottom').objects[0].priority.value = 2;
+            await dialogue('dialoguerBottom', ...text.b_opponent_madjick.assistAction);
+            atlas.navigators.of('dialoguerBottom').objects[0].priority.value = 0;
+            game.music?.gain.modulate(timer, 1350, world.level);
+            await overlay.alpha.modulate(timer, 1350, 0);
+            renderer.detach('menu', overlay);
+            await timer.pause(1000);
+            await state.dialogue(false, ...text.b_opponent_madjick.assistTalk2);
+            state.vars.instaSpare = true;
+            state.pacify = true;
+            save.data.b.spared_madjick = true;
+            save.data.b.assist_madjick = true;
+            state.talk = [];
+         },
          prechoice (state) {
             state.vars.attacktype = state.vars.result < 1 ? 0 : 3;
             state.vars.crazy = false;
@@ -2812,8 +2882,9 @@ const opponents = {
          },
          act: {
             flirt (state) {
-               if (!state.vars.result && !(world.flirt < 15)) {
+               if (!state.vars.result && !(world.flirt < (save.data.b.oops ? 15 : 10))) {
                   save.data.b.flirt_madjick = true;
+                  state.volatile.flirted = true;
                   switch (++state.vars.flirtProgress) {
                      case 1:
                         state.talk = text.b_opponent_madjick.flirtTalk1;
@@ -2879,6 +2950,8 @@ const opponents = {
          poststatus (state) {
             if (state.dead) {
                save.data.b.killed_madjick = true;
+            } else if (state.vars.instaSpare) {
+               battler.spare(state.target);
             }
          }
       }),
@@ -2981,6 +3054,7 @@ const opponents = {
       }
    }),
    knightknight: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_knightknight,
       assets: new CosmosInventory(
          content.ibcKnightknightArmball,
          content.asAppear,
@@ -2992,7 +3066,9 @@ const opponents = {
          content.ibcKnightknightHeadpiece,
          content.ibcKnightknightMouthpiece,
          content.ibcKnightknightHurt,
-         content.ibbWave
+         content.ibbWave,
+         content.amKnightknightSting,
+         content.asSavior
       ),
       g: 150,
       hp: 630,
@@ -3026,7 +3102,7 @@ const opponents = {
          [
             'flirt',
             ({ vars }) =>
-               (world.flirt < 15
+               (world.flirt < (save.data.b.oops ? 15 : 10)
                   ? text.b_opponent_knightknight.flirtText0
                   : vars.result
                   ? text.b_opponent_knightknight.flirtText3
@@ -3053,6 +3129,29 @@ const opponents = {
          ],
          vars: { result: 0, flirtProgress: 0, comfortProgress: 0, shakeFactor: new CosmosValue(1), instaSpare: false },
          bubble: [ { x: 202, y: 11 }, battler.bubbles.twinkly ],
+         async assist (state) {
+            game.music && (game.music.gain.value = 0);
+            await state.dialogue(false, ...text.b_opponent_knightknight.assistTalk1);
+            const overlay = fader({ priority: 1 });
+            await overlay.alpha.modulate(timer, 1350, 1);
+            await timer.pause(1000);
+            assets.sounds.savior.instance(timer);
+            await timer.pause(1350);
+            assets.music.knightknightSting.instance(timer);
+            atlas.navigators.of('dialoguerBottom').objects[0].priority.value = 2;
+            await dialogue('dialoguerBottom', ...text.b_opponent_knightknight.assistAction);
+            atlas.navigators.of('dialoguerBottom').objects[0].priority.value = 0;
+            game.music?.gain.modulate(timer, 1350, world.level);
+            await overlay.alpha.modulate(timer, 1350, 0);
+            renderer.detach('menu', overlay);
+            await timer.pause(1000);
+            await state.dialogue(false, ...text.b_opponent_knightknight.assistTalk2);
+            state.vars.instaSpare = true;
+            state.pacify = true;
+            save.data.b.spared_knightknight = true;
+            save.data.b.assist_knightknight = true;
+            state.talk = [];
+         },
          preact (state) {
             switch (state.vars.result) {
                case 1:
@@ -3083,8 +3182,9 @@ const opponents = {
          },
          act: {
             flirt (state) {
-               if (!state.vars.result && !(world.flirt < 15)) {
+               if (!state.vars.result && !(world.flirt < (save.data.b.oops ? 15 : 10))) {
                   save.data.b.flirt_knightknight = true;
+                  state.volatile.flirted = true;
                   switch (++state.vars.flirtProgress) {
                      case 1:
                         state.talk = text.b_opponent_knightknight.flirtTalk1;
@@ -3248,6 +3348,7 @@ const opponents = {
       }
    }),
    froggitex: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_froggitex,
       assets: new CosmosInventory(
          content.ibbFroggitGo,
          content.ibbFroggitWarn,
@@ -3260,7 +3361,6 @@ const opponents = {
       ),
       metadata: { arc: true, reactOld: true },
       bullyable: true,
-      bully: () => world.bully(),
       g: 80,
       hp: 100 * 3,
       df: 0,
@@ -3279,6 +3379,7 @@ const opponents = {
       hurt: assets.sounds.twinklyHurt,
       sparable: false,
       handler: battler.opponentHandler({
+         kill: () => void save.data.n.corekills++,
          defaultStatus: () => [
             text.b_opponent_froggitex.status1(),
             text.b_opponent_froggitex.status2(),
@@ -3299,6 +3400,7 @@ const opponents = {
             flirt (state) {
                state.talk = text.b_opponent_froggitex.flirtText;
                save.data.b.flirt_froggitex = true;
+               state.volatile.flirted = true;
                state.vars.message = false;
             },
             translate (state) {
@@ -3371,6 +3473,7 @@ const opponents = {
       }
    }),
    whimsalot: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_whimsalot,
       assets: new CosmosInventory(
          content.ibbStarfly,
          content.ibcWhimsalot,
@@ -3379,7 +3482,6 @@ const opponents = {
       ),
       metadata: { arc: true, reactOld: true },
       bullyable: true,
-      bully: () => world.bully(),
       g: 80,
       hp: 95 * 3,
       df: 0,
@@ -3407,6 +3509,7 @@ const opponents = {
          [ 'flirt', text.b_opponent_whimsalot.act_flirt ]
       ],
       handler: battler.opponentHandler({
+         kill: () => void save.data.n.corekills++,
          defaultStatus: () => [
             text.b_opponent_whimsalot.status1(),
             text.b_opponent_whimsalot.status2(),
@@ -3431,6 +3534,7 @@ const opponents = {
             flirt (state) {
                state.talk = text.b_opponent_whimsalot.flirtTalk;
                save.data.b.flirt_whimsalot = true;
+               state.volatile.flirted = true;
                state.vars.perch = 0;
             },
             perch (state) {
@@ -3503,6 +3607,7 @@ const opponents = {
       }
    }),
    astigmatism: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_astigmatism,
       assets: new CosmosInventory(
          content.ibbLooxCircle1,
          content.ibbLooxCircle2,
@@ -3526,6 +3631,7 @@ const opponents = {
       ],
       sparable: false,
       handler: battler.opponentHandler({
+         kill: () => void save.data.n.corekills++,
          defaultStatus: ({ vars }) =>
             [
                [
@@ -3602,6 +3708,7 @@ const opponents = {
                   state.talk = text.b_opponent_astigmatism.flirtTalk;
                } else {
                   save.data.b.flirt_astigmatism = true;
+                  state.volatile.flirted = true;
                   state.talk = text.b_opponent_astigmatism.flirtTalkFull;
                }
             }
@@ -3698,6 +3805,7 @@ const opponents = {
       }
    }),
    migospel: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_migospel,
       assets: new CosmosInventory(
          content.ibbMigosp,
          content.ibcMigospel,
@@ -3719,6 +3827,7 @@ const opponents = {
       ],
       sparable: false,
       handler: battler.opponentHandler({
+         kill: () => void save.data.n.corekills++,
          defaultTalk: () =>
             battler.alive.length > 1
                ? [
@@ -3748,6 +3857,7 @@ const opponents = {
             flirt (state) {
                if (battler.alive.length === 1) {
                   save.data.b.flirt_migospel = true;
+                  state.volatile.flirted = true;
                   state.talk = text.b_opponent_migospel.flirtTalk;
                }
             },
@@ -3823,6 +3933,7 @@ const opponents = {
       }
    }),
    mushketeer: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_mushketeer,
       assets: new CosmosInventory(
          content.ibbLiteralBullet,
          content.ibbCrosshair,
@@ -3890,6 +4001,7 @@ const opponents = {
             flirt (state) {
                state.talk = text.b_opponent_mushketeer.flirtTalk;
                save.data.b.flirt_mushketeer = true;
+               state.volatile.flirted = true;
             },
             travel (state) {
                state.vars.travel < 2 && ++state.vars.travel;

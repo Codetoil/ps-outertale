@@ -1,1 +1,492 @@
-{"$schema":"./room.schema.json","preload":["amOutlands","iocTorielDown","iocTorielDownTalk","iocTorielLeft","iocTorielLeftTalk","iocTorielRight","iocTorielRightTalk","iocTorielUp","iocTorielUpTalk","asDepower"],"background":"below","layers":{"below":[{"barriers":[{"position":{"x":20,"y":140},"size":{"x":20,"y":80}},{"position":{"x":40,"y":120},"size":{"x":40,"y":20}},{"position":{"x":60,"y":100},"size":{"x":20,"y":20}},{"position":{"x":80,"y":80},"size":{"x":120,"y":20}},{"position":{"x":200,"y":100},"size":{"x":20,"y":20}},{"position":{"x":200,"y":120},"size":{"x":60,"y":20}},{"position":{"x":320,"y":120},"size":{"x":20,"y":20}},{"position":{"x":340,"y":140},"size":{"x":20,"y":80}},{"position":{"x":200,"y":220},"size":{"x":140,"y":20}},{"position":{"x":200,"y":240},"size":{"x":20,"y":20}},{"position":{"x":160,"y":260},"size":{"x":40,"y":20}},{"position":{"x":80,"y":260},"size":{"x":40,"y":20}},{"position":{"x":60,"y":240},"size":{"x":20,"y":20}},{"position":{"x":40,"y":220},"size":{"x":40,"y":20}}],"interacts":[{"name":"trivia","position":{"x":120,"y":80},"size":{"x":40,"y":20},"args":["w_lobby1"]}]},{"triggers":[{"name":"teleport","position":{"x":120,"y":275},"size":{"x":40,"y":20},"args":["w_entrance","down","120","165"]},{"name":"teleport","position":{"x":260,"y":120},"size":{"x":60,"y":20},"args":["w_tutorial","up","90","170"]}]}],"main":[{"tags":["00","l_button"],"position":{"x":120,"y":0},"attachments":[{"auto":false,"anchor":{"x":0,"y":0},"type":"animation","resources":"iooOButton","position":{"y":160}}]},{"tags":["10","l_button"],"position":{"x":140,"y":0},"attachments":[{"auto":false,"anchor":{"x":0,"y":0},"type":"animation","resources":"iooOButton","position":{"y":160}}]},{"tags":["20","l_button"],"position":{"x":160,"y":0},"attachments":[{"auto":false,"anchor":{"x":0,"y":0},"type":"animation","resources":"iooOButton","position":{"y":160}}]},{"tags":["01","l_button"],"position":{"x":120,"y":0},"attachments":[{"auto":false,"anchor":{"x":0,"y":0},"type":"animation","resources":"iooOButton","position":{"y":180}}]},{"tags":["11","l_button"],"position":{"x":140,"y":0},"attachments":[{"auto":false,"anchor":{"x":0,"y":0},"type":"animation","resources":"iooOButton","position":{"y":180}}]},{"tags":["21","l_button"],"position":{"x":160,"y":0},"attachments":[{"auto":false,"anchor":{"x":0,"y":0},"type":"animation","resources":"iooOButton","position":{"y":180}}]},{"tags":["02","l_button"],"position":{"x":120,"y":0},"attachments":[{"auto":false,"anchor":{"x":0,"y":0},"type":"animation","resources":"iooOButton","position":{"y":200}}]},{"tags":["12","l_button"],"position":{"x":140,"y":0},"attachments":[{"auto":false,"anchor":{"x":0,"y":0},"type":"animation","resources":"iooOButton","position":{"y":200}}]},{"tags":["22","l_button"],"position":{"x":160,"y":0},"attachments":[{"auto":false,"anchor":{"x":0,"y":0},"type":"animation","resources":"iooOButton","position":{"y":200}}]},{"tags":["security_field"],"attachments":[{"auto":true,"type":"animation","resources":"iooOSecurityField","anchor":{"y":1}}],"position":{"x":260,"y":140}}]},"neighbors":["w_entrance","w_tutorial"],"region":[{"x":160,"y":120},{"x":220,"y":160}],"score":{"gain":0.8,"music":"outlands"}}
+{
+   "$schema": "./room.schema.json",
+   "preload": [
+      "amOutlands",
+      "iocTorielDown",
+      "iocTorielDownTalk",
+      "iocTorielLeft",
+      "iocTorielLeftTalk",
+      "iocTorielRight",
+      "iocTorielRightTalk",
+      "iocTorielUp",
+      "iocTorielUpTalk",
+      "asDepower"
+   ],
+   "background": "below",
+   "layers": {
+      "below": [
+         {
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "iocTwinkly",
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  }
+               }
+            ],
+            "tags": [
+               "stalker"
+            ],
+            "position": {
+               "x": 140,
+               "y": 65
+            }
+         },
+         {
+            "barriers": [
+               {
+                  "position": {
+                     "x": 20,
+                     "y": 140
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 80
+                  }
+               },
+               {
+                  "position": {
+                     "x": 40,
+                     "y": 120
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 60,
+                     "y": 100
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 80,
+                     "y": 80
+                  },
+                  "size": {
+                     "x": 120,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 200,
+                     "y": 100
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 200,
+                     "y": 120
+                  },
+                  "size": {
+                     "x": 60,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 320,
+                     "y": 120
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 340,
+                     "y": 140
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 80
+                  }
+               },
+               {
+                  "position": {
+                     "x": 200,
+                     "y": 220
+                  },
+                  "size": {
+                     "x": 140,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 200,
+                     "y": 240
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 160,
+                     "y": 260
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 80,
+                     "y": 260
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 60,
+                     "y": 240
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 40,
+                     "y": 220
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 20
+                  }
+               }
+            ],
+            "interacts": [
+               {
+                  "name": "trivia",
+                  "position": {
+                     "x": 120,
+                     "y": 80
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 20
+                  },
+                  "args": [
+                     "w_lobby1"
+                  ]
+               }
+            ]
+         },
+         {
+            "triggers": [
+               {
+                  "name": "teleport",
+                  "position": {
+                     "x": 120,
+                     "y": 275
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 20
+                  },
+                  "args": [
+                     "w_entrance",
+                     "down",
+                     "120",
+                     "170"
+                  ]
+               },
+               {
+                  "name": "teleport",
+                  "position": {
+                     "x": 260,
+                     "y": 120
+                  },
+                  "size": {
+                     "x": 60,
+                     "y": 20
+                  },
+                  "args": [
+                     "w_tutorial",
+                     "up",
+                     "90",
+                     "170"
+                  ]
+               }
+            ]
+         }
+      ],
+      "main": [
+         {
+            "tags": [
+               "00",
+               "l_button"
+            ],
+            "position": {
+               "x": 120,
+               "y": 0
+            },
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "type": "animation",
+                  "resources": "iooOButton",
+                  "position": {
+                     "y": 160
+                  }
+               }
+            ]
+         },
+         {
+            "tags": [
+               "10",
+               "l_button"
+            ],
+            "position": {
+               "x": 140,
+               "y": 0
+            },
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "type": "animation",
+                  "resources": "iooOButton",
+                  "position": {
+                     "y": 160
+                  }
+               }
+            ]
+         },
+         {
+            "tags": [
+               "20",
+               "l_button"
+            ],
+            "position": {
+               "x": 160,
+               "y": 0
+            },
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "type": "animation",
+                  "resources": "iooOButton",
+                  "position": {
+                     "y": 160
+                  }
+               }
+            ]
+         },
+         {
+            "tags": [
+               "01",
+               "l_button"
+            ],
+            "position": {
+               "x": 120,
+               "y": 0
+            },
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "type": "animation",
+                  "resources": "iooOButton",
+                  "position": {
+                     "y": 180
+                  }
+               }
+            ]
+         },
+         {
+            "tags": [
+               "11",
+               "l_button"
+            ],
+            "position": {
+               "x": 140,
+               "y": 0
+            },
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "type": "animation",
+                  "resources": "iooOButton",
+                  "position": {
+                     "y": 180
+                  }
+               }
+            ]
+         },
+         {
+            "tags": [
+               "21",
+               "l_button"
+            ],
+            "position": {
+               "x": 160,
+               "y": 0
+            },
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "type": "animation",
+                  "resources": "iooOButton",
+                  "position": {
+                     "y": 180
+                  }
+               }
+            ]
+         },
+         {
+            "tags": [
+               "02",
+               "l_button"
+            ],
+            "position": {
+               "x": 120,
+               "y": 0
+            },
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "type": "animation",
+                  "resources": "iooOButton",
+                  "position": {
+                     "y": 200
+                  }
+               }
+            ]
+         },
+         {
+            "tags": [
+               "12",
+               "l_button"
+            ],
+            "position": {
+               "x": 140,
+               "y": 0
+            },
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "type": "animation",
+                  "resources": "iooOButton",
+                  "position": {
+                     "y": 200
+                  }
+               }
+            ]
+         },
+         {
+            "tags": [
+               "22",
+               "l_button"
+            ],
+            "position": {
+               "x": 160,
+               "y": 0
+            },
+            "attachments": [
+               {
+                  "auto": false,
+                  "anchor": {
+                     "x": 0,
+                     "y": 0
+                  },
+                  "type": "animation",
+                  "resources": "iooOButton",
+                  "position": {
+                     "y": 200
+                  }
+               }
+            ]
+         },
+         {
+            "tags": [
+               "security_field"
+            ],
+            "attachments": [
+               {
+                  "auto": true,
+                  "type": "animation",
+                  "resources": "iooOSecurityField",
+                  "anchor": {
+                     "y": 1
+                  }
+               }
+            ],
+            "position": {
+               "x": 260,
+               "y": 140
+            }
+         }
+      ]
+   },
+   "neighbors": [
+      "w_entrance",
+      "w_tutorial"
+   ],
+   "region": [
+      {
+         "x": 160,
+         "y": 120
+      },
+      {
+         "x": 220,
+         "y": 160
+      }
+   ],
+   "score": {
+      "gain": 0.8,
+      "music": "outlands"
+   }
+}

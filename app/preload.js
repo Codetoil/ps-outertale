@@ -1,10 +1,23 @@
-const { mods, universe } = require('./spacetime.js');
+const { mods, root, universe } = require('./spacetime.js');
 const { contextBridge, ipcRenderer } = require('electron');
 const { existsSync, mkdirSync, readdirSync, readFileSync, statSync } = require('fs');
-const { writeFile } = require('fs/promises');
+const { copyFile, writeFile } = require('fs/promises');
 const { join } = require('path');
 
 mkdirSync(mods, { recursive: true });
+
+((input, loop) => loop(input, loop))('code', (input, loop) => {
+   const path = `${__dirname}/${input}`;
+   const stat = statSync(path);
+   if (stat.isFile()) {
+      copyFile(path, join(root, input));
+   } else if (stat.isDirectory()) {
+      mkdirSync(join(root, input), { recursive: true });
+      for (const name of readdirSync(path)) {
+         loop(`${input}/${name}`, loop);
+      }
+   }
+});
 
 contextBridge.exposeInMainWorld('___spacetime___', {
    data () {

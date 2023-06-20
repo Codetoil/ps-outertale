@@ -1,9 +1,13 @@
 import { game } from '../core';
-import { CosmosKeyed, CosmosProvider, CosmosUtils } from '../engine';
+import { CosmosKeyed, CosmosProvider, CosmosUtils } from '../engine/utils';
 import { battler, choicer, fetchCharacters, instance, pager, world } from '../mantle';
 import save from '../save';
 
 const n_sidebarCellPms3 = {
+   alphysBadLizard: {
+      author: 'ALPHYS',
+      pm: 'hey everyone, we might need to start evacuating people from aerialis.'
+   },
    alphys0: {
       author: 'SYSTEM',
       pm: "Thank you for creating an account on the outpost's #1 social network!"
@@ -28,7 +32,7 @@ const n_sidebarCellPms3 = {
       author: 'ALPHYS',
       pm: () =>
          [
-            'anyway, imma be guiding them now :D\ngoshhh this is so exciting aaaaaa', // pacifist
+            'anyway, imma be guiding them now :D\ngodddd this is so exciting aaaaaa', // pacifist
             'anyway, imma be guiding them now :O\nlets hope nothing bad happens' // badlizard 1
          ][save.data.n.bad_lizard]
    },
@@ -74,7 +78,7 @@ const n_sidebarCellPms3 = {
       author: 'ALPHYS',
       pm: () =>
          [
-            'woahhh undyne where did you come from!?!?', // pacifist
+            'woah undyne where did you come from!?!?', // pacifist
             'damn, guess not' // badlizard 1
          ][save.data.n.bad_lizard]
    },
@@ -205,15 +209,15 @@ const n_sidebarCellPms3 = {
    },
    alphysY8A1a: {
       author: 'ALPHYS',
-      pm: 'theyre going after regular citizens-'
+      pm: 'theyre going after regular citizens'
    },
    alphysY8A1b: {
       author: 'ALPHYS',
-      pm: 'theyre targeting the sentries-'
+      pm: 'theyre targeting the sentries'
    },
    alphysY8A1c: {
       author: 'ALPHYS',
-      pm: 'theyre going after everyone-'
+      pm: 'theyre going after everyone'
    },
    alphysY8A2: {
       author: 'lazybones.',
@@ -353,7 +357,7 @@ const n_sidebarCellPms3 = {
    },
    alphysY8C5: {
       author: 'ALPHYS',
-      pm: 'gotta go-'
+      pm: 'gotta go'
    },
    alphysY8C6: {
       author: 'lazybones.',
@@ -498,7 +502,7 @@ const n_sidebarCellPms3 = {
 };
 
 export function pms () {
-   if (save.data.n.bad_lizard < 2) {
+   if (trueLizard() < 2) {
       return [
          'alphys0',
          ...(save.data.s.pms === '' ? [] : save.data.s.pms.split(',').filter(key => key in n_sidebarCellPms3))
@@ -513,7 +517,7 @@ export function pms () {
          save.data.n.state_starton_greatdog === 2;
       const eliteKill = save.data.n.state_foundry_doge === 1 || save.data.n.state_foundry_muffet === 1;
       const papyrusKill = save.data.n.state_starton_papyrus === 1;
-      const undyneKill = save.data.n.state_foundry_undyne === 2;
+      const undyneKill = save.data.n.state_foundry_undyne > 0;
       return [
          'alphysX0',
          'alphysX1',
@@ -627,8 +631,12 @@ export function pms () {
    }
 }
 
+export function trueLizard () {
+   return save.data.b.bad_lizard ? 1 : save.data.n.bad_lizard;
+}
+
 export const evac = () =>
-   world.genocide || (save.data.n.bad_lizard > 1 && world.population < 3) || (world.population === 0 && !world.bullied);
+   world.genocide || (trueLizard() > 1 && world.population < 3) || (world.population === 0 && !world.bullied);
 
 const text = {
    a_aerialis: {
@@ -655,7 +663,65 @@ const text = {
          '<32>{#p/monster}{#npc/a}* Tra la la...',
          '<32>{#p/monster}{#npc/a}* You may return to me and my taxi at any time.'
       ],
-      riverboi3: pager.create('random', [ '<32>{#p/monster}{#npc/a}* Tra la la.' ]),
+      riverboi3: pager.create(
+         'random',
+         [ "<32>{#p/monster}{#npc/a}* Tra la la.\n* The underspace is fast today.\n* That's good luck..." ],
+         [ "<32>{#p/monster}{#npc/a}* Tra la la.\n* The underspace is fast today.\n* That's bad luck..." ],
+         [ '<32>{#p/monster}{#npc/a}* Tra la la.\n* Remember to take a break every-so-often...' ],
+         [
+            '<32>{#p/monster}{#npc/a}* Tra la la.\n* Everyone knows the old song from the music box...',
+            '<32>{#p/monster}{#npc/a}* ...but do you know its long counterpart?\n* The first thirteen are fine.'
+         ],
+         [
+            '<32>{#p/monster}{#npc/a}* Tra la la.\n* Keep your hands in feet inside the vehicle...',
+            '<32>{#p/monster}{#npc/a}* ...and most of all, your SOUL.'
+         ],
+         [ '<32>{#p/monster}{#npc/a}* Tra la la.\n* I heard Toriel has a favorite drink.' ],
+         [ '<32>{#p/monster}{#npc/a}* Tra la la.\n* I heard Asgore has a favorite food.' ],
+         [
+            '<32>{#p/monster}{#npc/a}* Tra la la.\n* Remember the great king Erogot...',
+            '<32>{#p/monster}{#npc/a}* ...and his son.'
+         ],
+         [
+            '<32>{#p/monster}{#npc/a}* Tra la la.\n* Temmie village...',
+            '<32>...the room to the left of the short ladder.'
+         ],
+         [ "<32>{#p/monster}{#npc/a}* Tra la la.\n* Why don't you sing with me?\n* Tra la la." ],
+         [ "<32>{#p/monster}{#npc/a}* Hum hum hum...\n* Hum hum hum...\n* I'm having a little concert." ],
+         [ '<32>{#p/monster}{#npc/a}* Pet pet pet...\n* The neck stretches infinitely into the cosmos.' ],
+         [
+            '<32>{#p/monster}{#npc/a}* Tra la la.\n* Remember to pay your fare...',
+            '<32>{#p/monster}{#npc/a}* ...time and space are quite the valuable commodities.'
+         ],
+         [ '<32>{#p/monster}{#npc/a}* Humans, monsters...\n* Starlings.' ],
+         [
+            '<32>{#p/monster}{#npc/a}* Tra la la.\n* You can never have too many corn-dogs...',
+            '<32>{#p/monster}{#npc/a}* ...if only they stayed atop your head.'
+         ],
+         [ '<32>{#p/monster}{#npc/a}* Tra la la.\n* What does a barista and a blind dog have in common?' ],
+         [
+            "<32>{#p/monster}{#npc/a}* Tra la la.\n* Don't snoop behind people's stations...",
+            '<32>{#p/monster}{#npc/a}* ...you might be mistaken for a thief.'
+         ],
+         [ '<32>{#p/monster}{#npc/a}* Tra la la.\n* The underspace is bumpy today.' ],
+         [ '<33>{#p/monster}{#npc/a}* Tra la la.\n* The underspace is smooth today.' ],
+         [ '<32>{#p/monster}{#npc/a}* Tra la la.\n* That royal scientist has a bright secret...' ],
+         [ '<32>{#p/monster}{#npc/a}* One, two, three, four, five, six...', '<32>* ...reaching full capacity.' ],
+         [ '<32>{#p/monster}{#npc/a}* Tra la la.\n* That robot superstar has a troubled past...' ],
+         [ '<32>{#p/monster}{#npc/a}* Tra la la.\n* Tri li li.\n* Tre le le.' ],
+         // that will be a nightmare to translate
+         [ '<32>{#p/monster}{#npc/a}* Tro lo lo.\n* Tru lu lu.', '<32>* ...alas, the vowels reach their end.' ],
+         [ '<32>{#p/monster}{#npc/a}* Intriguing, intriguing...\n* The word carries a meaning beyond our perception.' ],
+         [
+            '<32>{#p/monster}{#npc/a}* Tra la la.\n* Eat a ghost fruit every day.',
+            "<32>{#p/monster}{#npc/a}* ...why?\n* Then I know you're listening to me..."
+         ],
+         [ '<32>{#p/monster}{#npc/a}* Tra la la.\n* Have you not heard the song of the stars?' ],
+         [
+            "<32>{#p/monster}{#npc/a}* Tra la la.\n* What's a game you can play with a dog?",
+            '<32>* ...asking for a friend.'
+         ]
+      ),
       papinter1: pager.create(
          'limit',
          () =>
@@ -678,7 +744,7 @@ const text = {
                     '<25>{#p/undyne}{#f/8}* The magical arts club is OBVIOUSLY better!',
                     "<18>{#p/papyrus}{#f/4}YOU'RE NOT AFRAID OF HUMAN GAMES, ARE YOU?",
                     '<25>{#p/undyne}{#f/4}* What!?\n* Of course not!',
-                    "<25>{#p/undyne}{#f/5}* I'm just-",
+                    "<25>{#p/undyne}{#f/5}* I'm just...",
                     "<25>{#p/undyne}{#f/12}* I'm just an avid believer in the beauty of artistry.",
                     "<18>{#p/papyrus}{#f/5}SO YOU'LL JOIN ME AT THE JAZZ AND BLUES MUSIC CLUB?",
                     "<25>{#p/undyne}{#f/8}* Oh my god, for the last time, I'm NOT playing a saxophone again!!"
@@ -724,7 +790,7 @@ const text = {
       undinter: pager.create(
          'limit',
          () =>
-            save.data.n.plot < 68
+            save.data.n.plot < 68 || save.data.b.a_state_hapstablook
                ? [
                     '<25>{#p/undyne}{#f/1}* Hey, punk.\n* Long time no see.',
                     "<18>{#p/papyrus}{#f/6}DIDN'T YOU JUST HANG OUT WITH THEM EARLIER TODAY???",
@@ -741,7 +807,7 @@ const text = {
                     '<25>{#f/4}* ...so you better not do anything STUPID!'
                  ],
          () =>
-            save.data.n.plot < 68
+            save.data.n.plot < 68 || save.data.b.a_state_hapstablook
                ? [
                     '<25>{#p/undyne}{#f/1}* If you ever want to join me in the magical arts club...',
                     '<25>{#p/undyne}{#f/3}* ...er, I doubt the taxi would wanna take a kid there, actually.',
@@ -835,18 +901,17 @@ const text = {
       sonic2: [ "<32>{#p/human}* (You're carrying too much to take that.)" ],
       tablaphone1: [ '<32>{#p/human}* (You got the Tablaphone.)' ],
       tablaphone2: [ "<32>{#p/human}* (You're carrying too much to take that.)" ],
-      moonpie1: [
+      moonpie1: () => [
          '<32>{#p/human}* (You got the Moon Pie.)',
-         '<32>{#p/monster}{#npc/a}* I never said you could take that...',
-         "<32>* Uh, don't worry though, it was meant for you anyway.",
-         '<32>* Hope you like it...?'
+         "<32>{#p/narrator}* There's a note attached...",
+         "<32>{#p/narrator}* \"I know I'm different. I don't fit in with monsters, and I don't fit in with humans.\"",
+         '<32>{#p/narrator}* "But this pie was made to hopefully help someone out one day!"',
+         '<32>{#p/narrator}* "Someone kind, but misunderstood like myself..."',
+         ...(world.genocide
+            ? [ '<32>{#p/narrator}* "...someone unlike you."' ]
+            : [ '<32>{#p/narrator}* "...someone across the ocean of time and space."' ])
       ],
-      moonpie2: [
-         "<32>{#p/human}* (You're carrying too much to take that.)",
-         "<32>{#p/monster}{#npc/a}* Looks like you're out of space for that.",
-         '<32>* Get it?\n* Out of space?',
-         '<32>* Well, I thought it was funny.'
-      ],
+      moonpie2: [ "<32>{#p/human}* (You're carrying too much to take that.)" ],
       ratings: 'RATINGS $(x)',
       secretcall: [
          '<32>{#s/phone}{#p/event}* Ring, ring...',
@@ -904,10 +969,11 @@ const text = {
                     [ '<25>{#p/asriel2}{#f/13}* Uh... $(name)?' ],
                     [ '<25>{#p/asriel2}{#f/13}* ...' ]
                  ][Math.min(save.flag.n.ga_asrielGetThePhone++, 3)],
-         phonegrabber1: [
+         phonegrabber1: () => [
             "<32>{#p/narrator}* It's a smart cell phone.\n* Comes with a liftgate pass and two dimensional boxes.",
-            '<32>{#p/narrator}* No jetpack though.\n* Shame.',
-            '<32>{#p/narrator}* ...'
+            ...(world.genocide
+               ? [ '<32>{#p/narrator}* No jetpack though.\n* Shame.', '<32>{#p/narrator}* ...' ]
+               : [ '<32>{#p/narrator}* Also comes with a jetpack.\n* Nice.', '<32>{#p/narrator}* ...' ])
          ],
          phonegrabber2: [ '<32>{#p/human}* (Your CELL has been upgraded.)' ],
          phonegrabber3: () =>
@@ -933,7 +999,7 @@ const text = {
                      ? [ '<25>{#f/16}* ...was how you actually won a game o-of Thundersnail!' ]
                      : !save.data.b.papyrus_fire
                      ? [ '<25>{#f/16}* ...was how you got through the wall of fire on your first try!' ]
-                     : !save.data.b.s_state_mathcrash
+                     : save.data.b.s_state_mathpass
                      ? [ '<25>{#f/16}* ...was how you beat the number neutralizer puzzle by y-yourself!' ]
                      : [ '<25>{#f/16}* ...was watching you fight Undyne!' ]),
                   '<25>{#f/12}* So awesome...',
@@ -964,10 +1030,10 @@ const text = {
                   '<25>{#g/alphysIDK}* ...',
                   "<25>{#g/alphysIDK}* That being said, you're probably gonna need my help in Aerialis."
                ]
-            ][save.data.n.bad_lizard],
+            ][trueLizard()],
             '<25>{#f/15}* Yeah... it\'s not really a "human friendly" place...',
             '<25>{#f/17}* Deadly traps...\n* Impossible puzzles...\n* Royal guards...',
-            '<25>{#f/15}* Not to mention- {%}'
+            '<25>{*}{#f/15}* Not to mention- {%}'
          ],
          alphys4: [ '<25>{#f/20}* Mettaton.' ],
          alphys5: [ '<25>{#f/3}* Ehehe...' ],
@@ -984,14 +1050,15 @@ const text = {
          alphys11b: [ "<32>* IN FACT, THERE'S ONLY ONE RULE!", '<32>* PUT ON THE BEST PERFORMANCE OF YOUR LIFE...' ],
          alphys12: [ '<32>{*}{#p/mettaton}* OR DIE TRYING!!!{^20}{*}' ],
          alphys13: () => [
-            ...(save.data.n.bad_lizard < 1
+            ...(trueLizard() < 1
                ? [
                     '<25>{#p/alphys}{#f/5}* Hey...',
                     '<25>{#f/8}* I know that kinda came outta nowhere, but... you were p-pretty cool.'
                  ]
                : [
                     '<25>{#p/alphys}{#f/5}* Hey...',
-                    '<25>{#f/8}* I know that kinda came outta nowhere, but... you handled it p-pretty well.'
+                    '<25>{#f/8}* I know that kinda came outta nowhere, but...',
+                    '<25>* You handled it p-pretty well, ehehe.'
                  ]),
             "<25>{#f/9}* Anyway, uh, as I was saying, you're gonna need my help.",
             "<25>{#f/17}* Let's see what you've got on you..."
@@ -1005,7 +1072,7 @@ const text = {
             "<25>{#f/23}* I'll be right back."
          ],
          alphys15: () =>
-            save.data.n.bad_lizard < 1
+            trueLizard() < 1
                ? [
                     '<25>{#p/alphys}{#g/alphysCutscene1}* Okay, I got you a new cell phone!',
                     "<25>* It's got a liftgate pass, dimensional boxes...",
@@ -1021,10 +1088,9 @@ const text = {
                  ],
          alphys16: [ "<25>{#p/alphys}{#g/alphysWelp}* Well, I'll be at my desk." ],
          alphys17: [
-            '<32>{#p/narrator}* ...is it just me, or did that "talent show" not feel quite right?',
-            '<32>* Hmm...',
-            "<32>* Well, I will say that it's exactly the type of thing Mettaton loves to do.",
-            '<32>* Yeah... don\'t expect the "fun" to stop any time soon.'
+            "<32>{#p/narrator}* Call me crazy, but Mettaton doesn't seem himself today.",
+            '<32>* ...still.\n* This IS the kind of thing he does all the time.',
+            '<32>* Yeah...\n* Don\'t expect the "fun" to stop any time soon.'
          ],
          rg1a: [ '<32>{#p/monster}{#x1}* Hey kid!{#x3}' ],
          rg1b1: [ '<32>{#p/monster}{#x1}* Can you like, tell us where the nearest ice cream stand is?{#x3}' ],
@@ -1043,8 +1109,9 @@ const text = {
          rg1d3: [ '<32>* ...', "<32>{#x2}* I'll allow it.{#x3}" ],
          rg1e: [
             '<32>{#p/monster}{#x1}* Well, see ya, I guess...{#x3}',
-            "<32>{#x2}* We'll let ya know if we find that ice cream and stuff!{#x3}"
+            "<32>{#x2}* We'll let ya know how the pizza thing goes!{#x3}"
          ],
+         rgcc: [ '<32>{#p/narrator}* I could have sworn they were going to fight you.' ],
          robocaller1: () =>
             [
                [
@@ -1079,12 +1146,8 @@ const text = {
                   '<32>* HEH, DARLING...',
                   "<32>{#z02}* YOU'RE IN FOR A BAD TIME."
                ]
-            ][save.data.n.bad_lizard - 2],
-         robocaller1x: [
-            '<25>{#p/asriel2}{#f/13}* A "bad time," you say?',
-            "<25>{#f/1}* Hmm...\n* I think we both know who's in for THAT.",
-            "<25>{#f/2}* And it's not us."
-         ],
+            ][trueLizard() - 2],
+         robocaller1x: [ '<25>{#p/asriel2}{#f/13}* A "bad time," huh?', "<25>{#f/9}* Don't make me LAUGH." ],
          robocaller2: [
             '<32>{#p/mettaton}{#z11}* OH, SWEETHEART...\n* YOU HAVE NO IDEA, DO YOU...?',
             '<32>{#z02}* HAHAHA...',
@@ -1093,8 +1156,7 @@ const text = {
             '<32>{#z21}* ...',
             '<32>{#z11}* WELL, TOODLES!'
          ],
-         robocaller2x: [ '<25>{#p/asriel2}{#f/3}* Huh...' ],
-         robocaller2y: [ '<25>{#p/asriel2}{#f/3}* ...' ],
+         robocaller2x: [ '<25>{#p/asriel2}{#f/13}* ...' ],
          status: '$(x) updated status',
          barricade1: [
             '<32>{#p/event}* Ring, ring...',
@@ -1112,7 +1174,7 @@ const text = {
             '<25>{#g/alphysNeutralSweat}* Do you... happen to know anything useful about Mettaton?',
             '<25>{#g/alphysTheFactIs}* ...probably not, considering you just met him...',
             "<25>{#g/alphysUhButHeresTheDeal}* Well, uh, maybe you'll know the answer to the first one.",
-            '<25>{#g/alphysIDK}* "Who has the bi-" {%}',
+            '<25>{*}{#g/alphysIDK}* "Who has the bi- {%}',
             "<25>{#g/alphysWTF}* Oh my god of course he'd use that as a security question.",
             '<25>{#g/alphysNervousLaugh}* "Who has the biggest crush on Mettaton?"',
             choicer.create('* (What do you say?)', -1, -1, 'Alphys', 'Asgore', 'Papyrus', 'Undyne')
@@ -1139,7 +1201,7 @@ const text = {
          barricade2: [
             '<32>{#p/event}* Ring, ring...',
             '<25>{#p/alphys}{#g/alphysCutscene2}* Okay, so the question for this one is...',
-            '<25>{#g/alphysCutscene1}* "Who is Mettaton\'s- {%}',
+            '<25>{#g/alphysCutscene1}{*}* "Who is Mettaton\'s- {%}',
             '<25>{#g/alphysGarbo}* Are they all seriously about himself?',
             '<25>{#g/alphysGarboCenter}* Man.',
             '<25>{#g/alphysWelp}* "What is Mettaton\'s most successful product line?"',
@@ -1182,7 +1244,7 @@ const text = {
             "<25>{#g/alphysCutscene1}* No, I only completed one Mettaton model, so I know that's not it."
          ],
          barricade3b2: [
-            '<25>{#p/alphys}{#g/alphysShocked}* Wh-',
+            '<25>{#p/alphys}{#g/alphysShocked}* Wh...',
             '<25>{#g/alphysOhGodNo}* How do you know that?',
             "<25>{#g/alphysOhGodNo}* Nobody's supposed to know that!!",
             '<25>{#g/alphysNeutralSweat}* H-have you told anyone else??',
@@ -1252,7 +1314,7 @@ const text = {
             '<25>{#g/alphysTheFactIs}* Oh, a-and, uh, about the Mew Mew doll...',
             '<25>* Well...',
             "<25>{#g/alphysUhButHeresTheDeal}* I'll get back to you on that later.",
-            '<25>{#g/alphysCutscene3}* Anyway see you at the elevator byeeee- {%}'
+            '<25>{*}{#g/alphysCutscene3}* Anyway see you at the elevator byeeee- {%}'
          ],
          puzzleReaction1: [
             '<32>{#p/event}* Ring, ring...',
@@ -1330,8 +1392,8 @@ const text = {
          cooker13x: [ '<32>{#p/human}* (You activated the jetpack.)' ],
          cooker14: ':$(x)',
          cooker15: '$(x)%',
-         cooker16a: [ '<32>* YOU DO REALIZE YOUR LIFE IS IN DANGER HERE... RIGHT?' ],
-         cooker16b: [ '<32>{#p/mettaton}* ...' ],
+         cooker16a: [ '<32>{#p/mettaton}* YOU DO REALIZE YOUR LIFE IS IN DANGER HERE... RIGHT?' ],
+         cooker16b: [ '<32>* ...' ],
          cooker16c: [ '<32>* PERHAPS OUR CONTESTANT IS... MENTALLY UNSTABLE.', '<32>* IN WHICH CASE...' ],
          cooker16d: [
             "<32>* WE'LL HAVE TO CUT THIS EPISODE SHORT!",
@@ -1344,11 +1406,10 @@ const text = {
             '<32>* ...LET US WISH THE HUMAN WELL.'
          ],
          cooker16f: [
-            '<32>{#p/narrator}* ...',
-            "<32>* Something's wrong...",
-            "<32>* Weren't we meant to be flying a jetpack to chase after...",
-            "<32>* I can't...",
-            "<32>* I can't remem- {%}"
+            '<32>{#p/narrator}* Are you insane?\n* Are you out of your mind?',
+            "<32>* You could've gotten yourself blown up!",
+            "<32>* ...as if I didn't already know this was all just for show.",
+            "<32>* Doesn't make it any less funny, though."
          ],
          cooker17a: [
             '<32>{#p/mettaton}* WELL, WELL, WELL...',
@@ -1369,12 +1430,12 @@ const text = {
             '<32>* I BID YOU ALL FAREWELL!'
          ],
          cooker17d: [
-            '<32>{#p/narrator}* ...',
-            "<32>* Something's wrong...",
-            '<32>* I have the weirdest feeling that... we were meant to be flying upwards.',
-            '<32>* And also... something about a substitute?',
-            "<32>* I can't...",
-            "<32>* I can't remem- {%}"
+            '<32>{#p/narrator}* Well, that sure was the "bomb!"',
+            '<32>{#p/narrator}* Good thing you made it to the end in time.'
+         ],
+         cooker17e: [
+            '<32>{#p/narrator}* Well, that sure was the "bomb!"',
+            "<32>{#p/narrator}* Too bad you couldn't make it to the end in time."
          ],
          cooker18a: [
             '<32>{#p/mettaton}* WELL, WELL, WELL...',
@@ -1426,28 +1487,26 @@ const text = {
             '<32>* WELL, BEST OF LUCK!'
          ],
          robocaller4x: [
-            '<25>{#p/asriel2}{#f/8}* Best of luck...?',
+            '<25>{#p/asriel2}{#f/8}* Really?\n* "Best of luck?"',
             '<25>{#f/6}* Be careful what you wish for, dolt.',
             "<25>{#f/7}* There's literally a liftgate right ahead."
          ],
          cookerX1: [
             '<32>{#p/monster}* Oh, h-hey...',
             '<32>* I, uh... was asked to g-guard this thing after everyone evacuated...',
-            "<32>* So, it seems... you're not going to- {%}"
+            '<32>* So, it seems...',
+            "<32>{*}* You're not going to- {%}"
          ],
-         cookerX2: [ "<25>{#p/asriel2}{#f/6}* Stay out of our way, or we'll kill you dead." ],
+         cookerX2: [ '<25>{#p/asriel2}{#f/6}* Stay out of our way.' ],
          cookerX3: [ "<32>{#p/monster}* I'm sorry!\n* I'm sorry!\n* You can use it!" ],
          cookerX4: [
             '<32>{#p/monster}* J-just...\n* Leave me alone...',
             "<32>* I'm just an artist, okay?\n* I'm so sorry..."
          ],
-         cookerX5a: [
-            "<25>{#p/asriel2}{#f/2}* Do you really think you're worth our time?",
-            '<25>{#f/1}* Do you really think we want to fight you monsters one by one?'
-         ],
-         cookerX5b: [ "<25>{#f/9}* God, you're so STUPID, it's hilarious!", "<25>{#f/5}* Imagine how long that'd take!" ],
-         cookerX6: [ '<32>{#p/monster}* Then...\n* W-what are you planning?' ],
-         cookerX7: [ '<25>{#p/asriel2}{#f/2}* Hee hee hee...', "<25>{#p/asriel2}{#f/1}* You'll see." ],
+         cookerX5a: [ "<25>{#p/asriel2}{#f/8}* Do you really think you're worth our time?" ],
+         cookerX5b: [ '<25>{#f/6}* Come on, now.' ],
+         cookerX6: [ "<32>{#p/monster}* O-okay, I'll just... stay out of your way.\n* Like you said to." ],
+         cookerX7: [ '<25>{#p/asriel2}{#f/3}* That was probably a smart choice.' ],
          cookerX8: [ "<25>{#p/asriel2}{#f/3}* Let's go." ],
          cookerX9: [
             '<32>{#p/event}* Ring, ring...',
@@ -1589,7 +1648,7 @@ const text = {
                             "<25>{#f/1}* OH!\n* It's my turn, I think.",
                             "<25>{#f/4}* Today's... not really been the greatest...",
                             '<25>{#f/8}* Haha...',
-                            "<25>{#f/5}* Anyway, I'm called Monster Kid."
+                            "<25>{#f/5}* Anyway, I'm Monster Kid."
                          ]
                        : [
                             "<25>{#f/1}* OH!\n* It's my turn, right??",
@@ -1659,7 +1718,7 @@ const text = {
          moneyVote1: [
             '<32>{#p/mettaton}* WELL, CONTESTANTS, THAT CONCLUDES THIS ROUND.',
             "<32>* SINCE THIS IS THE FIRST ROUND, YOU'LL VOTE ON WHO YOU THINK SHOULD BE ELIMINATED.",
-            '<32>{#p/napstablook}* hey, um.........\n* i have a ques- {%}',
+            '<32>{#p/napstablook}* hey, um.........\n* i have a question.........',
             "<32>{#p/mettaton}* NO, BLOOKY, YOU CAN'T VOTE FOR YOURSELF.",
             '<32>{#p/napstablook}* oh............',
             "<32>{#p/mettaton}* IT'S ELIMINATION TIME, PEOPLE!\n* SANS, YOU'RE UP FIRST.",
@@ -1675,7 +1734,7 @@ const text = {
                : [
                     '<32>{#p/mettaton}* HMM...',
                     '<32>* WHY "ANNE?"',
-                    "<25>{#p/sans}{#g/sansLaugh1}* 'cause this ANNE droid is driving me craz- {%}",
+                    "<25>{#p/sans}{#g/sansLaugh1}* 'cause this ANNE droid is driving me crazy.",
                     "<32>{#p/mettaton}* YOU'RE DISQUALIFIED!",
                     '<25>{#p/sans}{#g/sansLaugh2}* heheheh, worth it.',
                     '<32>{#p/mettaton}* UGH... HOW ABOUT YOU, BLOOKY?'
@@ -1757,18 +1816,10 @@ const text = {
                             '<25>{#f/7}* Not only did they outsmart UNDYNE...',
                             "<25>* ...who's one of the strongest monsters EVER..."
                          ]),
-                    ...(save.data.b.f_state_oopsprimer
-                       ? [
-                            '<25>{#f/4}* But when I...',
-                            '<25>{#f/5}* ...',
-                            '<25>{#f/6}* They... stopped me from making a really stupid life choice.'
-                         ]
-                       : [
-                            '<25>{#f/7}* But when I was about to DIE...',
-                            '<25>* ...they pulled me down at the LAST second and saved me!',
-                            '<25>{#f/2}* IN FRONT OF UNDYNE!!!',
-                            '<25>{#f/3}* I... kind of owe them my life, haha...'
-                         ]),
+                    '<25>{#f/7}* But when I was about to DIE...',
+                    '<25>* ...they pulled me down at the LAST second and saved me!',
+                    '<25>{#f/2}* IN FRONT OF UNDYNE!!!',
+                    '<25>{#f/3}* I... kind of owe them my life, haha...',
                     '<32>{#p/mettaton}* YOU DO REALIZE THAT THE VOTE IS A VOTE TO ELIMINATE, RIGHT?',
                     '<25>{#p/kidd}{#f/4}* ...it is?',
                     '<32>{#p/mettaton}* YEAH.',
@@ -1891,7 +1942,7 @@ const text = {
             '<32>{#z3}* ...UPON THIS ABSOLUTELY GORGEOUS LIFE-SIZED MEW MEW DOLL!'
          ],
          moneyFinal2: [ '<32>{#p/napstablook}* oh my............' ],
-         moneyFinal3: [ '<32>{#p/mettaton}* HAHAHA, IMPRESSED?', '<32>{#p/mettaton}{#z2}* IT WAS FOUND IN- {%}' ],
+         moneyFinal3: [ '<32>{#p/mettaton}* HAHAHA, IMPRESSED?', '<32>{#p/mettaton}{#z2}* IT WAS FOUND IN...' ],
          moneyFinal4: [
             '<32>{#p/event}* Ring, ring...',
             "<25>{#p/alphys}{#g/alphysOhGodNo}{#z0}* H-hey! You can't give that away, that's... I own that!",
@@ -1901,7 +1952,7 @@ const text = {
             "<32>{#p/mettaton}* I'M AFRAID IT'S TOO LATE, DR. ALPHYS...",
             '<32>{#z3}* THE CONTESTANTS HAVE ALREADY GOTTEN THEIR HOPES UP.',
             '<25>{#p/alphys}{#g/alphysWTF}{#z0}* Are you serious?',
-            '<25>{#p/alphys}{#g/alphysCutscene3}* I spent months looking for th- {%}'
+            '<25>{*}{#p/alphys}{#g/alphysCutscene3}* I spent months looking for- {%}'
          ],
          moneyFinal5: [
             '<32>{#p/mettaton}* OH NO.\n* THE CONNECTION SEEMS TO HAVE BEEN TERMINATED.',
@@ -1993,23 +2044,9 @@ const text = {
             '<32>* cya there............'
          ],
          truemtt3: [
-            '<32>{#p/narrator}* This is all wrong...',
-            '<32>* The show, the contestants...\n* All of it.',
-            "<32>* I can't explain why, I just...",
-            "<32>* I KNOW there's something that's not right here, and I wish I had a clue what it was.",
+            '<32>{#p/narrator}* Blooky...',
             '<32>* ...',
-            '<32>* But, you know...',
-            "<32>* That's not even what's been eating away at me the most.",
-            "<32>* This probably isn't going to be news to you, but...",
-            "<32>* I can't stop thinking about the mistakes of the past.",
-            "<32>* ...I mean, I think about that every day, but... it's different now.",
-            "<32>* All this stuff we've done together is making me realize...",
-            '<32>* ...that I was probably even dumber in the past than I first thought.',
-            "<32>* I know it's not the best time for a mood bomb, but...",
-            "<32>* I wanted you to know how I've been feeling.",
-            '<32>* ...',
-            '<32>* Heh... guess we better get going before they air the re-run, eh?',
-            '<32>* Come on.'
+            '<32>* I get the feeling things are about to turn serious.'
          ],
          moneyX1: [
             '<32>{#p/event}* Ring, ring...',
@@ -2045,7 +2082,7 @@ const text = {
                Math.min(save.flag.n.ga_asrielMoneyX4++, 1)
             ],
          moneyX4a: [ '<25>{#p/asriel2}{#f/1}* There.' ],
-         moneyX4b: [ '<25>{#p/asriel2}{#f/6}* ...', '<25>{#p/asriel2}{#f/7}* Did we seriously just wait for- {%}' ],
+         moneyX4b: [ '<25>{#p/asriel2}{#f/6}* ...', '<25>{#p/asriel2}{#f/7}* Did we seriously just wait for that?' ],
          moneyX5a: [
             '<32>{#p/event}* Ring, ring...',
             '<32>{#p/mettaton}* DO MY SENSORS DECIEVE?',
@@ -2066,8 +2103,8 @@ const text = {
             '<32>* IF YOU HAVE ANY LAST WORDS FOR THE RESIDENTS OF THE OUTPOST...',
             '<32>* NOW WOULD BE THE PERFECT TIME TO SHARE THEM.'
          ],
-         moneyX6a: [ '<25>{#p/asriel2}{#f/5}* Hmm...' ],
-         moneyX6b: [ '<25>{#f/9}* Nah.', '<25>{#p/asriel2}{#f/1}* Leaving you all in the dark is WAY more fun.' ],
+         moneyX6a: [ '<25>{#p/asriel2}{#f/15}* ...' ],
+         moneyX6b: [ '<25>{#f/2}* Nah.' ],
          moneyX7: [ '<25>{#p/asriel2}{#f/6}* Come on, get down.' ],
          moneyX8: [ '<25>{#p/asriel2}{#f/8}* ...', '<25>{#p/asriel2}{#f/6}* Onward to the elevator.' ],
          rg2a: [ "<32>{#p/monster}{#x1}* Halt!\n* You've gone far enough!{#x3}" ],
@@ -2091,7 +2128,7 @@ const text = {
                     "<32>{#x1}{#x2}* Let's whoop some traitor backside.{#x3}"
                  ]
                : [ '<32>{#x1}* Come on, girl.{#x3}', "<32>{#x1}{#x2}* Let's whoop some human backside.{#x3}" ],
-         rg3: [ '<25>{#p/asriel2}{#f/8}* Ugh.' ],
+         rg2e: [ '<32>{#p/narrator}* Wow.\n* That was...', '<32>{#p/narrator}* ...something.' ],
          hapsta1: [ '<32>{#p/napstablook}* oh, hey', '<32>* this way.........' ],
          hapsta2: [ '<32>{#p/napstablook}* well... here we are', "<32>* as for why we're here......" ],
          hapsta3a: [
@@ -2103,14 +2140,14 @@ const text = {
          hapsta5: [ "<32>{#p/napstablook}* it's a private recording i found at the royal lab." ],
          hapsta6: [
             '<32>{#p/alphys}* Completing your final body is going to take some time...',
-            '<32>* Are you sure you want this right- {%}',
+            '<32>* Are you sure you want this right now?',
             "<32>{#p/hapstablook}* i'm ready, doctor.",
             "<32>{#p/alphys}* Okay... I'm b-bringing Mettaton online right now.",
             '<32>* This control chip will allow you to use any body I build for you...',
             "<32>* When I finish your new body, I'll just t-transfer it there.",
             '<32>* Will that, uh, work?',
             "<32>{#p/hapstablook}* it's marvelous, doctor.\n* marvelous!",
-            "<32>{#p/alphys}* Heh... that's...\n* That's very nice of you, Ha- {%}",
+            "<32>{#p/alphys}* Heh... that's...\n* Very nice of you...",
             '<32>{#p/hapstablook}* so when do i get to start?',
             '<32>{#p/alphys}* O-oh, um, you can try right now if you like?',
             "<32>* It's a universal chip, so you don't need to fuse with it to control it.",
@@ -2120,7 +2157,7 @@ const text = {
          ],
          hapsta7: [
             "<32>{#p/napstablook}* well, that's it",
-            "<32>{#p/napstablook}* if i didn't know any better, i'd say that's the voice of- {%}"
+            "<32>{#p/napstablook}* if i didn't know any better, i'd say that's the voice of..."
          ],
          hapsta8: [ "<32>{#p/finalghost}* Sorry, I'm late." ],
          hapsta9: [ '<32>* Oh.\n* Hello, human.' ],
@@ -2144,7 +2181,7 @@ const text = {
             ][save.data.n.state_wastelands_dummy]
          ],
          hapsta12b: [ '<32>* Are we ready to make the call?' ],
-         hapsta13: [ '<32>{#p/napstablook}* well, hold on', "<32>* where's- {%}" ],
+         hapsta13: [ '<32>{#p/napstablook}* well, hold on...', "<32>{*}* where's- {%}" ],
          hapsta14: [ '<32>{#p/monster}* RIGHT HERE, BOZO!' ],
          hapsta15: [ '<32>{#p/finalghost}* Do you always have to do that.' ],
          hapsta16: [
@@ -2154,12 +2191,12 @@ const text = {
          hapsta17: [ "<32>{#p/finalghost}* They didn't do anything to me.\n* You're over-reacting." ],
          hapsta18: [ '<32>{#p/monster}* Jeez, I was only kidding...' ],
          hapsta19: [ '<32>{#p/finalghost}* Sure you were.\n* Now, for the matter at hand...' ],
-         hapsta20: [ "<32>{#p/finalghost}* We all know why we're here.\n* Our cousin- {%}" ],
+         hapsta20: [ "<32>{#p/finalghost}* We all know why we're here.\n* Our cousin is..." ],
          hapsta21: [ "<32>{#p/monster}* Our cousin's a SELLOUT." ],
          hapsta22: [
-            "<32>{#p/finalghost}* Except the point of an intervention isn't to throw insults around, it's to help.",
-            '<32>* "Mettaton" has obviously gotten a little in over his head.',
-            "<32>* I think it's time we fix that."
+            '<32>{#p/finalghost}* ...',
+            '<32>* Our cousin is many things, but a "sellout" is not one of them.',
+            '<32>* In fact, after Blooky and I read his diaries... I fear we may be the ones at fault.'
          ],
          hapsta23: [ '<32>{#p/napstablook}* .........\n* .........should we call him?' ],
          hapsta24: [ "<32>{#p/finalghost}* I don't see a reason not to." ],
@@ -2173,7 +2210,7 @@ const text = {
             "<32>{#p/mettaton}* I'M AFRAID I CAN'T DO THAT RIGHT NOW SINCE I'M PREPARING FOR ANOTHER SHOW.",
             "<32>* HOW ABOUT WE MEET UP ONCE THAT'S OVER WITH?"
          ],
-         hapsta26: [ '<32>{#p/monster}* Anything to avoid- {%}' ],
+         hapsta26: [ '<32>{*}{#p/monster}* Anything to avoid- {%}' ],
          hapsta27: [ '<32>{#p/finalghost}* Quiet!' ],
          hapsta28: [
             '<32>{#p/napstablook}* that works...',
@@ -2186,7 +2223,7 @@ const text = {
          ],
          hapsta30: [
             "<32>{#p/finalghost}* Just because Mettaton isn't here right now doesn't mean we've failed.",
-            "<32>* We'll just have to bide our time until he's ready..."
+            "<32>* We'll just have to be patient."
          ],
          hapsta31: [ '<32>{#p/monster}* Fine...' ],
          hapsta32: () => [
@@ -2206,7 +2243,7 @@ const text = {
          hapsta35: [ '<32>{#p/narrator}* No problem...' ],
          opera1: () => [
             '<25>{#p/alphys}{#g/alphysNervousLaugh}* Ah, there you are!',
-            ...(save.data.n.bad_lizard === 1
+            ...(trueLizard() === 1
                ? [
                     "<25>{#g/alphysSideSad}* I've been... worried, about what you'd do if I didn't escort you.",
                     "<25>{#g/alphysOhGodNo}* Uh, not that you'd do anything bad!",
@@ -2236,7 +2273,7 @@ const text = {
          opera4: () =>
             world.genocide
                ? [ "<25>{#p/asriel2}{#f/1}* Let's go kill off that pile of circuits." ]
-               : save.data.n.bad_lizard === 1
+               : trueLizard() === 1
                ? [ '<25>{#p/alphys}{#g/alphysNeutralSweat}* Here we are.' ]
                : [
                     "<25>{#p/alphys}{#g/alphysCutscene1}* Okay, we're here!",
@@ -2249,7 +2286,7 @@ const text = {
          ],
          opera6: [ '<25>{#p/alphys}{#g/alphysUhButHeresTheDeal}* Uh, y-yeah!\n* Hi!' ],
          opera7: () =>
-            save.data.n.bad_lizard === 1
+            trueLizard() === 1
                ? [
                     "<25>{#p/alphys}{#g/alphysWelp}* It's a good thing you didn't attack the human earlier...",
                     "<25>{#g/alphysNeutralSweat}* If you had, they might've..."
@@ -2260,7 +2297,7 @@ const text = {
                  ],
          opera8: [ '<32>{#p/monster}{#x1}* ...human?{#x3}', '<32>{#x1}* What human?{#x3}' ],
          opera9: [
-            "<25>{#p/alphys}{#g/alphysTheFactIs}* Uhhhhh I don't know I'm just trying to escort someone through- {%}",
+            "<25>{*}{#p/alphys}{#g/alphysTheFactIs}* Uhhhhh I don't know I'm just trying to escort someone through- {%}",
             "<32>{#p/monster}{#x1}* Alphys, you're like, the second highest authority on the outpost.{#x3}",
             "<32>{#x2}* Yeah, you don't need to ask us for permission, haha.{#x3}"
          ],
@@ -2273,7 +2310,7 @@ const text = {
          opera13: [
             "<25>{#p/alphys}{#g/alphysSideSad}* It's so dark in here...",
             '<25>* Maybe we should turn back. Find another way.',
-            "<25>* Unless it's- {%}"
+            "<25>{*}* Unless it's- {%}"
          ],
          opera14a: [ '<32>{#p/alphys}{#g/alphysGarbo}* Mettaton.' ],
          opera14b: [ '<32>{#p/mettaton}* OH MY...' ],
@@ -2287,7 +2324,7 @@ const text = {
          ],
          opera16b: [
             '<32>{*}* MY, MY...{^30}{%}',
-            "<32>{*}{#x1}* IT'S SHAME ALPHYS ISN'T HERE TO SEE THIS.{^30}{%}",
+            "<32>{*}{#x1}* IT'S A SHAME ALPHYS ISN'T HERE TO SEE THIS.{^30}{%}",
             "<32>{*}{#x2}* SHE WOULD'VE LOVED IT.{^30}{%}"
          ],
          opera17: () => (world.genocide ? [ 'Oh ', 'my ', 'friends... ' ] : [ 'Oh ', 'my ', 'love...' ]),
@@ -2322,7 +2359,7 @@ const text = {
                : [ 'So ', 'sad ', "it's\n", 'hap', 'pen', 'ing.' ],
          opera33: [ '<32>{#p/mettaton}* SO SAD.', "<32>{#p/mettaton}* SO SAD YOU'RE GOING TO BE EJECTED." ],
          opera34: () =>
-            save.data.n.bad_lizard < 2
+            trueLizard() < 2
                ? [
                     '<25>{#p/alphys}{#g/alphysGarboCenter}* You done now?',
                     '<32>{#p/mettaton}{#x1}* WELL, HOLD ON...',
@@ -2337,7 +2374,7 @@ const text = {
                     "<32>{#x1}* ...ANYWAY, I'VE GOT SOMETHING MUCH, -MUCH- MORE EXCITING IN STORE COMING VERY SOON."
                  ]
                : [
-                    ...(save.data.n.bad_lizard < 2
+                    ...(trueLizard() < 2
                        ? [ '<25>{#p/alphys}{#g/alphysWelp}* S-so... what now?', '<32>{#p/mettaton}{#x0}* WHAT NOW?' ]
                        : []),
                     '<32>{#p/mettaton}{#x0}* WELL, AS MUCH AS I WOULD HAVE LOVED TO FINISH THAT EPISODE...',
@@ -2349,294 +2386,152 @@ const text = {
          ],
          // 36 being the next hapsta number is a total coincidence xD
          hapsta36: [ "<32>{#p/mettaton}{#e/mettaton/0}* OH... RIGHT.\n* I'D FORGOTTEN ABOUT THAT." ],
-         hapsta37: [ "<32>{#p/monster}* You've forgotten about a LOT of things, haven't you?" ],
-         hapsta38: [ '<32>{#p/mettaton}{#e/mettaton/1}* HUH?' ],
-         hapsta39: [ "<32>{#p/finalghost}* You've become unhinged." ],
-         hapsta40: [ '<32>{#p/mettaton}{#e/mettaton/2}* WHERE DID YOU COME FROM?' ],
-         hapsta41: [ '<32>{#p/napstablook}* we just wanna help.........' ],
+         hapsta37: [
+            '<32>{#p/napstablook}* hey, um......',
+            '<32>{#p/napstablook}* i was looking through old lab recordings, and...'
+         ],
+         hapsta38: [ '<32>{#p/mettaton}{#e/mettaton/34}* YES...?' ],
+         hapsta39: [
+            '<32>{#p/napstablook}* well, there was this voice that sounded like......',
+            '<32>{#p/napstablook}* like......'
+         ],
+         hapsta40: [ "<33>{#p/mettaton}{#e/mettaton/11}* WE DON'T HAVE ALL DAY, DARLING." ],
+         hapsta41: [
+            '<32>{#p/napstablook}* it was you',
+            '<32>{#p/napstablook}{#e/mettaton/3}* .........\n* the real you.'
+         ],
          hapsta42: [
-            "<32>{#p/mettaton}{#e/mettaton/3}* DON'T YOU THINK YOU'RE HOLDING UP THE HUMAN?",
-            "<32>{#p/monster}* They're with us, genius.",
-            '<32>{#p/monster}* I thought that was obvious.'
+            '<32>{#p/mettaton}{#e/mettaton/2}* THE "REAL ME" EH?',
+            "<32>{#e/mettaton/0}* NOW HOLD ON, LET'S NOT JUMP TO CONCLUSIONS HERE."
          ],
-         hapsta43: [ '<25>{#p/alphys}{#g/alphysTheFactIs}* Uh, I s-swear I had nothing to do with this...' ],
-         hapsta44: [ "<25>{#p/alphys}{#g/alphysYeahYouKnowWhatsUp}* I-I'll just, get out of your guys' way..." ],
-         hapsta45: [
-            "<32>{#p/monster}* Excuse me, WHERE do you think you're going?",
-            "<32>{#p/monster}* You're the one who started all this in the first place!"
+         hapsta43: [ "<32>{#p/finalghost}* They're telling the truth." ],
+         hapsta44: [ '<32>{#p/mettaton}{#e/mettaton/6}* ...AND NOW THE GHOSTS ARE GANGING UP ON ME.\n* LOVELY.' ],
+         hapsta45: [ '<25>{#p/alphys}{#g/alphysTheFactIs}* Uh, I s-swear I had nothing to do with this...' ],
+         hapsta46: [
+            "<25>{#p/alphys}{#g/alphysYeahYouKnowWhatsUp}{#e/mettaton/3}* I-I'll just, get out of your guys' way..."
          ],
-         hapsta46: [ '<25>{#p/alphys}{#g/alphysNeutralSweat}* ...' ],
          hapsta47: [
-            '<32>{#p/mettaton}{#e/mettaton/4}* SO TO BE CLEAR...',
-            '<32>{#p/mettaton}{#e/mettaton/5}* ARE YOU FANS, OR PAPARAZZIS?'
+            "<32>{#p/monster}* Excuse me, WHERE do you think you're going?",
+            "<32>{#p/monster}* You're the one who started all this in the first place!",
+            "<32>{#p/monster}* If it wasn't for your stupid tape, I wouldn't have to be here right now."
          ],
-         hapsta48: [ '<32>{#p/finalghost}* We saw the tape, Mettaton.' ],
-         hapsta49: [ '<32>{#p/monster}{#e/mettaton/6}* We KNOW your true identity!' ],
-         hapsta50: [ '<25>{#p/alphys}{#g/alphysWelp}* Whoops.' ],
-         hapsta51a: [ '<32>{#p/mettaton}{#e/mettaton/6}* ...' ],
+         hapsta48: [ '<25>{#p/alphys}{#g/alphysNeutralSweat}* Whoops.' ],
+         hapsta49a: [
+            "<32>{#p/mettaton}{#e/mettaton/9}* SO THAT'S IT, THEN.",
+            "<32>{#e/mettaton/7}* YOU'RE ALL HERE... NO DOUBT TO BRING ME BACK HOME."
+         ],
+         hapsta49b: [ '<32>{#e/mettaton/8}* SO MUCH FOR "CHASING YOUR DREAMS," EH BLOOKY?' ],
+         hapsta50: [ '<32>{*}{#p/napstablook}* cousin, i- {%}' ],
+         hapsta51a: [ '<32>{#p/mettaton}{#e/mettaton/18}* OH, DON\'T "COUSIN" ME.' ],
          hapsta51b: [
-            '<32>{#e/mettaton/7}* CONGRATULATIONS, YOU GOT ME.',
-            '<32>{#e/mettaton/8}* YOU WANT A MEDAL OR SOMETHING?\n* A TOKEN OF YOUR VICTORY?',
-            "<32>{#e/mettaton/9}* WELL, YOU'RE NOT GETTING ONE."
+            "<32>{#p/mettaton}{#e/mettaton/20}* IF IT WASN'T FOR YOU, I MIGHT'VE ACTUALLY ENJOYED THE QUIET LIFE...",
+            '<32>{#p/mettaton}{#e/mettaton/17}* ...BUT NO.\n* YOU JUST -HAD- TO GET ME IN ON THE FAMILY BUSINESS.',
+            '<32>{#p/mettaton}{#e/mettaton/19}* A BUSINESS, MIGHT I ADD, WHOSE SALES FIGURES HAVE BEEN IN THE RED SINCE DAY ONE.'
          ],
-         hapsta52: [ '<32>{#p/napstablook}* mettaton......', "<32>* it's not about winning......" ],
+         hapsta52: [ '<32>{#p/napstablook}{#e/mettaton/3}* .........\n* i know.' ],
          hapsta53: [
-            "<32>* it's about family, mettaton",
-            "<32>{#e/mettaton/6}* if you're really... who we think you are"
+            '<32>{#p/mettaton}{#e/mettaton/17}* OH, REALLY NOW?\n* DO YOU REALLY KNOW WHAT IT WAS LIKE FOR ME?'
          ],
-         hapsta54: [ '<32>{#p/monster}* Which, for the RECORD, we know for a fact that you are- {%}' ],
-         hapsta55: [ '<32>{#p/finalghost}* Quiet!' ],
-         hapsta56: [
-            "<32>{#p/napstablook}* if you're really our long lost cousin, then...",
-            "<32>* can't you tell us..."
+         hapsta54: [ "<32>{#p/finalghost}* Considering we've all read your diaries, I'm sure they do..." ],
+         hapsta55a: [
+            "<32>{#p/mettaton}{#e/mettaton/19}* I DON'T CARE IF THEY'VE READ MY DIARIES, I WANT THEM TO HEAR IT FROM ME.",
+            '<32>{#p/mettaton}{#e/mettaton/3}* ...\n* LISTEN, "COUSIN."\n* THE WORK WAS NEVER THE ISSUE.',
+            '<32>{#p/mettaton}{#e/mettaton/14}* SNAIL FARMING MAY NOT BE THE MOST GLAMOROUS PASS TIME, BUT I LIKED IT FOR WHAT IT WAS.',
+            "<32>{#p/mettaton}{#e/mettaton/13}* NO... IT ONLY STARTED BECOMING A PROBLEM WHEN EVERY SECOND I WASN'T ON THE FARM...",
+            "<32>{#p/mettaton}* ...WAS A SECOND YOU PEOPLE DIDN'T SEEM TO CARE ABOUT ME."
          ],
-         hapsta57: [ '<32>* ...why you left?' ],
-         hapsta58: [
-            '<32>{#p/mettaton}{#e/mettaton/3}* ...',
-            "<32>{#e/mettaton/11}* WE'RE CERTAINLY NOT WASTING ANY TIME TODAY, ARE WE..."
+         hapsta55b: [
+            '<32>{#p/mettaton}{#e/mettaton/16}* NO CALLS, NO VISITS... JUST THE OCCASIONAL "HEY, WHEN ARE YOU COMING BACK TO WORK?"',
+            "<32>{#p/mettaton}{#e/mettaton/15}* IT WAS PRETTY OBVIOUS TO ME THAT AT SOME POINT, I'D BECOME NOTHING BUT A TOOL...",
+            '<32>{#p/mettaton}{#e/mettaton/36}* A MERE COG IN THE GRAND BLOOK FAMILY MACHINE.'
          ],
-         hapsta59: [ '<32>{#p/monster}* We want the truth!\n* The TRUTH!' ],
-         hapsta60: [
-            '<32>{#p/mettaton}{#e/mettaton/5}* DO I LOOK LIKE I CARE?',
+         hapsta56: [ '<32>{#p/napstablook}* ...............' ],
+         hapsta57a: [ '<32>{#p/mettaton}{#e/mettaton/2}* NOTHING TO SAY?\n* NO, NO, I EXPECTED AS MUCH.' ],
+         hapsta57b: [
+            '<32>{#p/mettaton}{#e/mettaton/5}* HONESTLY, THOUGH, I COULD CARE LESS ABOUT WHAT YOU HAVE TO SAY.',
             "<32>{#p/mettaton}{#e/mettaton/10}* I'VE GOT EVERYTHING I WANT IN LIFE, AND LOOK AT YOU...",
             '<32>{#p/mettaton}{#e/mettaton/12}* CLINGING TO TRAINING DUMMIES AND BEGGING FOR SCRAPS.'
          ],
-         hapsta61: [ "<32>{#p/finalghost}* You say you don't care about us, yet you invite us onto your shows." ],
-         hapsta62: [
-            '<32>{#e/mettaton/0}* You even gave Blooky special treatment during "time versus money..."',
-            "<32>* Kicking that other contestant so it'd be Napstablook against the human in the final round."
+         hapsta58: [ "<32>{#p/finalghost}* You say you don't care about us, yet you invite us onto your shows." ],
+         hapsta59: [
+            '<32>* You even gave Blooky special treatment during that last show...',
+            "<32>* Kicking that other contestant so it'd be them against the human in the final round."
          ],
-         hapsta63: [
-            '<32>{#p/mettaton}{#e/mettaton/5}* ...THAT WAS ONLY OUT OF PITY.',
-            '<32>{#e/mettaton/4}* AND BESIDES...',
-            '<32>{#e/mettaton/7}* NAPSTABLOOK HAS PROVEN TO BE A GOOD CONTESTANT IN THE PAST!'
+         hapsta60: [ '<32>{#p/mettaton}{#e/mettaton/5}* ...THAT WAS ONLY OUT OF PITY.' ],
+         hapsta61: [ '<32>{#p/monster}* Or... part of you secretly wants to come back!' ],
+         hapsta62: [ '<32>{#p/mettaton}{#e/mettaton/36}* HAHAHA... NO.\n* NOT A CHANCE IN THE GALAXY.' ],
+         hapsta63: [ "<32>{#p/napstablook}* i'm sorry, hapstablook." ],
+         hapsta64: [ '<32>{#p/mettaton}{#e/mettaton/21}* ...OH?' ],
+         hapsta65a: [
+            "<32>{#p/napstablook}* after you left, we couldn't keep up with our customers...",
+            "<32>{#p/napstablook}{#e/mettaton/15}* we had to scale down.\n* the farm... isn't what it was."
          ],
-         hapsta64: () =>
-            save.data.b.oops
-               ? [ '<32>{#p/monster}* Is anyone going to speak up or- {%}' ]
-               : [ '<32>{#p/narrator}* Pity, {#x1}huh?', "<32>{#e/mettaton/1}* Yeah... I don't think so." ],
-         hapsta65: () =>
-            save.data.b.oops
-               ? [ '<25>{#p/alphys}{#g/alphysSideSad}* Mettaton.{#x1}' ]
-               : [ '<32>{#p/monster}* Tell him, $(name)!', '<25>{#p/alphys}{#g/alphysInquisitive}* $(name)...?' ],
-         hapsta66: () =>
-            save.data.b.oops
-               ? [
-                    '<25>* I know that tone of voice...',
-                    '<25>{#g/alphysWorried}* Is it really out of pity, or... is it regret?',
-                    "<25>{#g/alphysIDK}* I've... actually wanted to ask you about it for some time..."
-                 ]
-               : [
-                    '<32>{#p/narrator}* ...',
-                    '<32>* I think deep down, you regret what you did.',
-                    '<32>{#e/mettaton/15}* But listen, I know the feeling...',
-                    '<32>* Long ago, I myself made a choice that put my personal goals above family.{#x1}',
-                    '<32>{#e/mettaton/4}* And the worst part?\n* I justified it, by saying it was all for them.'
-                 ],
-         hapsta67: () =>
-            save.data.b.oops
-               ? [
-                    "<32>{#p/mettaton}{#e/mettaton/5}* I DIDN'T EXPECT THIS FROM -YOU- OF ALL PEOPLE, ALPHYS.",
-                    "<32>* SURELY YOU'RE NOT GOING TO- {%}"
-                 ]
-               : [
-                    '<32>{#p/narrator}* Do you know who lifted me out of that way of thinking?',
-                    '<32>{#e/mettaton/15}* Because, if memory serves...',
-                    '<32>* It was you.',
-                    '<32>{#e/mettaton/3}* All of you, together.\n* As a family.',
-                    '<32>* When Napstablook found me out there, in that cold, lonely place...',
-                    '<32>* I was some long-dead human, clinging to this world for god knows what reason.',
-                    '<32>* Yet you accepted me, made me a part of YOUR family.',
-                    "<32>* Maybe I wasn't the best at first, and maybe I never fully got used to it.",
-                    '<32>* But you, Hapstablook, were the one I confided in the most.',
-                    '<32>* To see you like this... repeating my worst mistakes...',
-                    '<32>{#e/mettaton/6}* It hurts.'
-                 ],
-         hapsta68: () =>
-            save.data.b.oops
-               ? [ '<32>{#p/monster}* Let her speak!' ]
-               : [
-                    '<25>{#p/alphys}{#g/alphysInquisitive}* Sorry for asking, but... why are you all just standing around?'
-                 ],
-         hapsta69: () =>
-            save.data.b.oops
-               ? [ '<25>{#p/alphys}{#g/alphysWelp}* Mettaton...\n* Or... Hapstablook?' ]
-               : [ "<32>{#p/mettaton}{#e/mettaton/16}* OH, RIGHT.\n* I FORGOT YOU CAN'T HEAR THEM." ],
-         hapsta70: () =>
-            save.data.b.oops
-               ? [ "<25>{#g/alphysCutscene3}* I don't know I'm just trying to be a good friend here-" ]
-               : [ '<25>{#p/alphys}{#g/alphysInquisitive}* Hear who?' ],
-         hapsta71: () =>
+         hapsta65b: [ '<32>{#p/napstablook}* i never realized how much you did for us...... until you were gone......' ],
+         hapsta65c: [ "<32>{#p/napstablook}{#e/mettaton/4}* so i'm sorry, hapstablook.\n* for everything." ],
+         hapsta66a: [
+            '<32>{#p/mettaton}* I SEE.',
+            '<32>{#p/mettaton}{#e/mettaton/6}* ...I SEE.',
+            "<32>{#p/mettaton}{#e/mettaton/5}* SO YOU'RE THE TYPE TO APOLOGIZE ONLY -AFTER- YOU'VE BEEN CALLED OUT, HUH?"
+         ],
+         hapsta66b: [ '<32>{#p/mettaton}{#e/mettaton/0}* I SHOULD HAVE KNOWN.' ],
+         hapsta67: [ "<32>{*}{#p/napstablook}* that's not- {%}" ],
+         hapsta68a: [
+            '<32>{#p/mettaton}{#e/mettaton/3}* NO, I GET IT. YOU WANT ME TO FORGIVE YOU AND MOVE ON FROM IT LIKE NOTHING HAPPENED.',
+            "<32>{#p/mettaton}{#e/mettaton/5}* WELL, I'M AFRAID THAT'S NOT HOW THINGS WORK ANYMORE, BLOOKY."
+         ],
+         hapsta68b: [ "<32>{#p/mettaton}{#e/mettaton/6}* ...ANYWAY, I'VE GOT A GRAND FINALE TO PREPARE..." ],
+         hapsta68c: [ "<32>{#p/mettaton}{#e/mettaton/11}* SO, IF YOU DON'T MIND, I'LL BE ON MY WAY NOW." ],
+         hapsta69: [ '<32>{#p/monster}* Get back here.\n* Get back here!\n* GET BACK HERE!!!' ],
+         hapsta70: [ "<33>{#p/finalghost}* I don't think he's coming back." ],
+         hapsta71: [
+            '<32>{#p/napstablook}* maybe... he just needs to think about it... you know?',
+            '<32>{#p/napstablook}* we just... have to give him a chance.........'
+         ],
+         hapsta72: [ "<32>{#p/monster}* What a giant waste of time.\n* I'm going back to Undyne's house now." ],
+         hapsta73: [ '<32>{#p/finalghost}* It was a nice try, Blooky.', '<32>{#p/finalghost}* A real nice try.' ],
+         hapsta74: [ '<32>{#p/napstablook}* no............' ],
+         hapsta75: () =>
             save.data.b.oops
                ? [
-                    '<25>{#g/alphysWelp}* Look.\n* I want you to be happy.',
-                    "<25>{#g/alphysSideSad}* But more and more, it seems like you're... not that."
-                 ]
-               : [ "<32>{#p/mettaton}{#e/mettaton/6}* I'LL TELL YOU LATER." ],
-         hapsta72: () =>
-            save.data.b.oops
-               ? [ "<25>{#g/alphysWorried}* If you've been acting out of guilt, then, it'd explain a lot." ]
-               : [ '<25>{#p/alphys}{#g/alphysWelp}* Cool.' ],
-         hapsta73: () =>
-            save.data.b.oops
-               ? [ '<25>{#g/alphysIDK}* I might be totally off- base though...' ]
-               : [ "<32>{#p/finalghost}* $(name)'s right, you know.", '<25>{#p/alphys}{#g/alphysInquisitive}* Huh...' ],
-         hapsta74: () => [
-            ...(save.data.b.oops
-               ? [
-                    "<32>{#p/mettaton}{#e/mettaton/5}* NO, YOU'RE RIGHT, ALPHYS.",
-                    "<32>{#e/mettaton/11}* YOU'RE DR. ALWAYS-RIGHT."
+                    "<25>{#p/alphys}{#g/alphysCutscene2}* Hey...\n* Don't listen to them.",
+                    "<25>{#p/alphys}{#g/alphysCutscene2}* I've known Mettaton f-for quite a while now...",
+                    "<25>{#p/alphys}{#g/alphysCutscene2}* He wouldn't just leave like that unless he needed time to think.",
+                    "<32>{#p/napstablook}* yeah... i don't know.\n* i just want to set things right with him.",
+                    "<25>{#p/alphys}{#g/alphysSmileSweat}* Just g-give it time.\n* You'd be surprised!"
                  ]
                : [
-                    "<32>{#p/mettaton}{#e/mettaton/5}* WELL, OF COURSE THEY'RE RIGHT.",
-                    "<32>{#e/mettaton/11}* THEY'RE ALWAYS RIGHT."
-                 ]),
-            "<32>{#e/mettaton/17}{#x1}* ALL OF YOU, ALWAYS RIGHT.\n* YOU ALWAYS KNOW WHAT'S BEST FOR ME, DON'T YOU?"
-         ],
-         hapsta75: [ "<32>{#p/monster}* That's NOT what we- {%}" ],
-         hapsta76: [
-            "<32>{#p/mettaton}{#e/mettaton/18}* NO, I'M SICK OF BEING PUSHED AROUND BY YOU PEOPLE.",
-            "<32>{#e/mettaton/19}* YOU WANT TO KNOW WHY I LEFT?\n* WELL, THERE YOU GO.\n* THERE'S YOUR REASON.",
-            '<32>{#e/mettaton/20}{#x1}* I\'M SICK OF BEING ASKED TO DO THIS THING, AND THAT THING, AND "OH NO THE POOR SNAILS!"',
-            "<32>{#e/mettaton/27}* GOD, IT WAS EVERY DAY WITH THAT ONE, WASN'T IT?",
-            "<32>{#e/mettaton/13}{#x2}* WHAT'S SO GREAT ABOUT SNAILS, ANYWAY?\n* I'M DYING TO KNOW.",
-            "<32>{#e/mettaton/14}* THEY'RE JUST SLIMY LITTLE EARTH CREATURES THAT'LL BE EATEN LATER ANYWAY."
-         ],
-         hapsta77: [ '<32>{#p/monster}* Yeah, screw those guys!' ],
-         hapsta78: [ '<32>{#p/mettaton}{#e/mettaton/15}* ...WHAT?' ],
-         hapsta79: [ '<32>{#p/napstablook}* i... kind of like them...' ],
-         hapsta80: [ "<32>{#p/finalghost}* I'm indifferent about them, to be honest." ],
-         hapsta81: [
-            '<32>{#p/mettaton}{#e/mettaton/21}* BUT...',
-            "<32>{#p/napstablook}* hey... it's okay...",
-            "<32>* if you don't like caring for snails, then, you don't have to, alright?"
-         ],
-         hapsta83: [
-            "<32>{#p/mettaton}{#e/mettaton/24}* WELL, I DON'T!\n* IT'S A VERY UN-GLAMOROUS PASS TIME, THANK YOU VERY MUCH!"
-         ],
-         hapsta84: [
-            "<32>{#p/finalghost}* Didn't you enjoy it, though?",
-            '<32>{#p/mettaton}{#e/mettaton/22}* WHAT DO YOU THINK...'
-         ],
-         hapsta86: [
-            '<32>{#p/monster}* You never told us, man...',
-            "<32>{#p/monster}* How were we supposed to know you didn't like it?"
-         ],
-         hapsta87: [ "<32>{#p/finalghost}* This isn't just about snails, though, is it?" ],
-         hapsta88a: [ '<32>{#p/mettaton}{#e/mettaton/3}* ...NO...', "<32>{#e/mettaton/0}* IT'S NOT." ],
-         hapsta89: [
-            "<32>* LOOK, THERE'S A LOT OF THINGS I WASN'T HAPPY DOING.",
-            "<32>{#e/mettaton/5}* I'M JUST NOT THE FAMILY MAN YOU WANTED ME TO BE...",
-            '<32>{#e/mettaton/23}* OR AT LEAST, THE ONE I THOUGHT YOU WANTED ME TO BE.'
-         ],
-         hapsta90: [
-            '<32>{#p/monster}* We NEVER said you had to- {%}',
-            '<32>{#p/mettaton}{#e/mettaton/24}* WAIT, LET ME FINISH.',
-            '<32>* ...',
-            '<32>{#e/mettaton/6}* THERE WERE SO MANY TIMES I WANTED TO TELL YOU ALL HOW I FELT, BUT AT THE SAME TIME...',
-            '<32>{#e/mettaton/15}* YOU ALL SEEMED SO HAPPY WHEN I DID THOSE FAMILY ACTIVITIES WITH YOU GUYS...'
-         ],
-         hapsta92: [ '<32>{#p/napstablook}* what are you getting at?' ],
-         hapsta93: [
-            '<32>{#p/mettaton}{#e/mettaton/3}* BLOOKY...',
-            '<32>* ...',
-            '<32>* I JUST...',
-            '<32>* I...',
-            "<32>{#e/mettaton/25}{#i/40}* I COULDN'T BEAR THE THOUGHT OF BEING A DISAPPOINTMENT.",
-            '<32>{#e/mettaton/15}* THERE, I SAID IT.\n* I...',
-            '<32>{#e/mettaton/15}* I SAID IT...',
-            '<32>{#e/mettaton/15}* ...'
-         ],
-         hapsta94: [ "<32>{#p/monster}* Don't you dare make me cry.\n* DON'T YOU DARE MAKE ME CRY!" ],
-         hapsta95: [
-            '<32>{#p/napstablook}* hapstablook... cousin...',
-            "<32>{#p/napstablook}* if i'd known you felt this way, i..."
-         ],
-         hapsta96: [
-            "<32>{#p/mettaton}{#e/mettaton/6}* BLOOKY, IT'S NOT YOUR FAULT.",
-            "<32>{#e/mettaton/27}* I'M THE ONE WHO SHOULD HAVE SPOKEN UP FOR MYSELF.",
-            "<32>{#e/mettaton/5}* I'M THE ONE WHO MADE THIS MESS IN THE FIRST PLACE."
-         ],
-         hapsta97a: [
-            '<32>{#p/finalghost}* Then help us clean it up.',
-            "<32>{#e/mettaton/3}* Despite what you may think, you haven't done all that much wrong."
-         ],
-         hapsta97b: [
-            "<32>{#e/mettaton/6}* Well, apart from trying to auction off Alphys's doll.\n* That was just rude."
-         ],
-         hapsta98: [ "<32>{#p/mettaton}{#e/mettaton/11}* ...I'LL ADMIT THAT WASN'T MY FINEST MOMENT." ],
-         hapsta99: [
-            "<32>{#p/finalghost}* But I think I speak for {#e/mettaton/6}all of us when I say we're proud of your success.",
-            "<32>* All we ask is that you don't leave us behind from now on.",
-            "<32>{#e/mettaton/22}* We won't force you to do any family activities, or anything like that.",
-            "<32>{#e/mettaton/23}* We just... want to know that you're okay."
-         ],
-         hapsta100: [
-            '<32>{#p/mettaton}{#e/mettaton/28}* ...',
-            '<32>{#p/mettaton}{#e/mettaton/27}* (SIGH...)\n* ALRIGHT, THEN.',
-            '<32>{#e/mettaton/29}* BUT ONLY ON ONE CONDITION.'
-         ],
-         hapsta101: [ '<32>{#p/finalghost}* Name it.' ],
-         hapsta102: [
-            '<32>{#p/mettaton}{#e/mettaton/30}* I WANT ALL OF YOU TO BE WATCHING WHEN I AIR MY FINAL EPISODE.'
-         ],
-         hapsta103: [ '<32>{#p/finalghost}* Consider it done.' ],
-         hapsta104: [
-            "<32>{#p/napstablook}* wait, aren't you going to fight the human in that show?",
-            "<32>{#p/napstablook}* i don't want them to die..."
-         ],
-         hapsta105: [ '<32>{#p/mettaton}{#e/mettaton/31}* WELL, YOU SEE- {%}' ],
-         hapsta106: [ '<32>{#p/monster}* Just make your attacks non- lethal, problem solved!' ],
-         hapsta107: [
-            "<32>{#p/mettaton}{#e/mettaton/5}* I WASN'T AWARE YOU WERE A MIND-READER, COUSIN.",
-            '<32>{#p/mettaton}{#e/mettaton/12}* BUT SERIOUSLY, DID YOU REALLY THINK I, OF ALL PEOPLE, WOULD KILL A HUMAN?'
-         ],
-         hapsta109: [ '<32>{#p/monster}* ...maybe.' ],
-         hapsta110: [
-            "<32>{#p/mettaton}{#e/mettaton/10}* WELL, DON'T WORRY.\n* IN THE WORLD OF SHOW BUSINESS, NOTHING IS REAL!",
-            '<32>{#p/mettaton}{#e/mettaton/0}* INCLUDING ANY PERCIEVED HARM TO ACTORS OR OTHER PERSONNEL.'
-         ],
-         hapsta111: [
-            '<32>{#p/finalghost}* Psst, we should probably get going now.',
-            "<32>{#p/finalghost}* I'm sure the human wants to get on with their business..."
-         ],
-         hapsta112: [
-            "<32>{#p/mettaton}{#e/mettaton/5}* YEAH, I'M SURE THEY DO.\n* AND IN THAT CASE, I'LL BE SEEING YOU SOON...",
-            '<32>{#p/mettaton}{#e/mettaton/11}* ...ON THE FINAL EPISODE OF OUR MAJESTIC SAGA!'
-         ],
-         hapsta113: [ "<32>{#p/monster}* I'll go make sure he doesn't get into any trouble.{%40}" ],
-         hapsta114: () =>
-            save.data.b.oops
-               ? [
-                    '<32>{#p/napstablook}* before i go...',
-                    '<32>{#x1}* ...\n* thanks for the help, alphys.\n* it means so much...',
-                    '<32>{#p/alphys}{#g/alphysCutscene2}* Just doing my best...',
-                    '<32>{#p/napstablook}* ...',
-                    "<32>* weird... why hasn't $(name) said anything...?"
-                 ]
-               : [
-                    '<32>{#p/napstablook}* before i go...',
-                    '<32>{#x1}* ...\n* thank you, $(name).\n* for everything...',
-                    "<32>* you've done so much for our family just by being here with us",
-                    "<32>* but... i know this isn't the family you'd rather be with.",
+                    "<32>{#p/narrator}* Blooky, you know he's just stalling, right?",
+                    "<32>{#p/narrator}* That's what all good family members do when they hear a heartfelt apology.",
+                    '<32>{#p/napstablook}* heh... $(name)...',
+                    '<25>{#p/alphys}{#g/alphysInquisitive}* $(name)...?',
+                    "<32>{#p/napstablook}* it's a long story.\n* i'll tell you later...",
+                    '<25>{#p/alphys}{#g/alphysWelp}* Oh.\n* Okay.',
+                    '<32>{#p/narrator}* The important thing is that you told him you were sorry and meant it.',
+                    '<32>{#p/narrator}* He might not realize it now, but a part of him has wanted to hear that for a long time.',
+                    '<32>{#p/napstablook}* heh... just like you, right?',
+                    "<32>{#p/narrator}* Yeah... took me a while to get used to things with you guys, didn't it?",
+                    '<32>{#p/narrator}* But hey, if I can come around, so can he.',
+                    '<32>{#p/napstablook}* ...\n* thanks, $(name).\n* for everything......',
+                    "<32>* you've done so much for our family just by being here",
+                    "<32>* still... i know this isn't the family you wanted.",
                     '<32>{#p/narrator}* Blooky...',
                     '<32>{#p/napstablook}* if...\n* no, when you see him again...',
                     "<32>* don't ever let him forget how much you cared about him in life... alright?",
                     '<32>{#p/narrator}* ...',
-                    '<32>{#p/napstablook}* good luck, $(name).'
+                    '<32>{#p/narrator}* Heh.\n* Sure thing, Blooky.'
                  ],
-         hapsta115: [
+         hapsta76: [
             "<32>{#p/napstablook}* here's your mew mew doll...\n* i hope that......\n* i wasn't too late......",
             "<25>{#p/alphys}{#g/alphysYeahYouKnowWhatsUpCenter}* No, i-it's okay.\n* Thank you."
          ],
-         hapsta116: [ '<32>* well, cya......' ],
+         hapsta77: [ '<32>{#p/napstablook}* well, cya......' ],
          opera36: () => [
             '<25>{#p/alphys}{#g/alphysWelp}* Well, that was certainly an unexpected turn of events.',
-            ...(save.data.b.a_state_hapstablook
+            ...(save.data.b.a_state_hapstablook && !save.data.b.oops
                ? [
                     '<25>{#p/alphys}{#g/alphysInquisitive}* Not to mention the whole "$(name)" thing...',
                     "<25>* Last I checked, they've been dead for a hundred years.",
-                    "<25>{#g/alphysWelp}* Oh well.\n* Mettaton said he'd explain it later.",
+                    "<25>{#g/alphysWelp}* Oh well.\n* I guess they'll tell me about it later.",
                     "<25>{#g/alphysWelp}{#x5}* Speaking of which, you'll probably want to get going..."
                  ]
                : [
@@ -2650,8 +2545,18 @@ const text = {
             "<25>{#g/alphysHellYeah}* I-I'll stay in contact!"
          ],
          opera37: [ '<25>{#p/alphys}{#g/alphysSmileSweat}* T-take care!!' ],
+         opera38: [
+            '<32>{#p/narrator}* ...what a mess.',
+            "<32>* I only met Blooky's family after Hapstablook left...",
+            '<33>* ...now I understand why Blooky feels how they do all the time.',
+            "<32>* That guilt... thinking you could've done more to care about someone...",
+            "<32>* But look.\n* Standing here and talking won't solve anything.",
+            "<32>* Mettaton's got one last show in the works...",
+            '<32>* I say we let that play out before doing anything else.',
+            "<32>* Now let's continue, shall we?"
+         ],
          operaX1: () =>
-            [ [ '<25>{#p/asriel2}{#f/8}* Hello?' ], [ '<25>{#p/asriel2}{#g/8}* ...' ] ][
+            [ [ '<25>{#p/asriel2}{#f/8}* Hello?' ], [ '<25>{#p/asriel2}{#f/8}* ...' ] ][
                Math.min(save.flag.n.ga_asriel53++, 1)
             ],
          operaX2: () => [
@@ -2669,7 +2574,7 @@ const text = {
          operaX4: () =>
             [
                [
-                  "<25>{*}{#p/asriel2}{#f/5}* So tell me, what's this little song about?{^30}{%}",
+                  "<25>{*}{#p/asriel2}{#f/10}* So tell me, what's this little song about?{^30}{%}",
                   '<32>{*}{#p/mettaton}{#x1}* OH, ASRIEL...{^30}{%}',
                   '<32>{*}{#x2}* HAVEN\'T YOU HEARD OF A THING CALLED "SPOILERS?"{^30}{%}',
                   '<25>{*}{#p/asriel2}{#f/6}* Figures.{^30}{%}'
@@ -2711,10 +2616,8 @@ const text = {
                     '<32>{#e/mettaton/3}* HOW PREDICTABLE...',
                     "<32>{#e/mettaton/12}* SUFFICE IT TO SAY, I WON'T WASTE YOUR TIME WITH A MONOLOGUE.",
                     ...(save.data.b.a_state_hapstablook
-                       ? [
-                            "<32>{#e/mettaton/35}* JUST KNOW THAT, AS I SAID EARLIER, I'LL BE ATTACKING NON-LETHALLY TODAY."
-                         ]
-                       : save.data.n.bad_lizard < 2
+                       ? [ "<32>{#e/mettaton/15}* JUST KNOW THAT I'M NOT FEELING THE BEST RIGHT NOW..." ]
+                       : trueLizard() < 2
                        ? [ "<32>{#e/mettaton/0}* JUST KNOW THAT I'D RATHER YOU DIDN'T DIE TODAY." ]
                        : [
                             "<32>{#e/mettaton/17}* JUST KNOW THAT YOUR PRECIOUS HUMAN SOUL WON'T GO TO WASTE WHEN IT'S MINE."
@@ -2730,18 +2633,13 @@ const text = {
                     ...(save.data.b.a_state_hapstablook
                        ? [
                             "<32>{#e/mettaton/5}* THINGS DIDN'T QUITE WORK OUT THE WAY I EXPECTED.",
-                            "<32>{#e/mettaton/3}* ALL THIS TIME, BLOOKY'S BEEN TRYING TO CONVINCE ME OF YOUR QUALITY OF CHARACTER.",
-                            "<32>* THEY SAY YOU'VE BEEN FRIENDLY WITH THE MONSTERS...",
-                            '<32>{#e/mettaton/4}* SO MUCH SO, IN FACT, THAT YOU EVEN MANAGED TO IMPRESS YOUR JADED PARTNER THERE.',
-                            "<32>{#e/mettaton/6}* STILL, I WASN'T CONVINCED.\n* BUT AFTER OUR LITTLE FAMILY REUNION, WELL...",
-                            '<32>* LET\'S JUST SAY I\'VE CHANGED MY MIND ON THE WHOLE "KILLER ROBOT" PLAN.',
-                            "<32>{#e/mettaton/2}* BUT HEY, WHO SAYS YOU CAN'T HAVE DRAMA AND ACTION WITHOUT REAL BLOODSHED?",
-                            "<32>{#e/mettaton/12}* ...NO, DARLING, WE'LL JUST BE -FAKING- THE BLOODSHED INSTEAD!",
-                            "<32>{#e/mettaton/36}* (DON'T WORRY, BLOOKY AND THE OTHERS ALREADY KNOW ABOUT THIS.)",
-                            '<32>{#e/mettaton/4}* MY BULLETS WILL SECRETLY BE NON-LETHAL, BUT...',
-                            "<32>{#e/mettaton/5}* AS FAR AS THE AUDIENCE IS CONCERNED, YOU'LL BE FIGHTING FOR YOUR LIFE!"
+                            '<32>{#e/mettaton/6}* ALL THIS OLD FAMILY NONSENSE COMING BACK OUT OF THE BLUE...',
+                            "<32>* ...ISN'T SOMETHING I'M PARTICULARLY HAPPY ABOUT.",
+                            "<32>{#e/mettaton/11}* STILL, I'VE GOT A GRAND FINALE TO PERFORM, SO I MIGHT AS WELL GET IT OVER WITH.",
+                            '<32>{#e/mettaton/5}* TRY NOT TO BE TOO MUCH OF A BORE, WILL YOU?',
+                            '<32>{#e/mettaton/0}* THE AUDIENCE IS STARVING FOR SOME GENUINE ACTION.'
                          ]
-                       : save.data.n.bad_lizard < 2
+                       : trueLizard() < 2
                        ? [
                             "<32>{#e/mettaton/25}* I'M COUNTING ON YOU TO MAKE IT PAST ME IN ONE PIECE.",
                             "<32>{#e/mettaton/0}* DON'T GET ME WRONG, I'D LOVE TO TAKE A HUMAN SOUL AND BECOME HUMANITY'S STAR.",
@@ -2799,7 +2697,7 @@ const text = {
             '<32>{*}{#e/mettaton/17}* "ATTACK OF THE KILLER ROBOT!"{^20}{%}'
          ],
          end5: () =>
-            save.data.n.bad_lizard < 2
+            trueLizard() < 2
                ? [ '<25>{#p/alphys}{#g/alphysOhGodNo}* Oh my god, are you guys alright??' ]
                : [
                     '<25>{#p/alphys}{#g/alphysWelp}* ...',
@@ -2807,11 +2705,9 @@ const text = {
                     "<25>{#g/alphysCutscene3}* I'm only here to check on Mettaton, after all."
                  ],
          end6: () =>
-            save.data.n.bad_lizard < 2
+            trueLizard() < 2
                ? [
-                    ...(save.data.b.a_state_hapstablook
-                       ? [ '<25>{#p/alphys}{#g/alphysInquisitive}* Wait, I forgot about the whole non-lethal thing.' ]
-                       : [ '<25>{#p/alphys}{#g/alphysInquisitive}* Hmm, you look okay...' ]),
+                    '<25>{#p/alphys}{#g/alphysInquisitive}* Hmm, you look okay...',
                     '<25>{#p/alphys}{#g/alphysWelp}* Sorry about vanishing on the phone earlier, by the way.',
                     "<25>{#g/alphysWelp}* The phone signal wouldn't reach here for some reason."
                  ]
@@ -2826,23 +2722,20 @@ const text = {
                ? [
                     "<25>{#g/alphysCutscene2}* Not to mention, that's only a vessel...",
                     '<25>{#g/alphysCutscene2}* Hapstablook is probably just practicing playing dead.',
-                    "<32>{#x1}{#p/hapstablook}* It's an acting thing, dear.",
-                    '<25>{#p/alphys}{#g/alphysWelp}* Of course it is.'
+                    "<32>{#x1}{#p/hapstablook}* It's an acting thing, dear."
                  ]
                : [
                     "<25>{#g/alphysWelp}* The only thing I can't fix is his ego...",
-                    '<32>{#x1}{#p/hapstablook}* I heard that.',
-                    '<25>{#p/alphys}{#g/alphysWelp}* Of course you did.'
+                    '<32>{#x1}{#p/hapstablook}* I heard that.'
                  ])
          ],
-         end8a: [ "<32>{#p/hapstablook}* Don't you still have to- {%}" ],
-         end8b: [ '<25>{#x1}{#p/alphys}{#g/alphysCutscene3}* I know, I know...' ],
-         end9a: [
-            "<25>{#p/alphys}{#g/alphysSideSad}* So... there's something important we have to do now.",
-            '<25>{#g/alphysNervousLaugh}* And, well, the future of monsterkind might... d-depend on it...',
+         end8: [
+            '<25>{#p/alphys}{#g/alphysWelp}* Well... guess I better get going now.',
+            "<25>{#p/alphys}{#g/alphysNeutralSweat}* But, uh, there's something important we have to do.",
+            '<25>{#g/alphysNervousLaugh}* The future of monsterkind might... d-depend on it...',
             '<25>{#g/alphysWelp}* No pressure, of course.'
          ],
-         end9b: [
+         end9: [
             "<25>{#g/alphysCutscene2}* So, like...\n* When you're ready...",
             '<25>{#g/alphysCutscene2}* You could... come with me into the next room???',
             '<25>{#g/alphysCutscene2}* ...',
@@ -2851,15 +2744,41 @@ const text = {
          end10: () => [
             "<32>{#p/hapstablook}* Don't worry, darling.\n* It's probably just a new season of a sci-fi she likes.",
             '<32>* As for me?',
-            save.data.n.state_starton_papyrus === 1
+            save.data.b.a_state_hapstablook
+               ? '<32>* ...\n* I should probably go pay Blooky a visit.'
+               : save.data.n.state_starton_papyrus === 1
                ? "<32>* ...\n* I don't really know what I'm going to do now."
                : "<32>* ...\n* Well, I've got some business things to attend to.",
             '<32>* Heh...',
             '<32>* See you around...\n* ...\n* ...darling.'
          ],
-         endwalk0: [ '<25>{#p/alphys}{#g/alphysWelp}* This way.' ],
+         end11: [
+            "<32>{#p/narrator}* Well, that's it.",
+            "<32>* Show's over.",
+            '<32>* But what a fantastic show it was, huh?',
+            '<32>* ...',
+            '<32>{#p/human}* (You hear a sigh.)',
+            '<32>{#p/narrator}* ...all this family stuff with Mettaton has been hitting a little close to home.',
+            "<32>* Blooky's... not the only one who's wronged someone.",
+            "<32>* As I'm sure you can imagine.",
+            '<32>* I guess, for now...',
+            "<32>* I'll just have to do my best to keep moving forward.\n* Like you.",
+            '<32>* ...speaking of which, the Citadel is all that remains.',
+            "<32>* You do know what that means, don't you?",
+            '<32>* ...\n* Come on, partner.',
+            "<32>* Let's go meet a king."
+         ],
+         endwalk0: () => [
+            ...(save.data.b.water
+               ? [
+                    "<25>{#p/alphys}{#g/alphysFR}* Don't tell me you're bringing that thing all the way to the Citadel.",
+                    '<25>{#g/alphysWelp}* ...'
+                 ]
+               : []),
+            '<25>{#p/alphys}{#g/alphysWelp}* This way.'
+         ],
          endwalk1: () =>
-            save.data.n.bad_lizard < 2
+            trueLizard() < 2
                ? [
                     '<25>{#p/alphys}{#g/alphysCutscene2}* So... Mettaton, huh?',
                     "<25>* Ehehe... that was sure something, wasn't it?",
@@ -2875,7 +2794,7 @@ const text = {
                     '<25>{#g/alphysWorried}* People... I care about.'
                  ],
          endwalk2: () => [
-            ...(save.data.n.bad_lizard < 2
+            ...(trueLizard() < 2
                ? [
                     "<25>{#p/alphys}{#g/alphysCutscene2}* So, as I said, there's something important we have to do.",
                     '<25>{#g/alphysInquisitive}* As for why the kingdom depends on it...?',
@@ -2899,46 +2818,10 @@ const text = {
          endwalk4: () => [
             "<25>{#p/alphys}{#g/alphysIDK}* S-sorry, I can't really say more until we meet with him.",
             "<25>{#g/alphysWelp}* ...you go on ahead.\n* I'll try not to get too far behind.",
-            ...(save.data.n.bad_lizard < 2
+            ...(trueLizard() < 2
                ? [ "<25>{#g/alphysSide}* Everything's gonna be fine, alright?", '<25>{#g/alphysSmileSweat}* ...' ]
                : [ '<25>* Oh, and, make sure nobody else dies.', '<25>{#g/alphysFR}* ...' ]),
             '<25>* Good luck.'
-         ],
-         exit: [ choicer.create('* (Continue to Citadel?)', 8, 7, 'Yes', 'No') ]
-      },
-      truetext: {
-         chara1: [
-            "<32>{#p/narrator}* You know, I've been thinking...",
-            "<32>* What's gonna happen when you leave this place?",
-            '<32>* The monsters will still be without a seventh SOUL, and...',
-            "<32>* They'll probably have to wait a long time for another chance at it.",
-            '<32>* Surely there must be some other way to free everyone, right?',
-            '<32>* And... god, I know this is exactly the same thought I had when I screwed up in the past.',
-            "<32>* I just...\n* I don't know..."
-         ],
-         chara2: [
-            '<32>{#p/narrator}* I guess part of me regrets how things were in the past.',
-            '<32>* Before I met the monsters, I, too, felt trapped in life.',
-            "<32>* My time among humans wasn't the greatest, as I'm sure you can imagine.",
-            '<32>* But when I took that shuttle and flew out into uncharted space...',
-            '<32>* When I stumbled on this lonely space station, and met monsters for the first time...',
-            '<32>* I finally felt like I could relate to something.',
-            '<32>* I finally felt like I had a family that cared about me...',
-            "<32>* ...even if I wasn't the best towards them...\n* ...and him.",
-            '<32>* But then... IT happened.'
-         ],
-         chara3: [
-            "<32>{#p/narrator}* Ever since then, I've wondered why I don't just fade into nothing.",
-            '<32>* Why does this world insist on keeping me around?',
-            "<32>* But no matter how much time went by, I couldn't think of an answer.",
-            '<32>* When I met you, though, I suddenly got the strangest feeling...',
-            "<32>* ...like I'm meant to serve a purpose in this world.",
-            '<32>* And that, if I truly want to move on from what happened back then...',
-            '<32>* I have to help you avoid making the same kinds of mistakes I once did.',
-            "<32>* Something tells me that, if I fail, I'll lose more than either of us can imagine...",
-            '<32>* Well, for better or worse, it does feel good to have a purpose.',
-            '<32>* I just hope that... by the time this is all over...',
-            '<32>* Something good will have come from it.'
          ]
       },
       overworld: {
@@ -3089,11 +2972,11 @@ const text = {
          mettacrafter2c: [ '<32>{#p/mettaton}* NICE WORK!\n* NOW PLACE THE LAST ITEM ON THE COUNTER TO MY LEFT.' ],
          platformDeny: () => [
             "<32>{#p/narrator}* You'll need a special pass to access the liftgate network.",
-            ...(world.goatbro
+            ...(world.azzie
                ? save.flag.n.ga_asrielGate++ < 1
                   ? [ "<25>{#p/asriel2}{#f/3}* No doubt a pass will be in Alphys's lab.\n* Let's go there first." ]
                   : []
-               : save.data.n.bad_lizard > 1 && save.data.n.plot > 48
+               : trueLizard() > 1 && save.data.n.plot > 48
                ? [ "<32>* Wasn't there a spare cell phone on Alphys's desk?" ]
                : [])
          ],
@@ -3134,7 +3017,7 @@ const text = {
             ],
             elevatorStory6: () => [
                "<32>{#p/narrator}* It's out of order for now.",
-               ...(world.goatbro && save.flag.n.ga_asrielLift++ < 1
+               ...(world.azzie && save.flag.n.ga_asrielLift++ < 1
                   ? [ "<25>{#p/asriel2}{#f/8}* Guess we'll have to take the long way around." ]
                   : [])
             ],
@@ -3168,12 +3051,12 @@ const text = {
             '<32>{#p/narrator}* "Activity log, K-TIME 61XXX.X"',
             '<32>* "The subject was left unattended for a short time."\n* "..."',
             '<32>* "The starling\'s gone."',
-            ...(world.goatbro && save.flag.n.ga_asrielTerminal1++ < 1
+            ...(world.azzie && save.flag.n.ga_asrielTerminal1++ < 1
                ? [ '<25>{#p/asriel2}{#f/1}* ...', '<25>{#p/asriel2}{#f/2}* Heh.' ]
                : [])
          ],
          terminal2: () =>
-            save.data.n.bad_lizard < 2
+            trueLizard() < 2
                ? [
                     '<32>{#p/human}* (You activate the terminal and read the message.)',
                     '<32>{#p/narrator}* "Kahaha, Glyde was here!"\nµ - Glyde'
@@ -3186,10 +3069,10 @@ const text = {
             '<32>{#p/human}* (You activate the terminal and read the message.)',
             '<32>{#p/narrator}* "Dear employees of the Royal Lab, please place waste in the appropriate receptacles."',
             '<32>* "Thank you."',
-            ...(world.goatbro && save.flag.n.ga_asrielLab2++ < 1
+            ...(world.azzie && save.flag.n.ga_asrielLab2++ < 1
                ? [
-                    '<25>{#p/asriel2}{#f/asriel2}{#f/2}* Appropriate waste receptacle, huh?\n* Golly...',
-                    '<25>{#p/asriel2}{#f/1}* They might as well throw themselves in an incinerator.'
+                    '<25>{#p/asriel2}{#f/asriel2}{#f/6}* Appropriate waste receptacle, huh?\n* Golly...',
+                    '<25>{#p/asriel2}{#f/7}* They might as well throw themselves in an incinerator.'
                  ]
                : [])
          ],
@@ -3312,7 +3195,7 @@ const text = {
                ? [ "<32>{#p/narrator}* It's a half-empty bag of dog food." ]
                : [ "<32>{#p/narrator}* It's a bag of dog food.\n* It's half-full." ],
          doublefridge: () =>
-            save.data.n.bad_lizard < 2
+            trueLizard() < 2
                ? [ "<32>{#p/narrator}* It's a dual fridge.\n* Both sides are filled with orange crush soda." ]
                : [
                     "<32>{#p/narrator}* It's a dual fridge.\n* One side is filled with orange crush soda.",
@@ -3328,7 +3211,7 @@ const text = {
          dttubes: [
             '<32>{#p/narrator}* A set of beakers with an unknown substance.',
             '<32>{#p/narrator}* There is also a used syringe with trace amounts of the substance.',
-            ...(world.goatbro && save.flag.n.ga_asrielLab3++ < 1
+            ...(world.azzie && save.flag.n.ga_asrielLab3++ < 1
                ? [
                     '<25>{#p/asriel2}{#f/4}* Welcome to ground zero, the starling experiment.',
                     '<25>{#f/3}* Funny... the syringe she used is still here.',
@@ -3347,11 +3230,8 @@ const text = {
          toolrack: [ "<32>{#p/narrator}* A rack of dusty old tools.\n* Doesn't look like they've been used in years." ],
          spycamera1: () => [
             '<32>{#p/narrator}* This monitor is calibrated to follow your movement.',
-            ...(world.goatbro && save.flag.n.ga_asrielLab1++ < 1
-               ? [
-                    "<25>{#p/asriel2}{#f/1}* If only we could see Alphys's face as she was watching us...",
-                    '<25>{#p/asriel2}{#f/2}* God, that would have been great.'
-                 ]
+            ...(world.azzie && save.flag.n.ga_asrielLab1++ < 1
+               ? [ "<25>{#p/asriel2}{#f/5}* If only we could've see Alphys's face as she watched us..." ]
                : [])
          ],
          gameshow_terminal1: () =>
@@ -3365,9 +3245,7 @@ const text = {
          gameshow_terminal4: [ '<32>{#p/narrator}* A game show console.\n* Who needs arms with consoles like these?' ],
          a_path2_sign: () => [
             '<32>{#p/narrator}* "Please be aware that at most, a liftgate may only hoist two monsters at a time."',
-            ...(world.genocide && save.flag.n.ga_asrielSkySign1++ < 1
-               ? [ '<25>{#p/asriel2}{#f/1}* Perfect number for us.' ]
-               : [])
+            ...(world.genocide && save.flag.n.ga_asrielSkySign1++ < 1 ? [ '<25>{#p/asriel2}{#f/1}* Works for us.' ] : [])
          ],
          a_path4_sign: [
             '<32>{#p/narrator}* "Leave your junk here, and we\'ll find a way to sell it!"\nµ - Bratty and Catty'
@@ -3561,8 +3439,7 @@ const text = {
                [ '<25>{#p/asriel2}{#f/13}* Uh, $(name)...?', "<25>* I think we've gone a little too far." ],
                [ '<25>{#p/asriel2}{#f/13}* $(name)...?' ],
                [ '<25>{#p/asriel2}{#f/13}* ...' ]
-            ][Math.min(save.flag.n.ga_asrielPuzzleStop1++, 2)],
-         puzzlestop1c1: [ '<33>{#p/story}* That position is out of bounds.' ]
+            ][Math.min(save.flag.n.ga_asrielPuzzleStop1++, 2)]
       },
       npc: {
          a_black: pager.create(
@@ -3574,14 +3451,14 @@ const text = {
             ],
             [ '<32>{#p/monster}{#npc/a}* Such a black, black nightmare.' ]
          ),
-         a_moon: pager.create(
+         a_sorry: pager.create(
             'limit',
             [
-               "<32>{#p/monster}{#npc/a}* I came here to see Mettaton's grand finale and ended up meeting some new friends.",
-               '<32>* Burgie said I should bake a pie, and it actually turned out better than I thought.',
-               "<32>* Other than that, I'm just... sort of here?"
+               "<32>{#p/monster}{#npc/a}* I'm an art student.\n* In art, it's said that you only improve with time.",
+               '<32>* But my art teacher thinks that everything I do is amazing...',
+               "<32>* Personally, I'm just so sorry."
             ],
-            [ "<32>{#npc/a}* I'm Moon, by the way.\n* It's good to see you around..." ]
+            [ '<32>{#p/monster}{#npc/a}* Sorry, but why is that so hard for her to understand?' ]
          ),
          a_thisisnotabomb: pager.create(
             'limit',
@@ -3689,7 +3566,7 @@ const text = {
                   : [ "<32>{#p/monster}* I can't believe I didn't notice you were a human before!" ]
          ),
          a_harpy: pager.create('limit', () =>
-            save.data.n.bad_lizard < 2
+            trueLizard() < 2
                ? [
                     "<32>{#p/monster}* I'm a reporter!\n* Today's news story is about metal 'n' magic!",
                     "<32>{#p/monster}* Did ya know Mettaton's actually made of it??\n* Huhehehaw!"
@@ -4008,27 +3885,13 @@ const text = {
                   : fetchCharacters().find(c => c.key === 'sans')
                   ? [
                        '<32>{#p/monster}{#npc/a}* Blub blub...\n* (I hope you and your date had a pleasant dining experience.)',
-                       '<32>* (That looked like quite the intriguing conversation...)'
+                       '<32>* (That looked like quite the nice little chat.)'
                     ]
                   : world.population < 3
                   ? [ '<32>{#p/monster}{#npc/a}* Blub blub...\n* (Day by day, the days grow ever lonelier...)' ]
                   : [
                        "<32>{#p/monster}{#npc/a}* Blub blub...\n* (You'll have to reserve a table to eat here.)",
                        "<32>* (The girls get ancy when the reservations aren't in order.)"
-                    ],
-            () =>
-               evac()
-                  ? world.bullied
-                     ? [ '<32>{#p/narrator}* ...but everybody ran.' ]
-                     : [ '<32>{#p/narrator}* ...but nobody came.' ]
-                  : [
-                       fetchCharacters().find(c => c.key === 'sans')
-                          ? '<32>{#p/monster}{#npc/a}* Blub blub...\n* (Our true world is patiently waiting on its knees.)'
-                          : world.population < 3
-                          ? '<32>{#p/monster}{#npc/a}* Blub blub...\n* (Our true world will soon be lonely no more.)'
-                          : '<32>{#p/monster}{#npc/a}* Blub blub...\n* (Our true world has made a reservation for salvation.)',
-                       '<32>* (...)',
-                       '<32>* (What were we talking about again?)'
                     ],
             () =>
                evac()
@@ -4044,146 +3907,82 @@ const text = {
                [ '<25>{#p/asriel2}{#f/10}* Why are we going back this way again?' ],
                [ "<25>{#p/asriel2}{#f/7}* We really don't need to do this." ]
             ][Math.min(save.flag.n.ga_asrielTimewaster++, 1)],
-         asriel46: (n: number) =>
-            [
-               [ '<25>{#p/asriel2}{#f/13}* Golly... feels weird to be back where it all started.' ],
-               [ '<25>{#p/asriel2}{#f/3}* No matter how much I walk through here, it always feels weird.' ],
-               [ '<25>{#p/asriel2}{#f/3}* Heh... still getting that same feeling.' ],
-               []
-            ][Math.min(n, 3)],
-         asriel47: (n: number) =>
-            [
-               [
-                  '<25>{#p/asriel2}{#f/4}* And I doubt Alphys meant to bring me back to life, but...',
-                  "<25>{#f/3}* Whether I like it or not, she's the reason I'm here.",
-                  "<25>{#f/4}* Not that I'm complaining about it."
-               ],
-               [
-                  '<25>{#p/asriel2}{#f/4}* Seeing the place you were created in...',
-                  "<25>{#f/10}* Wouldn't you feel the same way?"
-               ],
-               []
-            ][Math.min(n, 2)],
-         asriel48: (n: number) =>
-            [
-               [
-                  '<25>{#p/asriel2}{#f/13}* Heh...',
-                  "<25>{#f/13}* I'm just glad you're still here, $(name).",
-                  '<25>{#f/4}* We were always meant to be together.'
-               ],
-               [
-                  '<25>{#p/asriel2}{#f/2}* Who am I kidding.\n* Of course you would.',
-                  "<25>{#f/13}* After all, $(name), we're so much alike..."
-               ],
-               []
-            ][Math.min(n, 2)],
-         asriel49: (n: number) =>
-            [
-               [
-                  '<25>{#p/asriel2}{#f/6}* Golly, I forgot how empty this place can get sometimes.',
-                  '<25>{#f/8}* The monsters built it as a staging area for a project...',
-                  '<25>{#f/7}* Then Mettaton turned it into his personal little playground.'
-               ],
-               [
-                  "<25>{#p/asriel2}{#f/3}* Again we're faced with this bore of a place.",
-                  "<25>{#f/4}* But hey, at least we've got the starlings to keep us company.",
-                  "<25>{#f/8}* Not that that's a lot."
-               ],
-               [
-                  '<25>{#p/asriel2}{#f/8}* ...',
-                  '<25>{#f/7}* I seriously hope this is the last time I have to walk through here.'
-               ],
-               []
-            ][Math.min(n, 3)],
-         asriel50: (n: number) =>
-            [
-               [
-                  '<25>{#p/asriel2}{#f/10}* Did you know Mettaton abandoned his cousin to chase fame?',
-                  "<25>{#f/2}* Now, I'm not claiming to be some kind of saint...",
-                  "<25>{#f/1}* But still, don't you think it's funny?",
-                  '<25>{#f/2}* The so-called "star of the outpost" is a lie, hiding in the metal.'
-               ],
-               [
-                  '<25>{#p/asriel2}{#f/3}* Starlings are neat little flowers, though.',
-                  '<25>{#f/3}* They start out small, but once they bloom...',
-                  '<25>{#f/4}* The head of the flower flies off and takes to the skies.',
-                  '<25>{#f/5}* Kinda cool, right $(name)?'
-               ],
-               []
-            ][Math.min(n, 2)],
-         asriel51: (n: number) =>
-            [
-               [
-                  '<25>{#p/asriel2}{#f/3}* And you know what, he can say whatever he wants to about me.',
-                  '<25>{#f/4}* At least my betrayal was honest, unlike his.'
-               ],
-               [
-                  "<25>{#p/asriel2}{#f/3}* Too bad the next blooming period won't be for a while.",
-                  '<25>{#f/1}* And by then, well...',
-                  '<25>{#f/2}* Things are going to be a little different around here.'
-               ],
-               []
-            ][Math.min(n, 2)],
+         asriel46: [ '<25>{#p/asriel2}{#f/13}* Golly... feels weird to be back where it all started.' ],
+         asriel47: [
+            '<25>{#p/asriel2}{#f/4}* I doubt Alphys meant to bring me back, but...',
+            "<25>{#f/3}* Whether I like it or not, she's the reason I'm here."
+         ],
+         asriel48: [ "<25>{#p/asriel2}{#f/13}* Funny how things work out, isn't it?" ],
+         asriel49: [
+            '<25>{#p/asriel2}{#f/13}* Jeez, I forgot how empty this place can be.',
+            "<25>{#f/16}* ...at least we've got starlings to keep us company out here."
+         ],
+         asriel50: [
+            '<25>{#p/asriel2}{#f/15}* Starlings are neat little flowers, though.',
+            '<25>{#f/4}* They start out small, but once mature...',
+            '<25>{#f/3}* The head of the flower comes off and takes to the skies.',
+            '<25>{#f/5}* Pretty cool, huh?'
+         ],
+         asriel51: [
+            "<25>{#p/asriel2}{#f/13}* Too bad the next blooming period won't be for a while.",
+            '<25>{#f/15}* And by then, well...',
+            "<25>{#f/16}* It'll be far too late."
+         ],
          asriel52: () =>
             [
                [
                   "<25>{#p/asriel2}{#f/6}* Let me guess, the elevator couldn't take us to the third floor?",
-                  '<25>{#f/8}* Ugh...',
-                  "<25>{#f/7}* I should have known he'd make us take the long way up.",
-                  '<25>{#f/10}* ...the hell is he planning up there?',
-                  '<25>{#f/10}* ...',
-                  "<25>{#f/8}* We've got to get a move on, $(name)."
+                  '<25>{#f/8}* ...',
+                  "<25>{#f/7}* I should have known he'd make us take the long way up."
                ],
                [ '<25>{#p/asriel2}{#f/8}* One floor down, two floors to go...' ]
             ][Math.min(save.flag.n.ga_asriel52++, 1)],
 
          hotel0: () =>
             save.flag.b.asriel_electrics
-               ? [ [ '<25>{#p/asriel2}{#f/8}* ...', '<25>{#p/asriel2}{#f/4}* At least we know who caused this now.' ], [] ][
+               ? [ [ '<25>{#p/asriel2}{#f/8}* ...', '<25>{#p/asriel2}{#f/7}* At least we know who caused this now.' ], [] ][
                     Math.min(save.flag.n.ga_asrielElectrics0++, 1)
                  ]
                : [
                     [
-                       "<25>{#p/asriel2}{#f/8}* It's dark...",
-                       "<25>{#f/6}* This isn't normal at all.",
+                       "<25>{#p/asriel2}{#f/6}* It's dark... this isn't normal at all.",
                        "<25>{#f/7}* Someone must've come through and shorted out the electrics.",
                        '<25>{#f/10}* But who...?'
                     ],
-                    [ '<25>{#p/asriel2}{#f/8}* ...', '<25>{#f/6}* I still wonder who shorted out the power here.' ],
+                    [ '<25>{#p/asriel2}{#f/10}* Seriously, who turned out the lights?' ],
                     []
                  ][Math.min(save.flag.n.ga_asrielHotel0++, 1)],
          hotel1: () =>
             save.flag.b.asriel_electrics
                ? [
-                    '<25>{#p/asriel2}{#f/10}* Come to think of it...',
-                    '<25>{#f/4}* The burn marks on the emitters look like they were caused by magic.',
-                    '<25>{#f/1}* Alphys DEFINITELY lost her temper coming through here.',
-                    "<25>{#f/2}* Too bad I didn't get to see it for myself..."
+                    '<25>{#p/asriel2}{#f/15}* Come to think of it...',
+                    '<25>{#f/16}* The burn marks on the emitters look like they were caused by magic.',
+                    '<25>{#f/3}* Alphys DEFINITELY lost her temper coming through here.'
                  ]
                : [
                     '<25>{#p/asriel2}{#f/10}* No forcefield...?',
                     '<25>{#f/10}{#x1}* And look, the emitters are burnt out.',
-                    '<25>{#f/10}* ...what happened here?'
+                    '<25>{#f/10}* Golly, what happened to this place?'
                  ],
          hotelElectrics: [
-            "<25>{#p/asriel2}{#f/3}* I don't know if you saw it, but that note there was intriguing.",
+            "<25>{#p/asriel2}{#f/6}* I don't know if you saw it, but that note there was telling.",
             '<25>* If Alphys was here earlier, that would explain the lights.',
-            "<25>{#f/4}* Wouldn't be the first time she let emotions control her magic."
+            "<25>{#f/7}* Wouldn't be the first time she let emotions control her magic."
          ],
          hotel2: () =>
             [
                [
-                  '<25>{#p/asriel2}{#f/4}* Looks abandoned, as I expected.',
+                  "<25>{#p/asriel2}{#f/4}* Looks abandoned, as you'd expect.",
                   ...(save.flag.b.asriel_electrics
                      ? [ "<25>{#p/asriel2}{#f/3}* No doubt Alphys's outburst scared some of them off." ]
                      : []),
                   "<25>{#f/3}* ...guess there's only one thing to do here.",
-                  "<25>{#f/4}* Let's get to the core."
+                  "<25>{#f/4}* Let's get to the CORE."
                ],
                [
                   '<25>{#p/asriel2}{#f/4}* ...this is still as surreal as ever.',
                   ...(save.flag.b.asriel_electrics
-                     ? [ "<25>{#p/asriel2}{#f/1}* We'll have to thank Alphys later for the free mood lighting." ]
+                     ? [ "<25>{#p/asriel2}{#f/3}* We'll have to thank Alphys later for the free mood lighting." ]
                      : [])
                ],
                []
@@ -4195,64 +3994,56 @@ const text = {
                   '<25>{#f/3}* The central source of power for the outpost.',
                   "<25>{#f/4}* Oh, and, if you haven't figured it out by now...",
                   "<25>{#f/1}* We're going to blow it to pieces.",
-                  '<25>{#f/9}* Hee hee hee...',
                   '<32>{#p/narrator}* What?',
-                  '<25>{#p/asriel2}{#f/1}* Stay close. ELITE squad members might be lurking nearby.'
+                  '<25>{#p/asriel2}{#f/6}* Stay close. ELITE squad members might be lurking nearby.'
                ],
-               [ '<25>{#p/asriel2}{#f/1}* Ready, $(name)?', "<25>{#f/1}* You know what we're going to do." ],
-               [ '<25>{#p/asriel2}{#f/3}* Ready, $(name)?', "<25>{#f/3}* Let's go." ]
+               [ '<25>{#p/asriel2}{#f/3}* Ready, $(name)?', "<25>{#f/4}* You know what we're going to do." ],
+               [ '<25>{#p/asriel2}{#f/3}* Ready?', "<25>{#f/4}* Let's go." ]
             ][Math.min(save.flag.n.ga_asrielCore0++, 2)],
-         core1: [
-            '<25>{#p/asriel2}{#f/10}* No guards...?',
-            '<25>{#f/9}* $(name)... they really ARE afraid of us.',
-            '<25>{#f/5}* Golly, this should be a cakewalk!'
-         ],
+         core1: [ '<25>{#p/asriel2}{#f/10}* No guards...?', '<25>{#f/15}* $(name)... they really ARE afraid of us.' ],
          core2: () =>
             [
                [
-                  '<25>{#p/asriel2}{#f/3}* Here we are... the central control room.',
+                  '<25>{#p/asriel2}{#f/3}* Ah... the central control room.',
                   "<25>{#f/3}* From here, there's practically a control for everything.",
-                  '<25>{#f/4}* Gravity plating, heat distribution, even the atmosphere...',
-                  '<25>{#f/3}* It all runs through this system.',
-                  "<25>{#f/1}* Let's see if my royal access codes are still valid.",
+                  '<25>{#f/15}* Gravity plating, heat distribution, even the atmosphere...',
+                  '<25>{#f/4}* It all runs through this system.',
+                  "<25>{#f/3}* Let's see if my royal access codes are still valid.",
                   "<25>{#f/2}* I wouldn't put it past them to forget..."
                ],
                [
                   '<25>{#p/asriel2}{#f/6}* Here we are.',
-                  ...(save.flag.b.asriel_access ? [] : [ "<25>{#f/7}* Let's give the royal access codes a try." ])
+                  ...(save.flag.b.asriel_access ? [] : [ "<25>{#f/7}* Let's give those royal access codes a try." ])
                ]
             ][Math.min(save.flag.n.ga_asrielCore2++, 1)],
          core3: () => [
-            '<25>{*}{#p/asriel2}{#f/4}* System, extend the bridge, authorization Asriel $(x).{^40}{%}',
-            ...(save.flag.b.asriel_access ? [] : [ '<25>{*}{#f/3}* ...{^40}{%}', '<25>{*}{#f/4}* I guess no- {%}' ])
+            '<25>{*}{#p/asriel2}{#f/6}* System, extend the bridge, authorization Asriel $(x).{^40}{%}',
+            ...(save.flag.b.asriel_access ? [] : [ '<25>{*}{#f/6}* ...{^40}{%}', '<25>{*}{#f/7}* I guess no- {%}' ])
          ],
          core4a: [ '<25>{#p/asriel2}{#f/10}* I guess so.' ],
          core4b: () =>
             [
                [
-                  '<25>{#f/3}* Wait here, I need to set some things up.',
-                  "<25>{#f/1}* Say, can you get the back door unlocked while I'm at it?",
+                  '<25>{#f/1}* Say, can you get the back door unlocked while I set this up?',
                   '<25>* Pick a side, left or right, and hit the switch at the end.',
-                  '<25>* We only need one to get through.'
+                  '<25>{#f/2}* You only need to hit one to get through.'
                ],
-               [
-                  '<25>{#f/3}* Go unlock the back door while I set some things up.',
-                  '<25>{#f/4}* Remember, switches are at the end of either side path past here.'
-               ],
-               [ "<25>{#f/6}* You know what I'll be doing, go unlock that back door." ]
+               [ "<25>{#f/7}* You do your part, and I'll do mine." ]
             ][Math.min(save.flag.n.ga_asrielCore4++, 2)],
-         core5: [ '<25>{#p/asriel2}{#f/8}* Wrong way...' ],
+         core5: [ '<25>{#p/asriel2}{#f/8}* Wrong way, $(name)...' ],
          core6a: () =>
             [
                [
-                  '<25>{#p/asriel2}{#f/3}* Perfect timing.\n* I just got done setting up the overload.',
-                  "<25>{#f/1}* All that's left is to make it to an escape shuttle...",
-                  '<25>{#f/1}* ...set off the blast...',
-                  '<25>{#f/2}* ...and ride the shockwave to freedom.',
-                  '<25>{#f/1}* These poor saps will be forgotten like they deserve to be.',
+                  '<25>{#p/asriel2}{#f/15}* Perfect timing...\n* Just got done setting up the overload.',
+                  "<25>{#p/asriel2}{#f/15}* ...\n* If... we're really gonna do this thing...",
+                  "<25>{#f/16}* ...then it's now or never, $(name).",
+                  "<25>{#f/3}* All that's left is to make it to an escape shuttle...",
+                  '<25>{#f/4}* ...set off the blast...',
+                  '<25>{#f/1}* ...and ride the shockwave to freedom.',
+                  "<25>{#f/2}* These idiots won't even know what hit them.",
                   '<32>{#p/narrator}* No...'
                ],
-               [ '<25>{#p/asriel2}{#f/3}* Ready?', "<25>{#f/3}* Let's end this thing once and for all." ]
+               [ '<25>{#p/asriel2}{#f/1}* Ready?', "<25>{#f/2}* Let's bring about the end of monsterkind." ]
             ][Math.min(save.flag.n.ga_asrielCore5++, 1)],
          core6b: [ '<25>{#p/asriel2}{#f/3}* Lead us out of here.' ],
          core7a: [ '<25>{#p/asriel2}{#f/8}* Wait, I think I hear something.' ],
@@ -4265,7 +4056,7 @@ const text = {
          core8a: [
             "<32>{#p/mettaton}* Do you really think I'm going to let you get away that easily?",
             "<25>{#p/asriel2}{#f/8}* ...\n* Don't be coy, Mettaton.\n* Of course you won't.",
-            "<25>{#p/asriel2}{#f/1}* It just won't matter when you're dead."
+            "<25>{#p/asriel2}{#f/7}* It just won't matter when you're dead."
          ],
          core8aX: () => [
             "<32>{#p/mettaton}* Do you really think I'm going to let you get away that easily?",
@@ -4278,15 +4069,15 @@ const text = {
                  ]
                : [
                     '<25>{#p/asriel2}{#f/2}* Oh, how naive you are.',
-                    "<25>{#p/asriel2}{#f/1}* It's YOU who's died to us already, and we can make it happen again."
-                 ]),
-            '<32>{#p/mettaton}* ...',
-            "<32>{#p/mettaton}* Nice try... but I'm still going to fight you."
+                    "<25>{#p/asriel2}{#f/1}* It's YOU who's died to us already, and we can make it happen again.",
+                    '<32>{#p/mettaton}* ...',
+                    "<32>{#p/mettaton}* Nice try... but I won't be tricked so easily."
+                 ])
          ],
          core8b: [
-            "<25>{#p/asriel2}{#f/2}* ...say, since you're about to be spare parts...",
-            "<25>{#f/1}* Haven't you thought about your family?",
-            '<25>{#f/3}* You know.\n* With how you abandoned them, and all.',
+            "<25>{#p/asriel2}{#f/4}* ...say, since you're about to be spare parts...",
+            "<25>{#f/3}* Haven't you thought about your family?",
+            '<25>{#f/1}* You know.\n* With how you abandoned them, and all.',
             '<32>{#p/mettaton}* My family would be proud of me if they knew what I was doing.',
             '<32>* As for you...?',
             "<32>* I can't exactly say the same.",
@@ -4314,11 +4105,11 @@ const text = {
          'limit',
          [
             '<32>{#p/monster}{#x1}* My boyfriend and I were looking for an ice cream stand for so long...{#x3}',
-            '<32>{#x1}* Turns out, this guy who sells some RADICAL ice cream just moved his stand up here.{#x3}',
-            '<32>{#x1}* We took up guard duty at this security post so we could get closer to it.{#x3}'
+            '<32>{#x1}* Eventually, we just gave up and settled for pizza.{#x3}',
+            '<32>{#x1}* Then we took up guard duty at this security post since we have nothing better to do.{#x3}'
          ],
          [
-            "<32>{#p/monster}{#x1}* I've been told security guards get SUPER exclusive discounts.{#x3}",
+            "<32>{#p/monster}{#x1}* I've been told security guards get SUPER exclusive discounts at the shop.{#x3}",
             '<32>{#x1}* Totally not part of the reason we came here, though.{#x3}'
          ]
       ),
@@ -4375,7 +4166,7 @@ const text = {
          "<25>{#f/3}* your journey's almost over, huh?",
          '<25>{#f/0}* you must really wanna get outta here.',
          '<25>{#f/0}* ...heh.\n* trust me, i know the feeling.',
-         ...(save.data.n.bad_lizard < 1
+         ...(trueLizard() < 1
             ? [
                  "<25>{#f/3}* ...i also know you've got a lot to leave behind.",
                  "<25>{#f/0}* out here, you've got food, drink, friends...",
@@ -4394,7 +4185,7 @@ const text = {
          '<25>{#f/0}* my job is to sit out there and watch for humans.',
          "<25>{#f/3}* though, i'm sure you've realized by now...",
          '<25>{#f/2}* ...i actually took the job so i could protect you guys instead.',
-         ...(save.data.n.bad_lizard < 1
+         ...(trueLizard() < 1
             ? [ "<25>{#f/4}* shh, don't tell undyne i said that.\n* she wouldn't like it." ]
             : [ "<25>{#f/4}* kinda ironic, isn't it?" ]),
          "<25>{#f/0}* anyway, i've got this super boring job, right?",
@@ -4473,24 +4264,26 @@ const text = {
          "<25>{#f/3}* just remember, we're all rootin' for ya, kid.",
          ...(save.data.n.exp === 0
             ? [ "<25>{#f/2}* ...even undyne's probably on your side by now." ]
-            : save.data.n.bad_lizard < 1
+            : trueLizard() < 1
             ? [ "<25>{#f/0}* ...regardless of what you've done." ]
             : [ '<25>{#f/0}* ...well, most of us, anyway.' ])
       ],
       onionsan1: [ '<32>{#p/monster}* Hey there...\n* Noticed you were here...' ],
       onionsan1a: [ "<32>{#p/monster}* I'm Onionsan!\n* Onionsan, y'hear!" ],
       onionsan2: () =>
-         world.goatbro
+         world.azzie
             ? [ "<32>{#p/monster}* You two, don't look like you're up to any good..." ]
             : [ "<32>{#p/monster}* You, look like you've traveled a long way to get here..." ],
       onionsan2a: () =>
-         world.goatbro
+         world.azzie
             ? [ "<32>{#p/monster}* Good thing, the rec center people will always forgive us!\n* It's my Big Favorite." ]
             : [ "<32>{#p/monster}* Good thing, people like us are who the rec center is for!\n* It's my Big Favorite." ],
-      onionsan3: [ "<32>{#p/monster}* Though...\n* I'm too wide to fit inside..." ],
-      onionsan3a: [ '<32>{#p/monster}* Outer space makes onions grow Super Duper Fast.' ],
-      onionsan3b: () =>
-         world.goatbro
+      onionsan3: [
+         "<32>{#p/monster}* Though...\n* They say they can't let me in right now...",
+         '<32>{#p/monster}* Outer space makes onions feel Super Duper Sad.'
+      ],
+      onionsan3a: () =>
+         world.azzie
             ? [
                  "<32>{#p/monster}* But I'll find a path to betterment soon, y'hear!",
                  "<32>{#p/monster}* They're, gonna break the force field real good, y'hear!"
@@ -4500,7 +4293,7 @@ const text = {
                  "<32>{#p/monster}* They're, gonna break the force field real good, y'hear!"
               ],
       onionsan4: [ "<32>{#p/monster}* And then...\n* I'll venture out...\n* To the cosmos..." ],
-      onionsan4a: [ "<32>{*}{#p/monster}* We're all gonna be freeeeeeeee eeeeeeeeeeeeeeeeeeeeeeeeee {^999}" ],
+      onionsan4a: [ "<32>{*}{#p/monster}* We're all gonna be freeeeeeeee eeeeeeeeeeeeeeeeeeeeeeeeee{^999}" ],
       onionsan4x: [ '<25>{#p/asriel2}{#f/8}* Sure, whatever.' ],
       candy1: pager.create(
          'limit',
@@ -4550,11 +4343,23 @@ const text = {
                '<25>{#g/alphysNeutralSweat}* ...',
                '<25>{#g/alphysNeutralSweat}* No guarantees, though.'
             ],
-            [
-               '<32>{#p/event}* Ring, ring...',
-               '<25>{#p/alphys}{#g/alphysWelp}* Okay, ready to continue?',
-               '<25>{#g/alphysNeutralSweat}* Remember, g-gotta keep an eye out for the ELITE squad members.'
-            ],
+            save.data.n.plot < 66.2
+               ? [
+                    '<32>{#p/event}* Ring, ring...',
+                    '<25>{#p/alphys}{#g/alphysWelp}* Okay, ready to continue?',
+                    '<25>{#g/alphysNeutralSweat}* Remember, g-gotta keep an eye out for the ELITE squad members.'
+                 ]
+               : save.data.n.plot < 67
+               ? [
+                    '<32>{#p/event}* Ring, ring...',
+                    '<25>{#p/alphys}{#g/alphysWelp}* Okay, ready to continue?',
+                    '<25>{#g/alphysNeutralSweat}* Remember, g-gotta unlock that door...'
+                 ]
+               : [
+                    '<32>{#p/event}* Ring, ring...',
+                    '<25>{#p/alphys}{#g/alphysWelp}* Okay, ready to continue?',
+                    "<25>{#g/alphysNeutralSweat}* We're almost to the end, you know..."
+                 ],
             [ '<32>{#p/event}* Ring, ring...', "<25>{#p/alphys}{#g/alphysWelp}* I'll be on the line." ]
          ][Math.min(save.data.n.state_aerialis_coreenter++, 2)],
       core2b: () =>
@@ -4572,12 +4377,18 @@ const text = {
          ][Math.min(save.data.n.state_aerialis_coreleave++, 3)],
       core3: [ '<25>{*}{#p/alphys}{#g/alphysShocked}* Watch out!{^999}' ],
       core4: () =>
-         !save.data.b.killed_madjick
+         save.data.b.assist_madjick
+            ? [
+                 '<25>{#p/alphys}{#g/alphysCutscene3}* What the... what did you just DO???',
+                 '<32>{#p/narrator}* Heh. Sometimes all you need are the right words.'
+              ]
+            : !save.data.b.killed_madjick
             ? [
                  '<25>{#p/alphys}{#g/alphysNervousLaugh}* Phew...',
-                 "<25>{#g/alphysNeutralSweat}* L-let's hope that doesn't happen again."
+                 "<25>{#g/alphysNeutralSweat}* L-let's hope that doesn't happen again.",
+                 ...(save.data.b.oops ? [] : [ "<32>{#p/narrator}* ...guess you didn't need my help after all." ])
               ]
-            : save.data.n.bad_lizard === 0
+            : trueLizard() === 0
             ? [
                  '<25>{#p/alphys}{#g/alphysSideSad}* No... why...',
                  '<25>{#g/alphysWorried}* ...',
@@ -4589,23 +4400,46 @@ const text = {
                  "<25>* At least it won't be long until we're outta here."
               ],
       core5: [ '<25>{*}{#p/alphys}{#g/alphysOhGodNo}* Wait!!!{^999}' ],
-      core6: () => [
-         ...(!save.data.b.killed_knightknight
+      core6: () =>
+         save.data.b.assist_knightknight
+            ? save.data.b.assist_madjick
+               ? [
+                    "<25>{#p/alphys}{#g/alphysWTF}* I can't believe what I'm seeing...",
+                    '<32>{#p/narrator}* Take it from me, partner.\n* Sentimentality is my specialty.',
+                    '<32>{#p/narrator}* Magic words and warrior songs are the lifeblood of these old homeworld heroes.'
+                 ]
+               : [
+                    '<25>{#p/alphys}{#g/alphysInquisitive}* What the... what did you just do?',
+                    "<32>{#p/narrator}* Heh.\n* That's more like it.",
+                    '<32>{#p/narrator}* Sometimes all you need are the right high notes.'
+                 ]
+            : !save.data.b.killed_knightknight
             ? [
                  '<25>{#p/alphys}{#g/alphysWelp}* ...',
                  ...(save.data.b.killed_madjick
                     ? [ '<25>{#g/alphysWelp}* At least you both survived this time.' ]
-                    : [ '<25>{#g/alphysWelp}* On we press.' ])
+                    : [
+                         '<25>* The next room awaits.',
+                         ...(save.data.b.oops
+                            ? []
+                            : save.data.b.assist_madjick
+                            ? [ "<32>{#p/narrator}* ...guess you don't need my help this time, huh?" ]
+                            : [
+                                 '<32>* ...talk about feeling useless.',
+                                 "<32>* Don't worry, I know you don't mean to make me feel bad."
+                              ])
+                      ])
               ]
-            : save.data.b.killed_madjick || save.data.n.bad_lizard === 0
+            : save.data.b.killed_madjick || trueLizard() === 0
             ? [ '<25>{#p/alphys}{#g/alphysThatSucks}* ...', '<32>{#p/human}* (You hear a long, deep breath.)' ]
             : [
                  '<25>{#p/alphys}{#g/alphysWorried}* ...',
                  '<25>{#g/alphysWorried}* That should be the l-last of the engineers.'
-              ]),
-         '<25>{#p/alphys}{#g/alphysWelp}* The actual machine that powers the outpost is in the next room.',
+              ],
+      core7: [
+         '<25>{#p/alphys}{#g/alphysWelp}* So... this is the CORE.\n* Or rather... the core of the CORE.',
          '<25>{#g/alphysInquisitive}* There are two p-paths you can take to unlock the door behind it...',
-         "<25>* The puzzler's to the left, and the warrior's to the right.",
+         "<25>* The puzzler's to the left, and the fighter's to the right.",
          '<25>{#g/alphysFR}* Both are... difficult.\n* But...',
          "<25>{#g/alphysWelp}* I'd suggest t-taking the puzzler's path.",
          "<25>{#g/alphysSideSad}* It's up to you, of course...",
@@ -4633,8 +4467,8 @@ const text = {
       ],
       core8c4: [ '<25>{#p/alphys}{#g/alphysGarboCenter}* ...', '<25>* You are seriously testing my patience right now.' ],
       core9a: () => [
-         "<25>{#p/alphys}{#g/alphysNeutralSweat}* So you've decided on the warrior's path.",
-         ...(save.data.b.killed_knightknight && (save.data.b.killed_madjick || save.data.n.bad_lizard === 1)
+         "<25>{#p/alphys}{#g/alphysNeutralSweat}* So you've decided on the fighter's path.",
+         ...(save.data.b.killed_knightknight && (save.data.b.killed_madjick || trueLizard() === 1)
             ? [ '<25>* ...', '<25>{#g/alphysCutscene3}* Can you... maybe not kill anyone else?\n* If possible?' ]
             : save.data.b.killed_knightknight || save.data.b.killed_madjick
             ? [ '<25>* ...', '<25>* This could be bad.' ]
@@ -4656,7 +4490,7 @@ const text = {
                  '<25>{#p/alphys}{#g/alphysNeutralSweat}* ...',
                  save.data.b.killed_knightknight || save.data.b.killed_madjick
                     ? '<25>* This is hard to watch.'
-                    : save.data.n.bad_lizard === 0
+                    : trueLizard() === 0
                     ? '<25>* D-did you... really have to do that?'
                     : '<32>{#p/human}* (You hear a small sigh.)'
               ]
@@ -4700,29 +4534,26 @@ const text = {
    },
 
    b_group_froggitexWhimsalot: () =>
-      save.data.n.bad_lizard < 2
+      trueLizard() < 2
          ? [ '<32>{#p/alphys}* The first p-pair of guards.' ]
          : [ '<32>{#p/story}* Final Froggit and Flutterknyte appeared before you!' ],
    b_group_froggitexWhimsalotX: (froggitex: boolean) =>
       froggitex ? [ '<32>{#p/story}* Final Froggit hops alone...' ] : [ '<32>{#p/story}* Flutterknyte flies solo now...' ],
    b_group_astigmatism: () =>
-      save.data.n.bad_lizard < 2
-         ? [ '<32>{#p/alphys}* Not this guy...' ]
-         : [ '<32>{#p/story}* The smiling eyes step forth!' ],
-   b_group_rg: () =>
-      world.goatbro ? [ '<32>{#p/asriel2}* RG 03 and 04.' ] : [ '<32>{#p/story}* The royal guard attacks!' ],
+      trueLizard() < 2 ? [ '<32>{#p/alphys}* Not this guy...' ] : [ '<32>{#p/story}* The smiling eyes step forth!' ],
+   b_group_rg: () => (world.azzie ? [ '<32>{#p/asriel2}* RG 03 and 04.' ] : [ '<32>{#p/story}* The royal guard attacks!' ]),
    b_group_spacetopTsundere: () =>
-      world.goatbro ? [ "<32>{#p/asriel2}* It's these loons." ] : [ "<32>{#p/story}* It's a space-faring nightmare!" ],
+      world.azzie ? [ '<32>{#p/asriel2}* These crazies...' ] : [ "<32>{#p/story}* It's a space-faring nightmare!" ],
    b_group_spacetopTsundereX: (spacetop: boolean) =>
-      world.goatbro
+      world.azzie
          ? [ '<32>{#p/asriel2}* One left.' ]
          : spacetop
          ? [ '<32>{#p/story}* Only Astro Serf remains.' ]
          : [ '<32>{#p/story}* Only Tsunderidex remains.' ],
    b_group_pyropeTsundere: () =>
-      world.goatbro ? [ "<32>{#p/asriel2}* It's these crazies." ] : [ "<32>{#p/story}* It's a fiery cavalry!" ],
+      world.azzie ? [ '<32>{#p/asriel2}* The hot-headed army arrives.' ] : [ "<32>{#p/story}* It's a fiery cavalry!" ],
    b_group_pyropeTsundereX: (pyrope: boolean) =>
-      world.goatbro
+      world.azzie
          ? [ '<32>{#p/asriel2}* One left.' ]
          : pyrope
          ? [ '<32>{#p/story}* Only Hotwire remains.' ]
@@ -4733,11 +4564,14 @@ const text = {
       name: '* Glyde',
       act_check: [ '<32>{#p/story}* GLYDE - ATK YES DEF YES\n* Refuses to give more details about its statistics.' ],
       act_secret: () =>
-         save.data.b.w_state_steak && save.data.b.w_state_soda
+         save.data.b.genocide
+            ? [ "<32>{#p/narrator}* You tried to tell Glyde a secret, but Glyde doesn't seem to trust you." ]
+            : save.data.b.w_state_steak && save.data.b.w_state_soda
             ? [ '<32>{#p/narrator}* You told Glyde the secret given to you by Aaron.' ]
             : [ "<32>{#p/narrator}* You tried to tell Glyde a secret, but you don't have any secrets to tell." ],
       act_flirt1: [ '<32>{#p/narrator}* You asked Glyde out on a date.' ],
       act_flirt2: [ '<32>{#p/narrator}* You tried asking Glyde out on a date, but it was too distracted with itself.' ],
+      act_flirt3: [ '<32>{#p/narrator}* You tried asking Glyde out on a date, but it just made a face of disapproval.' ],
       fightEnder1: [
          '<20>{#p/monster}{~}{#e/glyde/4}...huh?',
          '<20>{~}Did you just say "triple beefcake deluxe?"',
@@ -4776,7 +4610,7 @@ const text = {
       ],
       intro1: [ '<20>{#p/monster}{~}{#e/glyde/6}Kahaha, take that ya stupid robot!' ],
       intro2a: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<20>{#p/mettaton}ALPHYS AND I ARE STILL HERE, YOU KNOW.' ]
             : [ "<20>{#p/mettaton}I'M STILL HERE, YOU KNOW." ],
       intro2b: [ '<20>{#p/monster}{~}{#e/glyde/8}Quiet!\nThis is MY stage now, robo-freak.' ],
@@ -4850,7 +4684,7 @@ const text = {
       turn6f: [ '<20>{#p/mettaton}WOW, SORRY...', "<20>I DIDN'T KNOW YOU DISLIKED ME THAT MUCH." ],
       turn6g: [
          '<20>{#p/monster}{#e/bpants/12}...',
-         "<20>{#p/monster}{#e/bpants/2}I seriously just can't with this guy I swear to go- {%}"
+         "<20>{*}{#p/monster}{#e/bpants/2}I seriously just can't with this guy I swear to go- {%}"
       ],
       turn6h: [
          "<20>{#p/mettaton}A-NY-WAY WE HAVE THINGS TO GET TO SO IF YOU DON'T MIND {%}",
@@ -4887,23 +4721,22 @@ const text = {
          save.data.n.plot < 67
             ? [ "<20>{#p/mettaton}YOU SILLY GOOSE.\nTHAT'S NOT GOING TO WORK ON ME, SWEETHEART!" ]
             : save.data.b.a_state_hapstablook
-            ? [ "<20>{#p/mettaton}LISTEN, SWEETHEART.\nIF YOU WANT A REAL FIGHT, THIS ISN'T THE PLACE FOR IT." ]
+            ? [ "<20>{#p/mettaton}LISTEN, SWEETHEART.\nI'VE HAD ENOUGH PAIN TODAY AS IT IS.\nDO YOU MIND?" ]
             : [ "<20>{#p/mettaton}ATTACKING ME WON'T DO YOU ANY FAVORS, SWEETHEART." ],
       flirtTalk: [ '<20>{#p/mettaton}OHOHO...', '<20>GETTING FRISKY, EH?', "<20>I'LL HAVE TO REMEMBER THAT, DARLING~" ],
 
       turn1: [
          "<20>{#p/mettaton}LET'S START WITH SOMETHING SIMPLE...",
          '<20>SINGING!',
-         '<20>DO YOU HAVE WHAT IT TAKES TO- {%}'
+         '<20>{*}DO YOU HAVE WHAT IT TAKES TO- {%}'
       ],
       turn1a1: [ '<20>...\nWAIT A SECOND.', '<20>IS IT JUST ME, OR...', '<20>DO YOU LOOK A LITTLE "RED" TODAY?' ],
       turn1a2: [ '<20>DOCTOR, IF YOU COULD...' ],
-      turn1b1: () => (save.data.n.bad_lizard < 1 ? [ '<20>{#p/alphys}Uh, sure!' ] : [ '<20>{#p/alphys}...hm?' ]),
-      turn1b2: () =>
-         save.data.n.bad_lizard < 1 ? [ '<20>{#p/alphys}F-forgive me...' ] : [ '<20>{#p/alphys}O-oh yeah, that.' ],
+      turn1b1: () => (trueLizard() < 1 ? [ '<20>{#p/alphys}Uh, sure!' ] : [ '<20>{#p/alphys}...hm?' ]),
+      turn1b2: () => (trueLizard() < 1 ? [ '<20>{#p/alphys}F-forgive me...' ] : [ '<20>{#p/alphys}O-oh yeah, that.' ]),
       turn1c: [ '<20>{*}{#p/mettaton}MUCH BETTER.{^30}{%}' ],
       turn1d: () =>
-         save.data.n.bad_lizard < 1
+         trueLizard() < 1
             ? [ '<20>{*}{#p/alphys}So... y-you move around, then you use [Z] to jump!{^30}{%}' ]
             : [ '<20>{*}{#p/alphys}You move around, then you use [Z] to jump.{^30}{%}' ],
       turn1e: [ '<20>{*}{#p/mettaton}ALPHYS, ALPHYS, ALPHYS...{^30}{%}' ],
@@ -5039,13 +4872,11 @@ const text = {
 
       turn9a: [ "<20>{#p/mettaton}PROVE TO ME YOU'VE GOT WHAT IT TAKES TO BE A STAR!" ],
       turn9b: () =>
-         save.data.n.bad_lizard < 1
-            ? [ '<20>{*}{#p/alphys}Are you k-kidding?{^30}{%}' ]
-            : [ '<20>{*}{#p/alphys}{#e/alphys/7}...' ],
+         trueLizard() < 1 ? [ '<20>{*}{#p/alphys}Are you k-kidding?{^30}{%}' ] : [ '<20>{*}{#p/alphys}{#e/alphys/7}...' ],
       turn9c: [ "<20>{*}{#p/alphys}I don't...{^30}{%}" ],
       turn9d: [ '<20>{*}{#p/alphys}I...{^30}{%}' ],
       turn9e: () =>
-         save.data.n.bad_lizard < 1
+         trueLizard() < 1
             ? [ "<20>{*}{#p/alphys}I c-can't do it!{^30}{%}" ]
             : [ "<20>{*}{#p/alphys}{#e/alphys/4}I'm not sure if this is a good idea.{^30}{%}" ],
 
@@ -5064,7 +4895,7 @@ const text = {
                "<20>{#p/alphys}{#e/alphys/8}That's no surprise.",
                "<20>{#p/alphys}{#e/alphys/4}And also, I'm... k-kind of afraid I might hurt them..."
             ]
-         ][save.data.n.bad_lizard]
+         ][trueLizard()]
       ],
       turn9end3: [ '<20>{#p/mettaton}HMM...', '<20>YOU MAKE AN INTERESTING POINT, DOCTOR.' ],
       turn9end4: [ "<20>BUT I'M AFRAID I HAVE TO DISAGREE{#e/alphys/1}." ],
@@ -5112,13 +4943,25 @@ const text = {
       turn8reactMD2b: [ '<20>{#p/monster}Pathetic.\nPathetic!\nPATHETIC!', '<20>{#p/monster}Serves you right.' ],
       missIndicator: 'Misses: $(x)',
 
-      idleTalk1: [
-         "<20>{#p/mettaton}SO WE'VE MADE IT TO THE END, EH?",
-         "<20>{#p/mettaton}HOW DOES IT FEEL KNOWING YOU'RE ABOUT TO BE A SUPERSTAR?"
-      ],
-      idleTalk2: [ '<20>{#p/mettaton}I\'M SURE YOU\'RE ITCHING TO "TURN" YOUR LIFE AROUND.' ],
+      idleTalk1: () =>
+         trueLizard() < 2
+            ? [
+                 "<20>{#p/mettaton}SO WE'VE MADE IT TO THE END, EH?",
+                 "<20>{#p/mettaton}HOW DOES IT FEEL KNOWING YOU'RE ABOUT TO BE A SUPERSTAR?"
+              ]
+            : [
+                 "<20>{#p/mettaton}SO WE'VE MADE IT TO THE END, EH?",
+                 "<20>{#p/mettaton}HOW DOES IT FEEL KNOWING YOU'RE ABOUT TO BE CRUSHED?"
+              ],
+      idleTalk2: () =>
+         trueLizard() < 2
+            ? [ '<20>{#p/mettaton}I\'M SURE YOU\'RE ITCHING TO "TURN" YOUR LIFE AROUND.' ]
+            : [ '<20>{#p/mettaton}THOSE YOU\'VE KILLED ARE SURELY "TURNING" IN THEIR GRAVES.' ],
       idleTalk3: [ '<20>{#p/mettaton}LET\'S JUST HOPE THIS SHOW DOESN\'T TAKE A "TURN" FOR THE WORST.' ],
-      idleTalk4: [ '<20>{#p/mettaton}I MUST SAY, HAVING YOU ON STAGE WITH ME IS A REAL "TURN" ON.' ],
+      idleTalk4: () =>
+         trueLizard() < 2
+            ? [ '<20>{#p/mettaton}I MUST SAY, HAVING YOU ON STAGE WITH ME IS A REAL "TURN" ON.' ]
+            : [ '<20>{#p/mettaton}I MUST SAY, THIS WHOLE SITUATION IS A REAL "TURN" OFF.' ],
       idleTalk5: [ "<20>{#p/mettaton}(YOU'RE SUPPOSED TO TURN ME AROUND.)" ],
       idleTalk6: [ '<20>{#p/mettaton}...' ],
       flirtTalk1: () =>
@@ -5144,25 +4987,37 @@ const text = {
       turnTalk1: [ '<20>{#p/mettaton}A MIRROR, YOU SAY?', '<20>OH RIGHT, I HAVE TO LOOK PERFECT FOR OUR GRAND FINALE!' ],
       turnTalk2: [ "<20>{#p/mettaton}HMM, WHERE IS IT?\nI DON'T SEE IT..." ],
       turnTalk3: [ '<20>{#p/mettaton}DID YOU.', '<20>JUST FLIP.', '<20>MY SWITCH??' ],
-      turnTalk4: [
-         '<18>{#p/mettaton}Ohhhh my.',
-         '<18>If you flipped my switch, that can only mean one thing.',
-         "<18>You're desperate for the premiere of my new body.",
-         '<18>How impatient...',
-         "<18>Lucky for you, I've been aching to show it off for a long time.",
-         "<18>So, as thanks, I'll give you a handsome reward.",
-         "<18>I'll make your last living moments..."
-      ],
+      turnTalk4: () =>
+         trueLizard() < 2
+            ? [
+                 '<18>{#p/mettaton}Ohhhh my.',
+                 '<18>If you flipped my switch, that can only mean one thing.',
+                 "<18>You're desperate for the premiere of my new body.",
+                 '<18>How impatient...',
+                 "<18>Lucky for you, I've been aching to show it off for a long time.",
+                 "<18>So, as thanks, I'll give you a handsome reward.",
+                 "<18>I'll make your last living moments..."
+              ]
+            : [
+                 '<18>{#p/mettaton}Ohhhh my.',
+                 '<18>If you flipped my switch, that can only mean one thing.',
+                 "<18>You're desperate to see your own fateful demise.",
+                 '<18>How ambitious...',
+                 "<18>Lucky for you, I've been waiting to put an end to you for a while.",
+                 "<18>So, as thanks, I'll give you a handsome reward.",
+                 "<18>I'll make your last living moments..."
+              ],
       turnTalk5: [ '<20>{#p/mettaton}...absolutely beautiful!' ],
       act_burn: [ '<32>{#p/narrator}* You roasted Mettaton on his own TV show...\n* Big mistake.' ],
       burnTalk1: [ '<20>{#p/mettaton}IS THAT THE BEST YOU CAN MANAGE?' ],
-      burnTalk2: [ '<20>{#p/mettaton}EVEN ALPHYS HAS BETTER ROASTS THAN THAT.' ],
+      burnTalk2: [ '<20>{#p/mettaton}EVEN ALPHYS HAS BETTER REMARKS...' ],
       burnTalk3: [ "<20>{#p/mettaton}NO OFFENSE, BUT YOU'RE NOT VERY GOOD AT THIS." ],
       burnTalk4: [ '<20>{#p/mettaton}...\nMAYBE YOU SHOULD TRY SOMETHING ELSE.' ],
       burnTalk5: [ '<20>{#p/mettaton}...' ]
    },
 
    b_opponent_mettaton2: {
+      hint: [ "<32>{#p/narrator}* I'm afraid there's not much I can do here.\n* It's all up to you, now." ],
       name: () => (world.genocide ? '* Mettaton NEO' : '* Mettaton EX'),
       spannerReaction: (repeat: boolean) =>
          world.genocide
@@ -5223,45 +5078,58 @@ const text = {
       act_flirt3: [ '<32>{#p/narrator}* You flirt with the audience.\n* That got their attention!' ],
       act_flirt4: [ "<32>{#p/narrator}* You flirt with the audience.\n* They're completely enthralled!" ],
       status1: () =>
-         [
-            [ '<32>{#p/asriel2}* Orange, huh?\n* Watch out, $(name)... things are about to get explosive.' ],
-            [ '<32>{#p/asriel2}* Here we go again.' ]
-         ][Math.min(save.flag.n.azzy_neo++, 1)],
+         save.flag.n.azzy_neo_pickup === 1
+            ? ((save.flag.n.azzy_neo_pickup = 2),
+              [
+                 "<32>{#p/asriel2}* I'll infuse some of the shield pickups he drops with magic.\n* Get as many as you can!"
+              ])
+            : [
+                 [ '<32>{#p/asriel2}* Orange, huh?\n* Watch out, $(name)... things are about to get explosive.' ],
+                 [ '<32>{#p/asriel2}* Here we go again.' ]
+              ][Math.min(save.flag.n.azzy_neo++, 1)],
       statusX: () =>
          world.genocide
-            ? [
-                 [ '<32>{#p/asriel2}* This is our fight, $(name).' ],
-                 [ "<32>{#p/asriel2}* Let's end this thing for good." ],
-                 [ '<32>{#p/asriel2}* Nothing can stop us now.' ],
-                 [ '<32>{#p/asriel2}* Nobody can get in our way.' ],
-                 [ '<32>{#p/asriel2}* The end is near.' ],
-                 [ '<32>{#p/asriel2}* Time to break through.' ],
-                 [ "<32>{#p/asriel2}* We're gonna smash that shield." ],
-                 [ '<32>{#p/asriel2}* Down with the shield!' ],
-                 [ "<32>{#p/asriel2}* Let's finish the job." ]
-              ][battler.rand(7, true)]
+            ? save.flag.n.azzy_neo_pickup < 2
+               ? [
+                    [ '<32>{#p/asriel2}* Those shield pickups...' ],
+                    [
+                       '<32>{#p/asriel2}* I think I can infuse some of those pickups with magic.\n* Get as many as you can!'
+                    ]
+                 ][save.flag.n.azzy_neo_pickup++]
+               : [
+                    [ '<32>{#p/asriel2}* This is our fight, $(name).' ],
+                    [ "<32>{#p/asriel2}* Let's end this thing for good." ],
+                    [ '<32>{#p/asriel2}* Nothing can stop us now.' ],
+                    [ '<32>{#p/asriel2}* Nobody can get in our way.' ],
+                    [ '<32>{#p/asriel2}* The end is near.' ],
+                    [ '<32>{#p/asriel2}* Time to break through.' ],
+                    [ "<32>{#p/asriel2}* We're gonna smash that shield." ],
+                    [ "<32>{#p/asriel2}* Let's finish the job." ]
+                 ][battler.rand(8, true)]
             : [ '<32>{#p/story}* Mettaton.' ],
       turnTalk1: () => [ '<20>{#p/mettaton}Lights!\nCamera!\nAction!' ],
       turnTalk2: () =>
          save.data.b.a_state_hapstablook
             ? [ '<20>{#p/mettaton}Ghosts!\nDummies!\n...snails?' ]
-            : save.data.n.bad_lizard < 2
+            : trueLizard() < 2
             ? [ '<20>{#p/mettaton}Drama!\nRomance!\nBloodshed!' ]
             : [ '<20>{#p/mettaton}Karma!\nVengeance!\nPayback!' ],
       turnTalk3: () =>
          save.data.b.a_state_hapstablook
-            ? [ "<20>{#p/mettaton}I'm on my redemption arc!" ]
-            : save.data.n.bad_lizard < 2
+            ? [ '<20>{#p/mettaton}What an unexpected twist!' ]
+            : trueLizard() < 2
             ? [ "<20>{#p/mettaton}I'm the idol everyone craves!" ]
             : [ "<20>{#p/mettaton}I'll be the galaxy's superstar!" ],
       turnTalk4: () =>
          save.data.b.a_state_hapstablook
-            ? [ "<20>{#p/mettaton}(That doesn't mean I'm doing autographs.)" ]
-            : save.data.n.bad_lizard < 2
+            ? [ "<20>{#p/mettaton}...do you really think they're sorry?" ]
+            : trueLizard() < 2
             ? [ '<20>{#p/mettaton}Smile for the camera, darling!' ]
             : [ '<20>{#p/mettaton}Smile for the camera, hotshot!' ],
       turnTalk5: () =>
-         save.data.n.bad_lizard < 2
+         save.data.b.a_state_hapstablook
+            ? [ '<20>{#p/mettaton}Tell me, what would you do in this situation?' ]
+            : trueLizard() < 2
             ? [
                  "<20>{#p/mettaton}Oooh, it's time for a pop quiz!",
                  '<20>{#p/mettaton}I sure hope you know your multiple- choice...'
@@ -5271,9 +5139,14 @@ const text = {
                  "<20>{#p/mettaton}Don't like multiple- choice?\nToo bad!"
               ],
       turnTalk6: () =>
-         save.data.n.state_aerialis_mttanswer === 0
+         save.data.b.a_state_hapstablook
+            ? [
+                 '<20>{#p/mettaton}Not so simple, is it?',
+                 '<20>{#p/mettaton}...maybe a heart to heart will do us some good.'
+              ]
+            : save.data.n.state_aerialis_mttanswer === 0
             ? [ '<20>{#p/mettaton}That pop quiz was underwhelming...', "<20>{#p/mettaton}But this won't be!" ]
-            : save.data.n.bad_lizard < 2
+            : trueLizard() < 2
             ? [
                  "<20>{#p/mettaton}Your answer really showed everyone what's on your mind.",
                  "<20>{#p/mettaton}Why don't I show you what's in my heart?"
@@ -5281,32 +5154,41 @@ const text = {
             : [ '<20>{#p/mettaton}So you do like multiple choice.', "<20>{#p/mettaton}Well, you won't like this!" ],
       turnTalk7: () =>
          save.data.b.a_state_hapstablook
-            ? [ "<20>{#p/mettaton}It's about to get real up in here!" ]
-            : save.data.n.bad_lizard < 2
+            ? [ "<20>{#p/mettaton}It's not like I never loved the old life I had..." ]
+            : trueLizard() < 2
             ? [ "<20>{#p/mettaton}It's about to get wild up in here!" ]
             : [ "<20>{#p/mettaton}The battle's only just begun!" ],
       turnTalk8: () =>
-         save.data.n.bad_lizard < 2
+         save.data.b.a_state_hapstablook
+            ? [ '<20>{#p/mettaton}...even if I did dislike a big part of it.' ]
+            : trueLizard() < 2
             ? [ '<20>{#p/mettaton}Can you keep up the pace?' ]
             : [ '<20>{#p/mettaton}Turn it up to eleven!' ],
       turnTalk9: () =>
          save.data.b.a_state_hapstablook
-            ? [ '<20>{#p/mettaton}Lights!\nCamera!\nFireworks!' ]
-            : save.data.n.bad_lizard < 2
+            ? [ '<20>{#p/mettaton}Who knew this could be so difficult?' ]
+            : trueLizard() < 2
             ? [ '<20>{#p/mettaton}Lights!\nCamera!\nPlastic explosives!' ]
             : [ '<20>{#p/mettaton}Destruction!\nAnnihilation!\nArmageddon!' ],
       turnTalk10: () =>
          save.data.b.a_state_hapstablook
-            ? [ '<20>{#p/mettaton}Things are going viral!' ]
-            : save.data.n.bad_lizard < 2
+            ? [ "<20>{#p/mettaton}It's just silly family drama, after all." ]
+            : trueLizard() < 2
             ? [ '<20>{#p/mettaton}Things are blowing up!' ]
             : [ '<20>{#p/mettaton}Things are going crazy!' ],
       turnTalk11: () =>
-         save.data.n.bad_lizard < 2
+         save.data.b.a_state_hapstablook
+            ? [ '<20>{#p/mettaton}...\nJust give me a moment, darling.' ]
+            : trueLizard() < 2
             ? [ '<21>{#p/mettaton}Time for our council- regulated break!' ]
             : [ "<20>{#p/mettaton}Can't catch a break?\nSucks to be you!" ],
       turnTalk12: () =>
-         save.data.n.bad_lizard < 2
+         save.data.b.a_state_hapstablook
+            ? [
+                 "<20>{#p/mettaton}Guess it must've taken courage...",
+                 '<20>{#p/mettaton}...to confront me after all this time.'
+              ]
+            : trueLizard() < 2
             ? [
                  "<20>{#p/mettaton}We've grown so distant, darling...",
                  '<20>{#p/mettaton}How about another heart-to-heart?'
@@ -5316,45 +5198,53 @@ const text = {
                  "<20>{#p/mettaton}Here's something you can take to heart!"
               ],
       turnTalk13: () =>
-         save.data.b.a_state_armwrecker
+         save.data.b.a_state_hapstablook
+            ? [ "<20>{#p/mettaton}U... unless they're just trying to rope me back in." ]
+            : save.data.b.a_state_armwrecker
             ? [ '<20>{#p/mettaton}A... arms?\nWh... who needs arms with legs like these?' ]
-            : [ "<20>{#p/mettaton}Is... is that all you've got?" ],
+            : [ "<20>{#p/mettaton}I... is that all you've got?" ],
       turnTalk14: () =>
          save.data.b.a_state_hapstablook
-            ? [ '<20>{#p/mettaton}Shoutout t-to... to all my cousins watching at home!' ]
-            : save.data.n.bad_lizard < 2
+            ? [ '<20>{#p/mettaton}Then a-again... they never did bring it up themselves...' ]
+            : trueLizard() < 2
             ? [ '<20>{#p/mettaton}Shoutout t-to... to Dr. Alphys for making my dreams come true!' ]
             : [ "<20>{#p/mettaton}Shoutout t-to... to the ones who've given their lives to protect us!" ],
       turnTalk15: () =>
          save.data.b.a_state_hapstablook
-            ? [ "<20>{#p/mettaton}I hope you're enjoying th... the show!" ]
-            : save.data.n.bad_lizard < 2
+            ? [ '<20>{#p/mettaton}Could it be? Did they really me... mean all that?' ]
+            : trueLizard() < 2
             ? [ "<20>{#p/mettaton}Now it's my turn to fulfill yo... yours!" ]
             : [ "<20>{#p/mettaton}I'll make sure your efforts wer... weren't in vain!" ],
       turnTalk16: () =>
          save.data.b.a_state_hapstablook
-            ? [ '<20>{#p/mettaton}Because I ce... certainly am!' ]
-            : save.data.n.bad_lizard < 2
+            ? [ "<20>{#p/mettaton}It'd sure be ni... nice if they did!" ]
+            : trueLizard() < 2
             ? [ "<20>{#p/mettaton}I wouldn't ha... have it any other way!" ]
             : [ "<20>{#p/mettaton}It's the le... least I can do!" ],
       turnTalk17: () => [ '<20>{#p/mettaton}{#e/mettaton/12}H... haah...\nH... haah...' ],
       turnTalk18: () => [ '<20>{#p/mettaton}{#e/mettaton/13}The show must go on...!' ],
       turnTalk19: () => [ '<20>{#p/mettaton}{#e/mettaton/14}L... losing power...' ],
       turnTalk20: () => [ "<20>{#p/mettaton}{#e/mettaton/14}I... c-can't..." ],
-      turnTalk21: () => [
+      turnTalk21: (r: boolean) => [
          '<20>{#p/mettaton}{#e/mettaton/11}(Sigh...)',
          '<20>Well...',
          "<20>{#e/mettaton/9}Looks like...\nI'm all out of juice.",
-         '<20>...',
-         '<20>{#e/mettaton/10}Though...\nI must say...',
+         ...(r
+            ? [
+                 '<20>{#e/mettaton/10}At least we got some decent ratings, though, huh?',
+                 "<20>{#e/mettaton/20}I think that's the most viewers I've ever had on air...",
+                 '<20>{#e/mettaton/19}...',
+                 '<20>{#e/mettaton/10}You know...\nI must say...'
+              ]
+            : [ '<20>...', '<20>{#e/mettaton/10}Though...\nI must say...' ]),
          ...(save.data.b.a_state_hapstablook
             ? [
-                 "<20>{#e/mettaton/17}You're one out-of- this-world actor.",
-                 '<20>{#e/mettaton/10}I knew you had potential, but...',
-                 '<20>{#e/mettaton/10}To see it first-hand is..',
-                 '<20>{#e/mettaton/17}...spectacular.'
+                 "<20>{#e/mettaton/17}You're one out-of- this-world listener.",
+                 '<20>{#e/mettaton/10}Papyrus mentioned it earlier, but...',
+                 '<20>{#e/mettaton/10}To have you right here with me is...',
+                 '<20>{#e/mettaton/17}...special.'
               ]
-            : save.data.n.bad_lizard < 2
+            : trueLizard() < 2
             ? [
                  "<20>{#e/mettaton/17}You've got quite a knack for staying alive.",
                  '<20>{#e/mettaton/10}Alphys spoke of your many feats, but...',
@@ -5381,9 +5271,9 @@ const text = {
             ? [
                  "<22>{#e/mettaton/18}{@swirl:0.4,1.4,15}i know it's been weird since the meeting...\nbut...",
                  '<22>{@swirl:0.4,1.4,15}seeing you for who you really are, doing what you really want...',
-                 '<22>{#e/mettaton/10}{@swirl:0.4,1.4,15}brought a tear to my eye...',
+                 '<22>{#e/mettaton/10}{@swirl:0.4,1.4,15}brought a happy tear to my eye...',
                  "<22>{#e/mettaton/9}{@swirl:0.4,1.4,15}i can't tell, but...\ni guess this is the last episode...?",
-                 "<22>{#e/mettaton/11}{@swirl:0.4,1.4,15}i'll miss seeing you like this...\nmettaton......"
+                 "<22>{#e/mettaton/11}{@swirl:0.4,1.4,15}i'll miss you...\ncousin......"
               ]
             : [
                  '<22>{#e/mettaton/18}{@swirl:0.4,1.4,15}i really liked watching your show...',
@@ -5402,23 +5292,44 @@ const text = {
       audienceRec3a: [ '<22>{#p/monster}Mettaton, your show made us so happy!' ],
       audienceRec3b: [ "<22>{#p/monster}Mettaton, I don't know what I'll watch without you!" ],
       audienceRec3c: [ "<22>{#e/mettaton/10}{#p/monster}There's a Mettaton-shaped hole in my Mettaton- shaped heart!" ],
-      audienceRec4: [
+      audienceRec4: () => [
          '<20>{#p/mettaton}Ah... I see.',
          '<20>{#e/mettaton/9}...',
          '<20>{#e/mettaton/19}Everyone... thank you so much.',
-         '<20>{#e/mettaton/20}But you misunderstand...',
-         "<20>{#e/mettaton/10}Mettaton's not going anywhere!",
-         "<20>{#e/mettaton/9}It's only the human that's going places...",
+         ...(save.data.b.a_state_hapstablook
+            ? [
+                 '<20>{#e/mettaton/20}And Blooky...',
+                 "<20>{#e/mettaton/20}I never thought I'd forgive you and the others, but...",
+                 '<20>{#e/mettaton/9}That farm was your passion project... right?',
+                 '<20>{#e/mettaton/9}After having several of my own... I think I get it.',
+                 '<20>{#e/mettaton/19}You just... wanted us to be successful together...',
+                 '<20>{#e/mettaton/20}...heh.',
+                 '<20>{#e/mettaton/9}As for my show, well...',
+                 '<20>{#e/mettaton/10}I think I might take a break for a while.'
+              ]
+            : [
+                 '<20>{#e/mettaton/20}But you misunderstand...',
+                 "<20>{#e/mettaton/10}I'm... not going anywhere.",
+                 "<20>{#e/mettaton/9}It's only the human that's going places..."
+              ]),
          '<20>...',
          "<20>{#e/mettaton/20}I guess it's for the best, though.",
-         "<20>{#e/mettaton/15}The truth is, this form's energy consumption is...",
-         '<20>{#e/mettaton/14}Inefficient.',
-         "<20>{#e/mettaton/19}In a few moments, I'll run out of battery power, and...",
+         ...(save.data.b.a_state_hapstablook
+            ? [
+                 "<20>{#e/mettaton/15}I've been away from the family for far too long...",
+                 "<20>{#e/mettaton/14}It's about time I told them what's going on.",
+                 '<20>{#e/mettaton/19}In short...'
+              ]
+            : [
+                 "<20>{#e/mettaton/15}The truth is, this form's energy consumption is...",
+                 '<20>{#e/mettaton/14}Inefficient.',
+                 "<20>{#e/mettaton/19}In a few moments, I'll run out of battery power, and..."
+              ]),
          '<20>{#e/mettaton/10}Well.',
          "<20>I'll be alright.",
-         '<20>{#e/mettaton/13}Fly safe, darling.',
-         '<20>{#e/mettaton/15}And everyone... thank you.',
-         "<20>{#e/mettaton/3}You've been a great audience!"
+         '<20>{#e/mettaton/9}Fly safe, darling.',
+         '<20>{#e/mettaton/19}And everyone... thank you.',
+         "<20>{#e/mettaton/20}You've been a great audience!"
       ],
       neointro: [
          "<20>{*}{#p/mettaton}You're orange now.",
@@ -5451,31 +5362,48 @@ const text = {
                "<20>{#p/asriel2}Seriously?\nI know my magic's limited, but it's not THAT bad.",
                '<20>{#x1}Cut me some slack...'
             ],
-            [ '<20>{#p/asriel2}Dead.' ]
+            [ '<20>{#p/asriel2}...' ]
          ][Math.min(save.flag.n.ga_asrielNapstakill++, 1)],
-      qq: () => (save.data.n.bad_lizard < 2 ? 'Would you smooch a ghost?' : 'Would you attack a ghost?'),
+      qq: () =>
+         save.data.b.a_state_hapstablook
+            ? 'Would you forgive a ghost?'
+            : trueLizard() < 2
+            ? 'Would you smooch a ghost?'
+            : 'Would you attack a ghost?',
       qa: () =>
-         save.data.n.bad_lizard < 2
+         save.data.b.a_state_hapstablook
+            ? [ 'Yes', save.data.b.oops ? 'No' : 'Maybe', 'Forgive,\nthen hug!', 'Forgive\nand forget.' ]
+            : trueLizard() < 2
             ? [ 'Heck Yeah', 'HELL YEAH', 'Absolutely!', 'Without\nHesitation.' ]
-            : [ 'I Could', 'I SHOULD', 'I will!', 'If I\nhave to.' ],
+            : [ 'I Could', 'I Should', 'I Will', 'If I\nHave To.' ],
       q0: () =>
-         save.data.n.bad_lizard < 2
+         save.data.b.a_state_hapstablook
+            ? [ "<20>{#p/mettaton}Time's up." ]
+            : trueLizard() < 2
             ? [ "<20>{#p/mettaton}Time's up, darling.\nI'll take that as a yes~{^40}{%}" ]
             : [ "<20>{#p/mettaton}Time's up, darling.\nI'll take that as a yes...{^40}{%}" ],
       q1: () =>
-         save.data.n.bad_lizard < 2
+         save.data.b.a_state_hapstablook
+            ? [ '<20>{#p/mettaton}Straight to the point, I see.{^40}{%}' ]
+            : trueLizard() < 2
             ? [ '<20>{#p/mettaton}Great answer!\nI love it!!!{^40}{%}' ]
             : [ "<20>{#p/mettaton}I'd like to see you try.{^40}{%}" ],
       q2: () =>
-         save.data.n.bad_lizard < 2
+         save.data.b.a_state_hapstablook
+            ? [ '<20>{#p/mettaton}I see...{^40}{%}' ]
+            : trueLizard() < 2
             ? [ "<20>{#p/mettaton}Now THAT's how you answer a question!{^40}{%}" ]
             : [ '<20>{#p/mettaton}So you just lack the courage, hmm?{^40}{%}' ],
       q3: () =>
-         save.data.n.bad_lizard < 2
+         save.data.b.a_state_hapstablook
+            ? [ "<20>{#p/mettaton}Woah, I wouldn't go that far now.{^40}{%}" ]
+            : trueLizard() < 2
             ? [ '<20>{#p/mettaton}I like your attitude!{^40}{%}' ]
             : [ '<20>{#p/mettaton}The truth is so refreshing!{^40}{%}' ],
       q4: () =>
-         save.data.n.bad_lizard < 2
+         save.data.b.a_state_hapstablook
+            ? [ "<20>{#p/mettaton}...but I can't keep running away.{^40}{%}" ]
+            : trueLizard() < 2
             ? [ "<20>{#p/mettaton}Oooh, you're serious about this.{^40}{%}" ]
             : [ "<20>{#p/mettaton}Don't lie to yourself, dear...{^40}{%}" ],
       hitIndicator: 'Hits: $(x)',
@@ -5522,33 +5450,39 @@ const text = {
 
    b_opponent_madjick: {
       name: '* Cozmo',
+      hint: [ '<32>{#p/narrator}* Wait... I have an idea.' ],
+      assistTalk1: [ '<20>{~}Er...' ],
+      assistAction: [
+         '<32>{*}{#p/narrator}* World of old. {^5}World of magic.{^25}{%}',
+         '<32>{*}{#p/narrator}* But no matter how tragic, we must live on...{^60}{%}',
+         '<32>{*}{#p/narrator}* And remember.{^40}{%}'
+      ],
+      assistTalk2: [ '<20>{~}Memoria mundi!', '<20>{~}You know the words!' ],
       old_gun_text: [ '<32>{#p/narrator}* You fire the gun.\n* But Cozmo is unfazed!' ],
       old_bomb_text: [ '<32>{#p/narrator}* You deploy the bomb.\n* The mist scatters about.\n* But Cozmo is unfazed!' ],
       old_spray_text: [ "<32>{#p/narrator}* You use the spray.\n* Smells like pepper.\n* Cozmo can't take the heat!" ],
       status1: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* Uh oh.' ] : [ '<32>{#p/story}* Cozmo came through in a flash!' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* Uh oh.' ] : [ '<32>{#p/story}* Cozmo came through in a flash!' ],
       act_check: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* Cozmo\'s what you\'d call a "traditional" magic user.\n* Its orbs are its strength...' ]
             : [ '<32>{#p/story}* COZMO - ATK 29 DEF 24\n* This enigmatic ELITE squad member speaks in magic words.' ],
       idleStatus1: () =>
-         save.data.n.bad_lizard < 2
-            ? [ "<32>{#p/alphys}* It's Cozmo." ]
-            : [ '<32>{#p/story}* Cozmo does a mysterious jig.' ],
+         trueLizard() < 2 ? [ "<32>{#p/alphys}* It's Cozmo." ] : [ '<32>{#p/story}* Cozmo does a mysterious jig.' ],
       idleStatus2: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* It's Cozmo." ]
             : [ '<32>{#p/story}* Cozmo flaunts its orbs in a menacing manner.' ],
       idleStatus3: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* It's Cozmo." ]
             : [ '<32>{#p/story}* Cozmo whispers non-terrestrial swear words.' ],
       idleStatus4: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* It's Cozmo." ]
-            : [ '<32>{#p/story}* Cozmo peers at you with intrigued eyes.' ],
+            : [ '<32>{#p/story}* Cozmo peers at you with piercing eyes.' ],
       idleStatus5: () =>
-         save.data.n.bad_lizard < 2 ? [ "<32>{#p/alphys}* It's Cozmo." ] : [ '<32>{#p/story}* Smells like... magic.' ],
+         trueLizard() < 2 ? [ "<32>{#p/alphys}* It's Cozmo." ] : [ '<32>{#p/story}* Smells like... magic.' ],
       idleTalk1: [ '<20>{~}Abra cadabra.' ],
       idleTalk2: [ '<20>{~}A la kazam!!' ],
       idleTalk3: [ '<20>{~}Tinkle tinkle hoy.' ],
@@ -5557,16 +5491,16 @@ const text = {
       danceText1: [ "<32>{#p/narrator}* You dance.\n* Cozmo's gravity orb grows near..." ],
       danceTalk1: [ '<20>{~}Magnum gravitas!!' ],
       danceStatus1: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* One orb down...' ]
             : [ "<32>{#p/story}* Cozmo's gravity orb has relented its pull." ],
       danceText2: () => [
          "<32>{#p/narrator}* You dance.\n* Cozmo's shocker orb powers up...",
-         ...(save.data.n.bad_lizard < 2 ? [ "<32>{#p/alphys}* Yes, that's it!\n* A-almost there!" ] : [])
+         ...(trueLizard() < 2 ? [ "<32>{#p/alphys}* Yes, that's it!\n* A-almost there!" ] : [])
       ],
       danceTalk2: [ '<20>{~}Vulu voltika!' ],
       danceStatus2: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* Yes!!!\n* The orbs are out of power!' ]
             : [ "<32>{#p/story}* Cozmo's shocker orb is drained of energy." ],
       danceText3: [ '<32>{#p/narrator}* You dance.\n* Nothing changed.' ],
@@ -5574,16 +5508,16 @@ const text = {
       danceIdleTalk2: [ '<20>{~}Defeated...' ],
       danceIdleTalk3: [ '<20>{~}Failed...' ],
       danceStatus3: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* You can probably spare it now.' ]
             : [ '<32>{#p/story}* Cozmo is out of options.' ],
       playdeadText1: () => [
          "<32>{#p/narrator}* You play dead.\n* Cozmo's orbs begin to act strangely to each other...",
-         ...(save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* What the...?' ] : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* What the...?' ] : [])
       ],
       playdeadTalk: [ '<20>{~}\x00*chants of confusion*' ],
       playdeadStatus: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* I guess that works...?' ]
             : [ "<32>{#p/story}* Cozmo's orbs don't know how to handle this." ],
       playdeadIdleTalk1: [ '<20>{~}Utter inconfidence.' ],
@@ -5592,70 +5526,76 @@ const text = {
       playdeadText2: [ '<32>{#p/narrator}* You play dead.\n* Nothing changed.' ],
       flirtText0: () => [
          '<32>{#p/narrator}* You flirt with Cozmo.\n* No effect.',
-         ...(save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* Yeah, good luck with that...' ] : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* Yeah, good luck with that...' ] : [])
       ],
       flirtText1: () => [
          '<32>{#p/narrator}* You call on your experience, and invoke a flirtatious incantation.',
-         ...(save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* Huh...?' ] : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* Huh...?' ] : [])
       ],
       flirtTalk1: [ '<20>{~}Ah!\nA fellow wizard!' ],
       flirtStatus1: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* Oh my god.\n* Do it again!!!' ]
             : [ '<32>{#p/story}* Cozmo is on the love train.' ],
       flirtText2: () => [
          '<32>{#p/narrator}* You call on your experience, and recite a romantic scribe.',
-         ...(save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* It just gets better and better.' ] : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* It just gets better and better.' ] : [])
       ],
       flirtTalk2: [ "<20>{~}Ah!\nIt's amazing!" ],
       flirtStatus2: () =>
-         save.data.n.bad_lizard < 2
-            ? [ "<32>{#p/alphys}* Wow... I guess that's that." ]
-            : [ '<32>{#p/story}* Cozmo is enchanted.' ],
+         trueLizard() < 2 ? [ "<32>{#p/alphys}* Wow... I guess that's that." ] : [ '<32>{#p/story}* Cozmo is enchanted.' ],
       flirtText3: () => [
          '<32>{#p/narrator}* You flirt.\n* Nothing changed.',
-         ...(save.data.n.bad_lizard < 2 ? [ "<32>{#p/alphys}* Pfft, don't push your luck." ] : [])
+         ...(trueLizard() < 2 ? [ "<32>{#p/alphys}* Pfft, don't push your luck." ] : [])
       ],
       flirtIdleTalk1: [ '<20>{~}How lovely...' ],
       flirtIdleTalk2: [ '<20>{~}How sweet...' ],
       flirtIdleTalk3: [ '<20>{~}How thoughtful...' ],
       perilStatus: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* Its HP is low...' ] : [ '<32>{#p/story}* Cozmo is holding on.' ]
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* Its HP is low...' ] : [ '<32>{#p/story}* Cozmo is holding on.' ]
    },
 
    b_opponent_knightknight: {
       name: '* Terrestria',
+      hint: [ '<32>{#p/narrator}* Wait... let me try something.' ],
+      assistTalk1: [ '<20>{~}...\n...\n...\nHmm?' ],
+      assistAction: [
+         '<32>{*}{#p/human}* (...){^30}{%}',
+         '<32>{*}{#p/human}* (The sound of an ancient song echoes through the room.){^100}{%}'
+      ],
+      assistTalk2: [
+         '<20>{~}A song of our long- lost world...',
+         '<20>{~}Perhaps there is still beauty in the universe.'
+      ],
       old_gun_text: [ '<32>{#p/narrator}* You fire the gun.\n* But Terrestria is unfazed!' ],
       old_bomb_text: [ '<32>{#p/narrator}* You deploy the bomb.\n* The mist scatters about.\n* Terrestria fell asleep!' ],
       old_spray_text: [ '<32>{#p/narrator}* You use the spray.\n* Smells like pepper.\n* But Terrestria is unfazed!' ],
       status1: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* Not again.' ] : [ '<32>{#p/story}* Terrestria blocks the way!' ],
+         trueLizard() < 2
+            ? save.data.b.assist_madjick
+               ? [ '<32>{#p/alphys}* You think you can repeat that last trick?' ]
+               : [ '<32>{#p/alphys}* Not again.' ]
+            : [ '<32>{#p/story}* Terrestria blocks the way!' ],
       act_check: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* Terrestria is a staff-wielder, and she's REALLY passionate about the homeworld." ]
             : [
                  '<32>{#p/story}* TERRESTRIA - ATK 36 DEF 36\n* This heavy ELITE squad member wields the Planetary Staff.'
               ],
       idleStatus1: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* It's Terrestria." ]
             : [ '<32>{#p/story}* Terrestria tightens her grip on the staff.' ],
       idleStatus2: () =>
-         save.data.n.bad_lizard < 2
-            ? [ "<32>{#p/alphys}* It's Terrestria." ]
-            : [ '<32>{#p/story}* Terrestria breathes deeply.' ],
+         trueLizard() < 2 ? [ "<32>{#p/alphys}* It's Terrestria." ] : [ '<32>{#p/story}* Terrestria breathes deeply.' ],
       idleStatus3: () =>
-         save.data.n.bad_lizard < 2
-            ? [ "<32>{#p/alphys}* It's Terrestria." ]
-            : [ '<32>{#p/story}* Terrestria watches quietly.' ],
+         trueLizard() < 2 ? [ "<32>{#p/alphys}* It's Terrestria." ] : [ '<32>{#p/story}* Terrestria watches quietly.' ],
       idleStatus4: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* It's Terrestria." ]
             : [ "<32>{#p/story}* Terrestria's armor emits a faint, yellow glow." ],
       idleStatus5: () =>
-         save.data.n.bad_lizard < 2
-            ? [ "<32>{#p/alphys}* It's Terrestria." ]
-            : [ '<32>{#p/story}* Smells like a forgotten relic.' ],
+         trueLizard() < 2 ? [ "<32>{#p/alphys}* It's Terrestria." ] : [ '<32>{#p/story}* Smells like a forgotten relic.' ],
       idleTalk1: [ '<20>{~}Good knight.' ],
       idleTalk2: [ '<20>{~}Farewell.' ],
       idleTalk3: [ '<20>{~}Adieu.' ],
@@ -5663,25 +5603,23 @@ const text = {
       idleTalk5: [ '<20>{~}Goodbye.' ],
       comfortText1: () => [
          "<32>{#p/narrator}* You move in closer and caress Terrestria's face, telling it things will be okay.",
-         ...(save.data.n.bad_lizard < 2 ? [ "<32>{#p/alphys}* That's... uh..." ] : [])
+         ...(trueLizard() < 2 ? [ "<32>{#p/alphys}* That's... uh..." ] : [])
       ],
       comfortTalk1: [ '<20>{~}...\n...\n...\nTruly?' ],
       comfortStatus1: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* Is she... crying?' ]
-            : [ "<32>{#p/story}* Terrestria's stance weakens." ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* Is she... crying?' ] : [ "<32>{#p/story}* Terrestria's stance weakens." ],
       comfortText2: () => [
          '<32>{#p/narrator}* You embrace Terrestria, reminding it there is still beauty in the universe.',
-         ...(save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* Awww...' ] : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* Awww...' ] : [])
       ],
       comfortTalk2: [ '<20>{~}...\n...\nThank you...' ],
       comfortStatus2: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* That's... honestly very sweet." ]
             : [ '<32>{#p/story}* Terrestria has found a new purpose in life.' ],
       comfortTalk3: [ '<20>{~}...\n...\nThere you are...' ],
       comfortStatus3: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* That's... honestly very sweet." ]
             : [ '<32>{#p/story}* Terrestria takes solace in her newfound comfort.' ],
       comfortText3: [ '<32>{#p/narrator}* You comfort Terrestria.\n* Nothing changed.' ],
@@ -5692,16 +5630,16 @@ const text = {
       comfortIdleTalk2: [ '<20>{~}Much obliged.' ],
       comfortIdleTalk3: [ '<20>{~}Many thanks.' ],
       comfortStatus4: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* I think you can spare her...' ]
             : [ '<32>{#p/story}* Terrestria is at peace.' ],
       flashText1: () => [
          "<32>{#p/narrator}* You flash your phone screen.\n* It's so bright, Terrestria goes into a panic!",
-         ...(save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* What are you doing!?' ] : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* What are you doing!?' ] : [])
       ],
       flashTalk: [ '<20>{~}\x00*silent panic*' ],
       flashStatus: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* She's b-blinded!" ]
             : [ '<32>{#p/story}* Terrestria has lost her sense of sight for this battle.' ],
       flashIdleTalk1: [ '<20>{~}No vision...' ],
@@ -5716,37 +5654,35 @@ const text = {
       flashText2c: [ '<32>{#p/narrator}* You flash your phone screen.\n* Nothing changed.' ],
       flirtText0: () => [
          '<32>{#p/narrator}* You flirt with Terrestria.\n* No effect.',
-         ...(save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* Yeah, the ELITE squad is sort of trained against swooning.' ]
-            : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* Yeah, the ELITE squad is sort of trained against swooning.' ] : [])
       ],
       flirtText1: () => [
          '<32>{#p/narrator}* You call on your experience, and whisper a simple but confident compliment.',
-         ...(save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* Uh...' ] : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* Uh...' ] : [])
       ],
       flirtTalk1: [ '<20>{~}What delight...' ],
       flirtStatus1: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* Of course you'd find a way to make it work..." ]
             : [ '<32>{#p/story}* Terrestria is beginning to like you.' ],
       flirtText2: () => [
          "<32>{#p/narrator}* You call on your experience, and gaze long into Terrestria's eyes.",
-         ...(save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* Ohhhh kay.' ] : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* Ohhhh kay.' ] : [])
       ],
       flirtTalk2: [ '<20>{~}What beauty to be seen...' ],
       flirtStatus2: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* W-well.\n* This is... something.' ]
             : [ '<32>{#p/story}* Terrestria is enamoured.' ],
       flirtText3: () => [
          '<32>{#p/narrator}* You flirt.\n* Nothing changed.',
-         ...(save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* You are insane.' ] : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* You are insane.' ] : [])
       ],
       flirtIdleTalk1: [ '<20>{~}Quite breath-taking...' ],
       flirtIdleTalk2: [ '<20>{~}How wonderful...' ],
       flirtIdleTalk3: [ '<20>{~}So beautiful...' ],
       perilStatus: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ "<32>{#p/alphys}* She's close to death..." ]
             : [ "<32>{#p/story}* Terrestria's breath shakes." ]
    },
@@ -5759,7 +5695,7 @@ const text = {
       ],
       old_spray_text: [ '<32>{#p/narrator}* You use the spray.\n* Smells like pepper.\n* Final Froggit is knocked out!' ],
       act_check: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ "<32>{#p/alphys}* Final Froggit, it's like Froggit, but fancier.\n* It talks in an odd language." ]
                : [ "<32>{#p/alphys}* It's just Final Froggit." ]
@@ -5769,29 +5705,23 @@ const text = {
       idleText3: [ '<08>{~}Skip, jump.' ],
       idleText4: [ '<08>{~}Purr.' ],
       status1: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* ...' ]
             : [ '<32>{#p/story}* The battlefield is engulfed in the smell of leola root.' ],
       status2: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* ...' ]
-            : [ '<32>{#p/story}* Final Froggit seeks an understanding.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Final Froggit seeks an understanding.' ],
       status3: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* ...' ]
-            : [ '<32>{#p/story}* Final Froggit hopes to share its wisdom.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Final Froggit hopes to share its wisdom.' ],
       act_flirt: () => [
          '<32>{#p/narrator}* You flirt with Final Froggit.',
          '<32>* Final Froggit shows modest appreciation for your remarks.',
-         ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Ehehe...' ] : [])
+         ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Ehehe...' ] : [])
       ],
       flirtText: () =>
          world.population === 0 ? [ '<08>{~}(Sighs deeply.)\nRobbit.' ] : [ '<08>{~}(Blushes deeply.)\nRobbit.' ],
       act_translate1: () => [
          '<32>{#p/narrator}* You tried to translate, but there was nothing for you to translate yet.',
-         ...(save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* Maybe you should, like... wait for it to say something first?' ]
-            : [])
+         ...(trueLizard() < 2 ? [ '<32>{#p/alphys}* Maybe you should, like... wait for it to say something first?' ] : [])
       ],
       act_translate2: [ "<32>{#p/narrator}* You translate Final Froggit's message." ],
       translateText1: () =>
@@ -5805,14 +5735,14 @@ const text = {
       translateText5: () =>
          world.population === 0 ? [ '<08>{~}(Always regret being mean.)' ] : [ '<08>{~}(Never regret being kind.)' ],
       mercyStatus: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* I think you can spare Final Froggit now.' ]
                : [ '<32>{#p/alphys}* I think you can spare it now.' ]
             : [ '<32>{#p/story}* Final Froggit seems reluctant to fight you.' ],
       act_mystify: [ '<32>{#p/narrator}* You do something mysterious, but Final Froggit is unaffected.' ],
       perilStatus: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* Uh...' ]
                : [ '<32>{#p/alphys}* No...' ]
@@ -5827,7 +5757,7 @@ const text = {
       ],
       old_spray_text: [ '<32>{#p/narrator}* You use the spray.\n* Smells like pepper.\n* Flutterknyte is knocked out!' ],
       act_check: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* Flutterknyte... is it just me, or does it seem nervous?' ]
                : [ "<32>{#p/alphys}* It's just Flutterknyte." ]
@@ -5837,7 +5767,7 @@ const text = {
       act_perch1: () => [
          '<32>{#p/narrator}* You offered an arm for Flutterknyte to perch on.',
          '<32>* Flutterknyte pauses for a moment to consider it...',
-         ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* You might need to do it again.' ] : [])
+         ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* You might need to do it again.' ] : [])
       ],
       act_perch2: () =>
          world.population === 0
@@ -5845,49 +5775,49 @@ const text = {
                  '<32>{#p/narrator}* You continued offering.',
                  '<32>* Flutterknyte backs away, fearing for its life...',
                  '<32>* Flutterknyte wants to go now.',
-                 ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* There you go...?' ] : [])
+                 ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* There you go...?' ] : [])
               ]
             : [
                  '<32>{#p/narrator}* You continued offering.',
                  '<32>* Flutterknyte moves towards your arm and lands.',
                  '<32>* Flutterknyte can rest now.',
-                 ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* There you go!' ] : [])
+                 ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* There you go!' ] : [])
               ],
       act_perch3: () =>
          world.population === 0
             ? [
                  '<32>{#p/narrator}* You offered your other arm for Flutterknyte.',
                  '<33>* Flutterknyte has seen enough...',
-                 ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* ...jeez.' ] : [])
+                 ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* ...jeez.' ] : [])
               ]
             : [
                  '<32>{#p/narrator}* You offered your other arm for Flutterknyte.',
                  '<32>{#p/narrator}* Flutterknyte, now overwhelmed by the choices, decides to fly away...',
-                 ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* ...what.' ] : [])
+                 ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* ...what.' ] : [])
               ],
       act_flirt: () =>
          world.population === 0
             ? [
                  '<32>{#p/narrator}* You flirted with Flutterknyte.',
                  '<32>* Flutterknyte is surprised, and feels conflicted...',
-                 ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Er...' ] : [])
+                 ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Er...' ] : [])
               ]
             : [
                  '<32>{#p/narrator}* You flirted with Flutterknyte.',
                  '<32>* Flutterknyte is surprised, but accepts it nonetheless...',
-                 ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Cute...' ] : [])
+                 ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Cute...' ] : [])
               ],
       flirtTalk: () =>
          world.population === 0 ? [ '<08>{~}What to do what to say..' ] : [ '<08>{~}Thank you thank you..' ],
       act_poke1: () => [
          '<32>{#p/narrator}* You poked Flutterknyte to knock it off its balance...',
          '<32>{#p/narrator}* Flutterknyte is shaken, but quickly regains focus.',
-         ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Mean...?' ] : [])
+         ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Mean...?' ] : [])
       ],
       act_poke2: () => [
          '<32>{#p/narrator}* You poked Flutterknyte to knock it off its balance...',
          '<32>{#p/narrator}* Flutterknyte falls and skitters away!',
-         ...(save.data.n.bad_lizard < 2 && battler.exp < 1
+         ...(trueLizard() < 2 && battler.exp < 1
             ? [ "<32>{#p/alphys}* I'm gonna pretend like you didn't just do that." ]
             : [])
       ],
@@ -5905,26 +5835,23 @@ const text = {
       idleTalk4: [ '<08>{~}The future depends on this..' ],
       idleTalk5: [ '<08>{~}\x00*shuffle shuffle*' ],
       perilStatus: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* Uh...' ]
                : [ '<32>{#p/alphys}* No...' ]
             : [ '<32>{#p/story}* Flutterknyte is in serious trouble.' ],
       status1: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* ...' ]
             : [ '<32>{#p/story}* Flutterknyte continues to mutter justifications.' ],
-      status2: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Flutterknyte is hovering.' ],
-      status3: () => (save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Smells like pears.' ]),
+      status2: () => (trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Flutterknyte is hovering.' ]),
+      status3: () => (trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Smells like pears.' ]),
       status4: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* ...' ]
-            : [ '<32>{#p/story}* Flutterknyte takes slow, steady breaths.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Flutterknyte takes slow, steady breaths.' ],
       status5: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Flutterknyte ponders their future.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Flutterknyte ponders their future.' ],
       spareStatus: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* Looks like Flutterknyte will accept your mercy now.' ]
                : [ "<32>{#p/alphys}* Looks like it'll accept your mercy now." ]
@@ -5941,7 +5868,7 @@ const text = {
          '<33>{#p/narrator}* You use the spray.\n* Smells like pepper.\n* Eyewalker Prime is knocked out!'
       ],
       act_check: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ "<32>{#p/alphys}* Eyewalker Prime...?\n* They're probably the leader of the Eyewalker clan." ]
                : [ "<32>{#p/alphys}* It's just Eyewalker Prime." ]
@@ -5950,28 +5877,21 @@ const text = {
       act_smile: [ '<32>{#p/narrator}* You smile at Eyewalker Prime.' ],
       act_flirt: () => [
          '<32>{#p/narrator}* You flirt with Eyewalker Prime.',
-         ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Oh come on now.' ] : [])
+         ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Oh come on now.' ] : [])
       ],
       status1: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* ...' ]
-            : [ '<32>{#p/story}* Eyewalker Prime is staring into your SOUL.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Eyewalker Prime is staring into your SOUL.' ],
       status2: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* ...' ]
-            : [ '<32>{#p/story}* Eyewalker Prime offers up a menacing grin.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Eyewalker Prime offers up a menacing grin.' ],
       status3: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* ...' ]
-            : [ "<32>{#p/story}* Eyewalker Prime isn't messing around." ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ "<32>{#p/story}* Eyewalker Prime isn't messing around." ],
       status4: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* ...' ]
             : [ "<32>{#p/story}* Eyewalker Prime thinks of their family's honor." ],
-      status5: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Smells like mouthwash.' ],
+      status5: () => (trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Smells like mouthwash.' ]),
       perilStatus: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* Uh...' ] : [ '<32>{#p/story}* Eyewalker Prime is watering.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* Uh...' ] : [ '<32>{#p/story}* Eyewalker Prime is watering.' ],
       idleTalk1: [ '<08>{~}Bring it on!' ],
       idleTalk2: [ '<08>{~}Show me your teeth!' ],
       idleTalk3: [ "<08>{~}Don't hold back!" ],
@@ -5982,25 +5902,25 @@ const text = {
       partialTalk2: [ "<08>{~}You've almost got it.." ],
       partialTalk3: [ "<08>{~}You're getting there.." ],
       partialStatus1: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* I think you need to do the other thing now.' ]
                : [ '<32>{#p/alphys}* ...' ]
             : [ '<32>{#p/story}* Eyewalker Prime is looking for more.' ],
       partialStatus2: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* Eyewalkers love it when you smile and stare at them.' ]
                : [ '<32>{#p/alphys}* ...' ]
             : [ '<32>{#p/story}* Eyewalker Prime wants to see the full picture.' ],
       partialStatus3: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* D-do the other thing!' ]
                : [ '<32>{#p/alphys}* ...' ]
             : [ "<32>{#p/story}* Eyewalker Prime wishes you'd follow its directive." ],
       fullStatus: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* Eyewalker Prime seems content now...' ]
                : [ '<32>{#p/alphys}* It seems content now...' ]
@@ -6020,22 +5940,21 @@ const text = {
       old_bomb_text: [ '<32>{#p/narrator}* You deploy the bomb.\n* The mist scatters about.\n* But Silencio escapes!' ],
       old_spray_text: [ '<32>{#p/narrator}* You use the spray.\n* Smells like pepper.\n* But Silencio escapes!' ],
       act_check: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* Silencio... yeah, this one gets around a lot, actually.' ]
                : [ "<32>{#p/alphys}* It's just Silencio." ]
             : [ '<32>{#p/story}* Silencio - ATK 28 DEF 17\n* Cowardly, but not shamefully.\n* Along for the ride.' ],
       act_flirt: () => [
          '<32>{#p/narrator}* You flirted with Silencio.',
-         ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Alright then...' ] : [])
+         ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Alright then...' ] : [])
       ],
       act_talk: [ '<32>{#p/narrator}* You introduced yourself to Silencio.' ],
       flirtTalk: [ "<09>{~}You're adorable." ],
       groupInsult: [ "<32>{#p/narrator}* You tried insulting Silencio, but it wasn't fazed by it." ],
       groupStatus1: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Silencio is ignoring the others.' ],
-      groupStatus2: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Smells like a pit stop.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Silencio is ignoring the others.' ],
+      groupStatus2: () => (trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Smells like a pit stop.' ]),
       groupTalk1: [ '<08>{#p/monster}Out of the way.' ],
       groupTalk2: [ '<08>{#p/monster}You people are slow.' ],
       groupTalk3: [ "<08>{#p/monster}I'm not partici- pating." ],
@@ -6045,7 +5964,7 @@ const text = {
       name: '* Silencio',
       soloInsult: [ '<32>{#p/narrator}* You tried insulting Silencio, but it was too blase to care.' ],
       soloStatus: () =>
-         save.data.n.bad_lizard < 2
+         trueLizard() < 2
             ? [ '<32>{#p/alphys}* Looks like it never wanted to do this to begin with.' ]
             : [ "<32>{#p/story}* Silencio doesn't need anyone else around." ],
       soloTalk1: [ "<08>{~}I'll get along alright." ],
@@ -6070,54 +5989,36 @@ const text = {
          world.genocide ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ '<32>{#p/story}* Mushketeer makes a final push.' ],
       genoStatus: [ '<32>{#p/asriel2}* Mushketeer.' ],
       status0: () =>
-         save.data.n.bad_lizard < 2
-            ? [ "<32>{#p/alphys}* Please don't die." ]
-            : [ '<32>{#p/story}* Mushketeer blocks the way!' ],
-      status1: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Mushketeer stands firm.' ],
-      status2: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Mushketeer wants to be a hero.' ],
+         trueLizard() < 2 ? [ "<32>{#p/alphys}* Please don't die." ] : [ '<32>{#p/story}* Mushketeer blocks the way!' ],
+      status1: () => (trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Mushketeer stands firm.' ]),
+      status2: () => (trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Mushketeer wants to be a hero.' ]),
       status3: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* ...' ]
-            : [ '<32>{#p/story}* Mushketeer is preparing for a shootout.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Mushketeer is preparing for a shootout.' ],
       status4: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* ...' ]
-            : [ '<32>{#p/story}* Mushketeer reaches around for their gun.' ],
-      status5: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Smells like dry dirt.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Mushketeer reaches around for their gun.' ],
+      status5: () => (trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Smells like dry dirt.' ]),
       travelStatus1: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* ...' ]
-            : [ "<32>{#p/story}* Mushketeer, the pray 'n' spray specialist." ],
-      travelStatus2: () =>
-         save.data.n.bad_lizard < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Mushketeer is on edge.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ "<32>{#p/story}* Mushketeer, the pray 'n' spray specialist." ],
+      travelStatus2: () => (trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Mushketeer is on edge.' ]),
       travelStatus3: () =>
-         save.data.n.bad_lizard < 2
-            ? [ '<32>{#p/alphys}* ...' ]
-            : [ '<32>{#p/story}* Mushketeer darts their eyes around.' ],
+         trueLizard() < 2 ? [ '<32>{#p/alphys}* ...' ] : [ '<32>{#p/story}* Mushketeer darts their eyes around.' ],
       act_check: () =>
          world.genocide
             ? [ '<32>{#p/asriel2}* Mushketeer, the gun-toter.\n* The dirty elder cousin of a mushroom far away...' ]
-            : save.data.n.bad_lizard < 2
+            : trueLizard() < 2
             ? battler.exp < 1
                ? [ '<32>{#p/alphys}* Mushketeer.\n* I have no idea who this is.' ]
                : [ "<32>{#p/alphys}* It's just Mushketeer." ]
             : [ '<32>{#p/story}* MUSHKETEER - ATK 30 DEF 28\n* Product of its upbringing.\n* Gun-toter.' ],
       act_flirt: () => [
          '<32>{#p/narrator}* You flirted with Mushketeer.',
-         ...(world.genocide
-            ? [ '<32>{#p/asriel2}* Please no.' ]
-            : save.data.n.bad_lizard < 2 && battler.exp < 1
-            ? [ '<32>{#p/alphys}* Nahhhhh.' ]
-            : [])
+         ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Nahhhhh.' ] : [])
       ],
       flirtTalk: [ "<08>{~}Hey, we don't do that here." ],
       flirtStatus: () =>
          world.genocide
-            ? [ '<32>{#p/asriel2}* Wow, a monster with dignity.' ]
-            : save.data.n.bad_lizard < 2
+            ? [ '<32>{#p/asriel2}* Mushketeer.' ]
+            : trueLizard() < 2
             ? battler.exp < 1
                ? [ "<32>{#p/alphys}* Welp, that didn't work." ]
                : [ '<32>{#p/alphys}* ...' ]
@@ -6126,8 +6027,8 @@ const text = {
          '<32>{#p/narrator}* You come closer to Mushketeer.',
          "<32>{#p/narrator}* Mushketeer's attacks get more intense!",
          ...(world.genocide
-            ? [ '<32>{#p/asriel2}* Way to put us in danger.' ]
-            : save.data.n.bad_lizard < 2 && battler.exp < 1
+            ? [ '<32>{#p/asriel2}* ...?' ]
+            : trueLizard() < 2 && battler.exp < 1
             ? [ '<32>{#p/alphys}* Careful...' ]
             : [])
       ],
@@ -6136,15 +6037,15 @@ const text = {
          "<32>{#p/narrator}* Mushketeer's attacks go insane!",
          ...(world.genocide
             ? [ '<32>{#p/asriel2}* $(name)...?' ]
-            : save.data.n.bad_lizard < 2 && battler.exp < 1
+            : trueLizard() < 2 && battler.exp < 1
             ? [ '<32>{#p/alphys}* Oh my god, be careful...!' ]
             : [])
       ],
       act_travel3: () => [
          '<32>{#p/narrator}* But you were already right next to Mushketeer.',
          ...(world.genocide
-            ? [ '<32>{#p/asriel2}* We should not be doing this.' ]
-            : save.data.n.bad_lizard < 2 && battler.exp < 1
+            ? [ '<32>{#p/asriel2}* I am starting to get worried.' ]
+            : trueLizard() < 2 && battler.exp < 1
             ? [ '<32>{#p/alphys}* D-do anything other than this!!!' ]
             : [])
       ],
@@ -6152,17 +6053,15 @@ const text = {
       travelTalk2: [ "<08>{~}What're you playin' at!" ],
       act_disarm1: () => [
          "<32>{#p/narrator}* Mushketeer isn't close enough.\n* You disarmed the air.",
-         ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* You might try traveling closer.' ] : [])
+         ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* You might try traveling closer.' ] : [])
       ],
       act_disarm2: () => [
          '<32>{#p/narrator}* Mushketeer is just out of reach.\n* You disarmed the air.',
-         ...(save.data.n.bad_lizard < 2 && battler.exp < 1
-            ? [ '<32>{#p/alphys}* I guess...\n* If you have to get closer...' ]
-            : [])
+         ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* I guess...\n* If you have to get closer...' ] : [])
       ],
       act_disarm3: () => [
          '<32>{#p/narrator}* You disarm Mushketeer.',
-         ...(save.data.n.bad_lizard < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Whew...' ] : [])
+         ...(trueLizard() < 2 && battler.exp < 1 ? [ '<32>{#p/alphys}* Whew...' ] : [])
       ],
       disarmTalk: [
          '<08>{~}I guess this means no war..?',
@@ -6176,9 +6075,12 @@ const text = {
    b_opponent_pyrope: {
       name: '* Hotwire',
       genoStatus: [ '<32>{#p/asriel2}* Hotwire.' ],
+      genoSpareStatus: [ "<32>{#p/asriel2}* It's vulnerable." ],
       act_check: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Hotwire, the rhyming jerk.\n* Such a clever mind wasted on a pointless pass time.' ]
+         world.azzie
+            ? [
+                 '<32>{#p/asriel2}* Hotwire, the rhyming machine.\n* Such a clever mind wasted on such a pointless hobby.'
+              ]
             : [ '<32>{#p/story}* HOTWIRE - ATK 29 DEF 14\n* For this devious monster, no scheme is too complex.' ],
       act_flirt: [ '<32>{#p/story}* You flirt with Hotwire.', '<32>{#p/story}* Hotwire flirts back!' ],
       sparkText1: [ "<32>{#p/narrator}* You spark Hotwire's cables.", "<32>{#p/narrator}* Hotwire's confidence grows." ],
@@ -6251,14 +6153,15 @@ const text = {
       sparkStatus1B: [ '<32>{#p/story}* Hotwire is feeling electric.' ],
       sparkStatus2B: [ '<32>{#p/story}* Hotwire has reached its true level.' ],
       sparkStatus3B: [ '<32>{#p/story}* Hotwire is turbocharged.' ],
-      hurtStatus: [ '<32>{#p/story}* Hotwire is spiraling out of control.' ]
+      hurtStatus: () =>
+         world.azzie ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ '<32>{#p/story}* Hotwire is spiraling out of control.' ]
    },
 
    b_opponent_perigee: {
       name: '* Perigee',
       genoStatus: [ '<32>{#p/asriel2}* Perigee.' ],
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Perigee, the lethargic bird.\n* Spends too much time in its own happy-go-lucky head.' ]
             : [ '<32>{#p/story}* PERIGEE - ATK 25 DEF 0\n* This bird of peace believes its feathers can heal.' ],
       act_flirt: () => [ '<32>{#p/story}* You flirt with Perigee.' ],
@@ -6269,7 +6172,7 @@ const text = {
       idleTalk5: [ '<08>{~}Peace and tran- quility.' ],
       flirtTalk: [ "<08>{~}Aren't you a go- getter." ],
       whistleTalk: [ '<08>{~}\x00*intent whistle*' ],
-      whistleStatus: [ '<32>{#p/story}* Perigee awaits your gesture.' ],
+      whistleStatus: () => world.azzie ? [ '<32>{#p/asriel2}* Perigee.' ] : [ '<32>{#p/story}* Perigee awaits your gesture.' ],
       act_bow1: [ '<32>{#p/narrator}* You bow, but for what?' ],
       act_bow2: [
          '<32>{#p/narrator}* You bow for your performance.',
@@ -6284,14 +6187,14 @@ const text = {
       status3: [ '<32>{#p/story}* Perigee is as happy as could be.' ],
       status4: [ '<32>{#p/story}* Perigee maintains a feather- light touch.' ],
       status5: [ '<32>{#p/story}* Smells like spare bread.' ],
-      status6: [ '<32>{#p/story}* Perigee is satisfied.' ],
-      hurtStatus: [ "<32>{#p/story}* Perigee's time is near." ]
+      status6: () => (world.azzie ? [ "<32>{#p/asriel2}* It's vulnerable." ] : [ '<32>{#p/story}* Perigee is satisfied.' ]),
+      hurtStatus: () => (world.azzie ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ "<32>{#p/story}* Perigee's time is near." ])
    },
 
    b_opponent_tsundere: {
       name: '* Tsunderidex',
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Tsunderidex, a monster I have utterly no words for.' ]
             : [ '<32>{#p/story}* TSUNDERIDEX - ATK 25 DEF 26\n* Seems mean, but does it secretly like you?' ],
       flirtText1: [ '<32>{#p/narrator}* You tell Tsunderidex it has an impressive shield.' ],
@@ -6320,38 +6223,36 @@ const text = {
       stealTalk2: [ '<08>{~}..\n..\n(Why..)' ],
       stealTalk3: [ '<08>{~}Quit stealing my thunder!' ],
       upgradeStatus1: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* This is a waste of time...' ]
             : [ '<32>{#p/story}* Tsunderidex is checking out its new upgrades.' ],
       upgradeStatus2: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* This is a waste of time...' ]
-            : [ '<32>{#p/story}* Tsunderidex is worried about its new upgrades.' ],
-      upgradeStatus3: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* This is a waste of time...' ]
             : [ '<32>{#p/story}* Tsunderidex is obsessing over its new upgrades.' ],
+      upgradeStatus3: () =>
+         world.azzie
+            ? [ '<32>{#p/asriel2}* This is a waste of time...' ]
+            : [ '<32>{#p/story}* Tsunderidex is worried about its new upgrades.' ],
       status1: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Tsunderidex.' ]
             : [ '<32>{#p/story}* Tsunderidex looks over, then turns up its nose.' ],
       status2: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Tsunderidex.' ]
             : [ '<32>{#p/story}* Tsunderidex shakes its nose dimissively at you.' ],
       status3: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Tsunderidex.' ]
             : [ '<32>{#p/story}* Tsunderidex "accidentally" bumps you with its nacelles.' ],
       status4: () =>
-         world.goatbro
-            ? [ '<32>{#p/asriel2}* Tsunderidex.' ]
-            : [ '<32>{#p/story}* Tsunderidex sets its cannons to "stun."' ],
-      status5: () => (world.goatbro ? [ '<32>{#p/asriel2}* Tsunderidex.' ] : [ '<32>{#p/story}* Smells like plasma.' ]),
+         world.azzie ? [ '<32>{#p/asriel2}* Tsunderidex.' ] : [ '<32>{#p/story}* Tsunderidex sets its cannons to "stun."' ],
+      status5: () => (world.azzie ? [ '<32>{#p/asriel2}* Tsunderidex.' ] : [ '<32>{#p/story}* Smells like plasma.' ]),
       status6: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Tsunderidex.' ] : [ '<32>{#p/story}* Tsunderidex is looking away shyly.' ],
+         world.azzie ? [ "<32>{#p/asriel2}* It's vulnerable." ] : [ '<32>{#p/story}* Tsunderidex is looking away shyly.' ],
       hurtStatus: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Almost dead.' ]
             : [ "<32>{#p/story}* Tsunderidex's engines are leaking plasma." ]
    },
@@ -6359,12 +6260,12 @@ const text = {
    b_opponent_rg03: {
       name: '* RG 03',
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* RG 03, the untrusting guard.\n* Too afraid to confront the ones she cares for most.' ]
             : [ '<32>{#p/story}* RG 03 - ATK 30 DEF 20\n* Conspicuous cowgirl attitude.\n* Skeptic.' ],
       randTalk1: () => [ '<11>{~}Team attack.' ],
-      randTalk2: () => (world.goatbro ? [ "<11>{~}We'll stop you." ] : [ "<11>{~}We're just friends." ]),
-      randTalk3: () => (world.goatbro ? [ "<11>{~}You're no match for us." ] : [ "<11>{~}You best not be shippin' us." ]),
+      randTalk2: () => (world.azzie ? [ "<11>{~}We'll stop you." ] : [ "<11>{~}We're just friends." ]),
+      randTalk3: () => (world.azzie ? [ "<11>{~}You're no match for us." ] : [ "<11>{~}You best not be shippin' us." ]),
       randTalk4: () => [ '<11>{~}Careful, girl.' ],
       randStatus1: [ '<32>{#p/story}* 04 is living in the friendzone.' ],
       randStatus2: [ '<32>{#p/story}* 03 puts her doubts aside for the moment.' ],
@@ -6372,11 +6273,20 @@ const text = {
       randStatus4: [ '<32>{#p/story}* Smells like long-lost love.' ],
       randStatus5: [ '<32>{#p/story}* 04 fights with confidence.' ],
       randTalkLone1: () =>
-         world.goatbro ? [ "<11>{~}I'll never understand you." ] : [ "<11>{~}I'll never know if she was..." ],
-      randTalkLone2: () => (world.goatbro ? [ "<11>{~}I'll never forgive you." ] : [ "<11>{~}It's too late..." ]),
-      randTalkLone3: () => (world.goatbro ? [ "<11>{~}I'll never bow down to you." ] : [ '<11>{~}I missed my chance...' ]),
-      randTalkLone4: () => (world.goatbro ? [ "<11>{~}I'll never stop fighting you." ] : [ '<11>{~}No...' ]),
-      randStatusLone: () => (world.goatbro ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* 03 is in disarray.' ]),
+         world.azzie
+            ? [ "<11>{~}{@random:1.1,1.1}I'll never understand you." ]
+            : [ "<11>{~}{@random:1.1,1.1}I'll never know if she was..." ],
+      randTalkLone2: () =>
+         world.azzie
+            ? [ "<11>{~}{@random:1.1,1.1}I'll never forgive you." ]
+            : [ "<11>{~}{@random:1.1,1.1}It's too late..." ],
+      randTalkLone3: () =>
+         world.azzie
+            ? [ "<11>{~}{@random:1.1,1.1}I'll never bow down to you." ]
+            : [ '<11>{~}{@random:1.1,1.1}I missed my chance...' ],
+      randTalkLone4: () =>
+         world.azzie ? [ "<11>{~}{@random:1.1,1.1}I'll never stop fighting you." ] : [ '<11>{~}{@random:1.1,1.1}No...' ],
+      randStatusLone: () => (world.azzie ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* 03 is in disarray.' ]),
 
       act_flirt: [ '<32>{#p/narrator}* You flirt with 03.' ],
       flirtTalk1: [ '<11>{~}Flirting is strictly forbidden.' ],
@@ -6444,34 +6354,45 @@ const text = {
       happyTalk4: [ '<11>{~}To think I forgot about those beautiful eyes...' ],
       happyStatus: [ '<32>{#p/story}* 03 and 04 are looking happily at each other.' ],
 
-      horrorTalk1: [ '<11>{~}N... no...', '<11>{~}We were going to be... so happy...' ],
-      horrorTalk2: [ "<11>{~}I can't go on..." ],
-      horrorTalk3: [ "<11>{~}I don't want to live in this world anymore..." ],
-      horrorTalk4: [ '<11>{~}...' ],
+      horrorTalk1: [
+         '<11>{~}{@random:1.1,1.1}N... no...',
+         '<11>{~}{@random:1.1,1.1}We were gonna be... so happy together...'
+      ],
+      horrorTalk2: [ "<11>{~}{@random:1.1,1.1}I can't go on..." ],
+      horrorTalk3: [ "<11>{~}{@random:1.1,1.1}I don't want to live in this world anymore..." ],
+      horrorTalk4: [ '<11>{~}{@random:1.1,1.1}...' ],
       horrorStatus: [ '<32>{#p/story}* ...' ],
 
       dangerStatus: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ "<32>{#p/story}* 03's breathing intensifies." ]
+         world.azzie ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ "<32>{#p/story}* 03's breathing intensifies." ]
    },
 
    b_opponent_rg04: {
       name: '* RG 04',
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* RG 04, the naive guard.\n* Only got her job because 03 begged for her to have it.' ]
             : [ "<32>{#p/story}* RG 04 - ATK 30 DEF 20\n* Believes in friendship, but isn't against more..." ],
 
       randTalk1: [ '<11>{~}Team attack!' ],
-      randTalk2: () => (world.goatbro ? [ '<11>{~}Once and for all!' ] : [ '<11>{~}Absolutely!' ]),
-      randTalk3: () => (world.goatbro ? [ '<11>{~}Not one bit!' ] : [ '<11>{~}No romance here!' ]),
+      randTalk2: () => (world.azzie ? [ '<11>{~}Once and for all!' ] : [ '<11>{~}Absolutely!' ]),
+      randTalk3: () => (world.azzie ? [ '<11>{~}Not one bit!' ] : [ '<11>{~}No romance here!' ]),
       randTalk4: [ '<11>{~}Oh you know it, girl!' ],
       randTalkLone1: () =>
-         world.goatbro ? [ "<11>{~}I'm going to finish you off." ] : [ '<11>{~}How could you do this to me!?' ],
-      randTalkLone2: () => (world.goatbro ? [ "<11>{~}I'm going to hurt you." ] : [ '<11>{~}She was my only friend!' ]),
+         world.azzie
+            ? [ "<11>{~}{@random:1.1,1.1}I'm going to kill you." ]
+            : [ '<11>{~}{@random:1.1,1.1}How could you do this to me!?' ],
+      randTalkLone2: () =>
+         world.azzie ? [ '<11>{~}{@random:1.1,1.1}No mercy.' ] : [ '<11>{~}{@random:1.1,1.1}She was my only friend!' ],
       randTalkLone3: () =>
-         world.goatbro ? [ "<11>{~}You're a sad, sad creature." ] : [ '<11>{~}You took her away from me!' ],
-      randTalkLone4: () => (world.goatbro ? [ "<11>{~}You're as good as dead." ] : [ "<11>{~}What's your excuse!?" ]),
-      randStatusLone: () => (world.goatbro ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* 04 is in shambles.' ]),
+         world.azzie
+            ? [ "<11>{~}{@random:1.1,1.1}You're a sad, sad creature." ]
+            : [ '<11>{~}{@random:1.1,1.1}She was the light of my life!' ],
+      randTalkLone4: () =>
+         world.azzie
+            ? [ "<11>{~}{@random:1.1,1.1}You're as good as dead." ]
+            : [ '<11>{~}{@random:1.1,1.1}What kind of creature are you!?' ],
+      randStatusLone: () => (world.azzie ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* 04 is in shambles.' ]),
 
       act_flirt: [ '<32>{#p/narrator}* You flirt with 04.' ],
       flirtTalk1: [ "<11>{~}It's in the rules!" ],
@@ -6479,7 +6400,6 @@ const text = {
       flirtTalkNervy1: [ "<11>{~}It's against the rules!" ],
       flirtTalkNervy2: [ "<11>{~}It's not our thing!" ],
       flirtTalkLone: [ '<11>{~}...' ],
-      // flirtStatus
       flirtStatusLone: [ "<32>{#p/story}* Flirting won't exactly bring 03 back to life." ],
       act_flirt_happy: [ '<32>{#p/narrator}* You flirt with 04, but she was too distracted by 03 to notice.' ],
 
@@ -6511,7 +6431,6 @@ const text = {
       nervyTalk2: [ '<11>{~}Why are you looking at me that way?' ],
       nervyTalk3: [ "<11>{~}What's with that face, 03?" ],
       nervyTalk4: [ '<11>{~}Are you okay?' ],
-      // nervyStatus
 
       act_whisper: [ '<32>{#p/narrator}* You whisper to 04, but she just seems confused...' ],
       act_whisper_alt: [ '<32>{#p/narrator}* You whisper to 04.', '<32>* Nothing happened.' ],
@@ -6521,13 +6440,16 @@ const text = {
       happyTalk3: [ '<11>{~}Haha, yeah...' ],
       happyTalk4: [ '<11>{~}Think nothing of it, sweetheart!' ],
 
-      horrorTalk1: [ '<11>{~}N... no...', '<11>{~}We were going to do... so much together...' ],
-      horrorTalk2: [ "<11>{~}I can't accept it..." ],
-      horrorTalk3: [ '<11>{~}Just... kill me...' ],
-      horrorTalk4: [ '<11>{~}...' ],
+      horrorTalk1: [
+         '<11>{~}{@random:1.1,1.1}N... no...',
+         '<11>{~}{@random:1.1,1.1}We were gonna do... so much together...'
+      ],
+      horrorTalk2: [ "<11>{~}{@random:1.1,1.1}I can't accept it..." ],
+      horrorTalk3: [ '<11>{~}{@random:1.1,1.1}Just... kill me...' ],
+      horrorTalk4: [ '<11>{~}{@random:1.1,1.1}...' ],
 
       dangerStatus: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ "<32>{#p/story}* 04's breathing intensifies." ]
+         world.azzie ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ "<32>{#p/story}* 04's breathing intensifies." ]
    },
 
    c_name_alphys: "Alphys's Phone",
@@ -6633,10 +6555,7 @@ const text = {
                  '<32>{#p/human}* (You used the doll.)',
                  ...(game.room === 'f_undyne' && instance('main', 'f_dummynpc')
                     ? [ '<32>{#p/monster}* Would you quit waving that thing in front of me?' ]
-                    : game.room === 'f_blooky' &&
-                      !world.genocide &&
-                      !world.madfish &&
-                      !save.data.b.a_state_napstadecline
+                    : game.room === 'f_blooky' && !world.genocide && !world.phish && !save.data.b.a_state_napstadecline
                     ? [ '<32>{#p/napstablook}* oh............' ]
                     : [ '<32>{#p/narrator}* What were you even expecting to happen here...?' ])
               ]
@@ -6909,7 +6828,7 @@ const text = {
       use: [ '<32>{#p/human}* (You ate the pie.)' ]
    },
 
-   n_sidebarCellPms1: () => (save.data.n.bad_lizard < 2 ? 'POSTS' : 'PRIVATE MESSAGES'),
+   n_sidebarCellPms1: () => (trueLizard() < 2 ? 'POSTS' : 'PRIVATE MESSAGES'),
    n_sidebarCellPms2: 'Press [X] to Finish',
    n_sidebarCellPms3,
    n_sidebarCellPms4: '(NEW)',
@@ -7188,7 +7107,7 @@ const text = {
          },
          ...[
             [
-               save.data.n.bad_lizard < 2
+               trueLizard() < 2
                   ? {
                        b: '<16>* "We\'re not gonna stick around while you just..."',
                        c: '<16>* "...beat everyone up and stuff."'
@@ -7200,7 +7119,7 @@ const text = {
                {
                   b: '<16>* "But first, we gotta use up these gel pens."',
                   c:
-                     save.data.n.bad_lizard < 2
+                     trueLizard() < 2
                         ? '<16>* "Yeah, we don\'t wanna waste pens!"'
                         : '<16>* "Yeah, chill, Alphys!"\n* "We don\'t wanna waste pens!"'
                },
@@ -7234,7 +7153,7 @@ const text = {
                { b: '<16>* "Or did he say he\'d destroy you...?"', c: '<16>* "Uh... I forgot."' },
                { b: '<16>* "Well, I\'d be CRAZY afraid if I were you."', c: '<16>* "God, TELL me about it..."' }
             ]
-         ][Math.max(save.data.n.bad_lizard - 2, 0)],
+         ][Math.max(trueLizard() - 2, 0)],
          { b: '<16>* "Anyway, in closing, you\'re a total loser."', c: '<16>* "Yeah!"\n* "Loser!!"\n* "Nya ha ha!!!"' },
          { b: '<16>* "Signed,\n  Bratty <3"', c: '<16>* "Signed,\n  Catty <3"', s: true }
       ],
@@ -7539,7 +7458,7 @@ const text = {
                      },
                      {
                         b: '',
-                        c: '<16>{#k/5/4}* ...when she thought she saw some "intriguing trash."',
+                        c: '<16>{#k/5/4}* ...when she thought she saw some "interesting trash."',
                         s: true
                      },
                      {
@@ -7597,7 +7516,7 @@ const text = {
                               c: "<16>{#k/2/6}* ...maybe try NOT to kill anyone else, y'know?"
                            }
                         ]
-                     ][save.data.n.bad_lizard],
+                     ][trueLizard()],
                      {
                         b: '<16>{#k/3/6}* Gosh.\n* I really wanna give him a hug right now.',
                         c: '<16>{#k/3/2}* Yeah, we should TOTALLY squeeze the life outta him later!'
@@ -7649,7 +7568,7 @@ const text = {
                            s: true
                         }
                      ]
-                  ][save.data.n.bad_lizard]
+                  ][trueLizard()]
                ][Math.min(save.data.n.shop_gossip_alphys++, 3)];
          }
       },
@@ -7661,7 +7580,13 @@ const text = {
    s_save: {
       a_start: {
          name: 'Aerialis - Lab',
-         text: [ '<32>{#p/human}* (The royal lab looms ahead, filling you with determination.)' ]
+         text: () =>
+            save.data.n.plot < 65
+               ? [ '<32>{#p/human}* (The royal lab looms ahead, filling you with determination.)' ]
+               : [
+                    '<32>{#p/human}* (Knowing your every move is being recorded from inside the royal lab...)',
+                    '<32>* (The thought fills you with determination.)'
+                 ]
       },
       a_path3: {
          name: 'Aerialis - Liftway',
@@ -7669,15 +7594,35 @@ const text = {
       },
       a_elevator1: {
          name: 'Aerialis - R1 Elevator',
-         text: [ '<32>{#p/human}* (Explosion-fueled joyrides fill you with determination.)' ]
+         text: () =>
+            save.data.n.plot < 65
+               ? [ '<32>{#p/human}* (Explosion-fueled joyrides fill you with determination.)' ]
+               : [
+                    '<32>{#p/human}* (Despite the fact you might never get to use a jetpack again...)',
+                    "<32>{#p/human}* (The adventures you've had thus far fill you with determination.)"
+                 ]
       },
       a_mettaton2: {
          name: 'Aerialis - Stage Two',
-         text: [ "<32>{#p/human}* (Mettaton's ludicrous hijinks fill you with determination.)" ]
+         text: () =>
+            save.data.n.plot < 65
+               ? save.data.b.a_state_hapstablook
+                  ? [
+                       '<32>{#p/human}* (Pondering the true identity of a certain TV superstar fills you with determination.)'
+                    ]
+                  : [ "<32>{#p/human}* (Mettaton's ludicrous hijinks fill you with determination.)" ]
+               : save.data.n.plot < 68
+               ? [ '<32>{#p/human}* (Taking a step back before your upcoming performance fills you with determination.)' ]
+               : save.data.b.a_state_hapstablook
+               ? [ '<32>{#p/human}* (Knowing how far Mettaton has come fills you with determination.)' ]
+               : [ '<32>{#p/human}* (Reflecting on your road to superstardom fills you with determination.)' ]
       },
       a_aftershow: {
          name: 'Aerialis - Rec Center',
-         text: [ '<32>{#p/human}* (Over-dramatic musicals and unexpected burger cats fill you with determination.)' ]
+         text: () =>
+            save.data.b.a_state_hapstablook
+               ? [ "<32>{#p/human}* (Learning Mettaton's true identity fills you with determination.)" ]
+               : [ '<32>{#p/human}* (Over-dramatic musicals and unexpected burger-cats fill you with determination.)' ]
       },
       a_core_entry1: {
          name: 'Aerialis - CORE',
@@ -7685,7 +7630,13 @@ const text = {
       },
       a_core_checkpoint: {
          name: 'Aerialis - Maintenance Zone',
-         text: [ '<32>{#p/human}* (Making your way through the CORE fills you with determination.)' ]
+         text: () =>
+            save.data.n.plot < 68
+               ? [ "<32>{#p/human}* (The anticipation of Mettaton's grand finale fills you with determination.)" ]
+               : [
+                    '<32>{#p/human}* (The thought of unnecessarily backtracking into the CORE...)',
+                    '<32>{#p/human}* (It fills you with determination.)'
+                 ]
       }
    }
 };

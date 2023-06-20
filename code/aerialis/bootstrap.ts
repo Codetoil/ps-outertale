@@ -1,25 +1,3 @@
-import assets, { effectSetup } from '../assets';
-import { OutertaleMap, OutertaleSpeechPreset } from '../classes';
-import { quickCall } from '../common';
-import content from '../content';
-import { atlas, audio, game, image, items, keys, maps, random, renderer, speech, timer, typer } from '../core';
-import {
-   CosmosBitmap,
-   CosmosDaemon,
-   CosmosEffect,
-   CosmosMath,
-   CosmosNavigator,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosTyper,
-   CosmosUtils,
-   CosmosValueRandom
-} from '../engine';
-import { easyRoom, menuBox, menuText, phone, saver, shopper, sidebarrer } from '../mantle';
-import save from '../save';
-import text, { pms } from './text';
-
-import { AdvancedBloomFilter } from 'pixi-filters';
 import imAerialisAOverlay$info from '../../assets/images/maps/aerialis-a-overlay.json?url';
 import imAerialisA$info from '../../assets/images/maps/aerialis-a.json?url';
 import imAerialisB$info from '../../assets/images/maps/aerialis-b.json?url';
@@ -54,11 +32,11 @@ import a_hub2 from '../../assets/rooms/a_hub2.json';
 import a_hub3 from '../../assets/rooms/a_hub3.json';
 import a_hub4 from '../../assets/rooms/a_hub4.json';
 import a_hub5 from '../../assets/rooms/a_hub5.json';
-import a_lab_virt from '../../assets/rooms/a_lab_virt.json';
 import a_lab_downstairs from '../../assets/rooms/a_lab_downstairs.json';
 import a_lab_entry from '../../assets/rooms/a_lab_entry.json';
 import a_lab_main from '../../assets/rooms/a_lab_main.json';
 import a_lab_upstairs from '../../assets/rooms/a_lab_upstairs.json';
+import a_lab_virt from '../../assets/rooms/a_lab_virt.json';
 import a_lift from '../../assets/rooms/a_lift.json';
 import a_lookout from '../../assets/rooms/a_lookout.json';
 import a_mettaton1 from '../../assets/rooms/a_mettaton1.json';
@@ -83,20 +61,26 @@ import a_sleeping3 from '../../assets/rooms/a_sleeping3.json';
 import a_split from '../../assets/rooms/a_split.json';
 import a_start from '../../assets/rooms/a_start.json';
 
-const aerialisAMap = new OutertaleMap(imAerialisA$info, content.imAerialisA);
-const aerialisAOverlayMap = new OutertaleMap(imAerialisAOverlay$info, content.imAerialisAOverlay);
-const aerialisBMap = new OutertaleMap(imAerialisB$info, content.imAerialisB);
+import { AdvancedBloomFilter } from 'pixi-filters';
+import assets, { effectSetup } from '../assets';
+import { OutertaleMap, OutertaleSpeechPreset } from '../classes';
+import { quickCall } from '../common';
+import content from '../content';
+import { atlas, audio, game, image, items, keys, maps, random, renderer, speech, timer, typer } from '../core';
+import { CosmosNavigator } from '../engine/atlas';
+import { CosmosDaemon, CosmosEffect } from '../engine/audio';
+import { CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosValueRandom } from '../engine/numerics';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosTyper } from '../engine/text';
+import { CosmosUtils } from '../engine/utils';
+import { easyRoom, menuBox, menuText, phone, saver, shopper, sidebarrer } from '../mantle';
+import save from '../save';
+import text, { pms, trueLizard } from './text';
 
-export function colormix (c1: number, c2: number, v: number) {
-   const [ r1, g1, b1, a1 ] = CosmosBitmap.hex2color(c1);
-   const [ r2, g2, b2, a2 ] = CosmosBitmap.hex2color(c2);
-   return CosmosBitmap.color2hex([
-      CosmosMath.remap(v, r1, r2),
-      CosmosMath.remap(v, g1, g2),
-      CosmosMath.remap(v, b1, b2),
-      CosmosMath.remap(v, a1, a2)
-   ]);
-}
+export const aerialisAMap = new OutertaleMap(imAerialisA$info, content.imAerialisA);
+export const aerialisAOverlayMap = new OutertaleMap(imAerialisAOverlay$info, content.imAerialisAOverlay);
+export const aerialisBMap = new OutertaleMap(imAerialisB$info, content.imAerialisB);
 
 export const gossiper = {
    cooldown: false,
@@ -442,7 +426,7 @@ maps.register('aerialis-b', aerialisBMap);
 phone.register('puzzle2', {
    display () {
       return (
-         save.data.n.bad_lizard < 2 &&
+         trueLizard() < 2 &&
          ((game.room === 'a_puzzle1' && save.data.n.plot < 55) || (game.room === 'a_puzzle2' && save.data.n.plot < 59))
       );
    },
@@ -460,7 +444,7 @@ phone.register('puzzle2', {
 
 phone.register('dimboxA', {
    display () {
-      return save.data.n.bad_lizard < 2 ? save.data.n.plot > 48 : save.data.b.a_state_gotphone;
+      return trueLizard() < 2 ? save.data.n.plot > 48 : save.data.b.a_state_gotphone;
    },
    priority: 4.1,
    trigger () {
@@ -472,7 +456,7 @@ phone.register('dimboxA', {
 
 phone.register('dimboxB', {
    display () {
-      return save.data.n.bad_lizard < 2 ? save.data.n.plot > 48 : save.data.b.a_state_gotphone;
+      return trueLizard() < 2 ? save.data.n.plot > 48 : save.data.b.a_state_gotphone;
    },
    priority: 4.2,
    trigger () {
@@ -484,7 +468,7 @@ phone.register('dimboxB', {
 
 phone.register('pms', {
    display () {
-      return save.data.n.bad_lizard < 2 ? save.data.n.plot > 48 : save.data.b.a_state_gotphone;
+      return trueLizard() < 2 ? save.data.n.plot > 48 : save.data.b.a_state_gotphone;
    },
    priority: 5,
    trigger () {

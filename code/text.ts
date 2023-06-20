@@ -1,38 +1,37 @@
-import { CosmosUtils } from './engine';
+import { CosmosUtils } from "./engine/utils";
 
 export default {
+   b_death1: [ '<20>You cannot give up just yet...', '<20>$(name)!\nStay determined...' ],
+   b_death2: [ '<20>Our fate rests upon you...', '<20>$(name)!\nStay determined...' ],
+   b_death3: [ "<20>You're going to be alright!", '<20>$(name)!\nStay determined...' ],
+   b_death4: [ "<20>Don't lose hope!", '<20>$(name)!\nStay determined...' ],
+   b_death5: [ '<20>It cannot end now!', '<20>$(name)!\nStay determined...' ],
+
+   b_flee1: "    * I'm outta here.",
+   b_flee2: "    * I've got better to do.",
+   b_flee3: "    * Don't slow me down.",
+   b_flee4: '    * Escaped...',
+   b_flee5: '    * Ran away with $(x) EXP\n      and $(y) G.',
+
+   b_heal1: '* HP fully restored.',
+   b_heal2: '* You recovered $(x) HP.',
+
    b_mercy_assist: '* Assist',
    b_mercy_flee: '* Flee',
    b_mercy_spare: '* Spare',
 
-   b_text1: 'LV',
-   b_text2: [ '<20>You cannot give up just yet...', '<20>$(name)!\nStay determined...' ],
-   b_text3: [ '<20>Our fate rests upon you...', '<20>$(name)!\nStay determined...' ],
-   b_text4: [ "<20>You're going to be alright!", '<20>$(name)!\nStay determined...' ],
-   b_text5: [ "<20>Don't lose hope!", '<20>$(name)!\nStay determined...' ],
-   b_text6: [ '<20>It cannot end now!', '<20>$(name)!\nStay determined...' ],
-   b_text7: '<32>{#p/story}* YOU WON!\n* You earned $(x) EXP and $(y) G.',
-   b_text8: '<32>{#p/human}* (Your LOVE increased.)',
-   b_text9: "    * I'm outta here.",
-   b_text10: "    * I've got better to do.",
-   b_text11: "    * Don't slow me down.",
-   b_text12: '    * Escaped...',
-   b_text13: '    * Ran away with $(x) EXP\n      and $(y) G.',
-   b_text15: '* HP fully restored.',
-   b_text16: '* You recovered $(x) HP.',
-   b_text17: 'INF',
+   b_victory1: '<32>{#p/story}* YOU WON!\n* You earned $(x) EXP and $(y) G.',
+   b_victory2: '<32>{#p/human}* (Your LOVE increased.)',
 
    d_console: {
-      tab: 'CONSOLE',
-      header: 'OUTPUT',
-      altHeader: 'ERROR',
-      p_input: {
-         header: 'INPUT',
-         altHeader: 'RESUME',
+      header: 'ERROR',
+      p_resume: {
+         header: 'RESUME',
          resume: 'Click To Resume'
       },
       blurb: 'An error occured! Please send\nscreenshot to developer.'
    },
+
    d_control: {
       tab: 'CONTROL',
       headers: [ 'GENERAL', 'BATTLE' ],
@@ -68,6 +67,7 @@ export default {
          next: 'More'
       }
    },
+
    d_editor: {
       delete: 'delete',
       property: {
@@ -111,6 +111,7 @@ export default {
          subObject: 'sub-object'
       }
    },
+
    d_godhome: {
       tab: 'GODHOME',
       p_teleport: {
@@ -126,6 +127,7 @@ export default {
          action: 'Switch'
       }
    },
+
    d_inspect: {
       tab: 'INSPECT',
       headers: [ 'LAYERS', 'TYPES' ],
@@ -148,6 +150,7 @@ export default {
          }
       }
    },
+
    d_savemod: {
       tab: 'SAVEMOD',
       header: 'SAVE EDITOR',
@@ -165,6 +168,7 @@ export default {
          next: 'Next'
       }
    },
+
    d_storage: {
       tab: 'STORAGE',
       header: 'STORAGE EDITOR',
@@ -175,56 +179,40 @@ export default {
    d_prompt_save: 'Download this SAVE file?',
    d_prompt_open: 'Upload this SAVE file?',
 
-   n_footer: `OUTERTALE V4.11 (C) SPACEFLUFF432 2023`,
+   t_main: 'Resume Canon Timeline',
+   t_timelines: 'Other Slots',
+   t_bisect: 'Bisect',
+   t_delete: 'Delete',
+   t_launch: 'Launch',
+   t_rename: 'Rename',
+   t_create: 'Create New',
+   t_placeholder: 'Enter Timeline Name',
+   t_confirm: 'Are You Sure?',
 
-   n_frontEnd1: [ 'Long ago, {^3}two species ruled the solar system: {^5}HUMANS and MONSTERS.' ],
-   n_frontEnd2: [ 'As time passed, {^3}a war broke out between the two species.' ],
-   n_frontEnd3: [ "After the MONSTERS' home planet was destroyed, {^3}HUMANS declared victory." ],
-   n_frontEnd4: [ 'The remaining MONSTERS were banished to an abandoned outpost.' ],
-   n_frontEnd5: [ 'A powerful force field was erected, {^3}and the MONSTERS were sealed in.' ],
-   n_frontEnd6: [ 'Many years later.{^8}.{^8}.' ],
-   n_frontEnd7: [ 'µµµµ EBOTT SECTOR µµµµ µµµµµµµµ 251X{^20}' ],
-   n_frontEnd8: [ 'Tales speak of a place from which spacecraft never return.{^20}' ],
-   n_frontEnd9: [ '{^100}' ],
-   n_frontEnd10: [ '{^100}' ],
-   n_frontEnd11: [ '{^100}' ],
+   g_disabled: 'DISABLED',
+   g_g: 'G',
+   g_hp: 'HP',
+   g_inf: 'INF',
+   g_landing1: '[PRESS Z OR ENTER]',
+   g_lv: 'LV',
+   g_mystery1: '§mystify:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz§aaaaaa§mystify:§',
+   g_mystery2: '{@mystify:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz}aaaaaa{@mystify:}',
+   g_no: 'No',
+   g_percent: '$(x)%',
+   g_settings: 'Settings',
+   g_unknown: '?',
+   g_yes: 'Yes',
 
-   n_frontEndLoad2: 'Continue',
-   n_frontEndLoad3: 'Reset',
-   n_frontEndLoad4: '(Demo) True Reset',
-   n_frontEndLoad5: 'Settings',
+   n_footer: `OUTERTALE V4.42 (C) SPACEFLUFF432 2023`,
 
-   n_frontEndName0: 'Name the fallen human.',
-   n_frontEndName1: 'Name the stranded human.',
-   n_frontEndName2: 'Quit',
-   n_frontEndName3: 'Backspace',
-   n_frontEndName4: 'Done',
-   n_frontEndName5: [
-      [ 'A', 'B', 'C', 'D', 'E', 'F', 'G' ],
-      [ 'H', 'I', 'J', 'K', 'L', 'M', 'N' ],
-      [ 'O', 'P', 'Q', 'R', 'S', 'T', 'U' ],
-      [ 'V', 'W', 'X', 'Y', 'Z' ],
-      [ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ],
-      [ 'h', 'i', 'j', 'k', 'l', 'm', 'n' ],
-      [ 'o', 'p', 'q', 'r', 's', 't', 'u' ],
-      [ 'v', 'w', 'x', 'y', 'z' ]
-   ],
-   n_frontEndName6: (index: number) => {
-      const x = (index % 26) % 7;
-      const y = Math.floor((index % 26) / 7);
-      if (index < 26) {
-         return { x: 120 + x * 64, y: 158 + y * 28 };
-      } else {
-         return { x: 120 + x * 64, y: 278 + y * 28 };
-      }
-   },
+   m_box1: 'INVENTORY',
+   m_box2: 'BOX',
+   m_box3: 'Press [X] to Finish',
+   m_confirm1: 'Is this name correct?',
 
-   n_frontEndNameConfirm1: 'Is this name correct?',
-   n_frontEndNameConfirm2: 'A name has already\nbeen chosen.',
-   n_frontEndNameConfirm3: 'No',
-   n_frontEndNameConfirm4: 'Go back',
-   n_frontEndNameConfirm5: 'Yes',
-   n_frontEndNameConfirm6: {
+   m_confirm2: 'A name has already\nbeen chosen.',
+   m_confirm3: 'Go back',
+   m_confirm4: {
       aaaaaa: 'Not very creative...?',
       aaron: 'Is this name correct? ;)',
       alphy: 'Uh.... OK?',
@@ -282,77 +270,94 @@ export default {
       vulkin: 'Ahh! Thank you~'
    },
 
-   n_frontEndSettings1: 'SETTINGS',
-   n_frontEndSettings2: 'EXIT',
-   n_frontEndSettings3: 'FX',
-   n_frontEndSettings3a: '$(x)%',
-   n_frontEndSettings3b: 'DISABLED',
-   n_frontEndSettings4: 'MUSIC',
-   n_frontEndSettings4a: '$(x)%',
-   n_frontEndSettings4b: 'DISABLED',
-   /*
-   n_frontEndSettings5: 'WINDOWED\nOPACITY',
-   n_frontEndSettings5a: '$(x)%',
-   */
-   n_frontEndSettings6: 'ALIGN\nCONTROLS',
-   n_frontEndSettings6a: 'LEFT',
-   n_frontEndSettings6b: 'RIGHT',
+   m_item1: 'USE',
+   m_item2: 'EQUIP',
+   m_item3: 'INFO',
+   m_item4: 'DROP',
 
-   n_frontEndStart1: '--- Instruction ---',
-   n_frontEndStart2: '[Z or ENTER] - Confirm',
-   n_frontEndStart3: '[X or SHIFT] - Cancel',
-   n_frontEndStart4: '[C or CTRL] - Menu (In-game)',
-   n_frontEndStart5: '[F4] - Fullscreen',
-   n_frontEndStart6: '[Hold ESC] - Quit',
-   n_frontEndStart7: 'When HP is 0, you lose.',
-   n_frontEndStart8: 'Begin Game',
-   n_frontEndStart9: 'Settings',
+   m_load1: 'Continue',
+   m_load2: 'Reset',
+   m_load3: 'True Reset',
 
-   n_g: 'G',
-   n_hp: 'HP',
-   n_inf: 'INF',
-   n_landing1: '[PRESS Z OR ENTER]',
-   n_lv: 'LV',
-   n_unknown: '?',
+   m_name1: 'Name the stranded human.',
+   m_name2: 'Quit',
+   m_name3: 'Backspace',
+   m_name4: 'Done',
+   m_name5: [
+      [ 'A', 'B', 'C', 'D', 'E', 'F', 'G' ],
+      [ 'H', 'I', 'J', 'K', 'L', 'M', 'N' ],
+      [ 'O', 'P', 'Q', 'R', 'S', 'T', 'U' ],
+      [ 'V', 'W', 'X', 'Y', 'Z' ],
+      [ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ],
+      [ 'h', 'i', 'j', 'k', 'l', 'm', 'n' ],
+      [ 'o', 'p', 'q', 'r', 's', 't', 'u' ],
+      [ 'v', 'w', 'x', 'y', 'z' ]
+   ],
+   m_name6: (index: number) => {
+      const x = (index % 26) % 7;
+      const y = Math.floor((index % 26) / 7);
+      if (index < 26) {
+         return { x: 120 + x * 64, y: 158 + y * 28 };
+      } else {
+         return { x: 120 + x * 64, y: 278 + y * 28 };
+      }
+   },
 
-   n_save2: 'Save',
-   n_save3: 'File saved.',
-   n_save4: 'Return',
-   n_save5: '<32>{#p/human}{@fill:#f00}* ($(x) left.)',
-   n_save6: '<32>{#p/human}{@fill:#f00}* (Determination.)',
-   n_save7: '<32>{#p/human}{@fill:#3f00ff}* ($(x) left.)',
-   n_save8: '<32>{#p/human}{@fill:#3f00ff}* (Determination.)',
+   m_save1: 'Save',
+   m_save2: 'Return',
+   m_save3: 'File saved.',
+   m_save4: '<32>{#p/human}{@fill:#f00}* ($(x) left.)',
+   m_save5: '<32>{#p/human}{@fill:#f00}* (Determination.)',
+   m_save6: '<32>{#p/human}{@fill:#3f00ff}* ($(x) left.)',
+   m_save7: '<32>{#p/human}{@fill:#3f00ff}* (Determination.)',
 
-   n_shop3: 'Yes',
-   n_shop4: 'No',
+   m_settings1: 'SETTINGS',
+   m_settings2: 'EXIT',
+   m_settings3: 'FX',
+   m_settings4: 'MUSIC',
+   m_settings5: 'ALIGN\nCONTROLS',
+   m_settings5_left: 'LEFT',
+   m_settings5_right: 'RIGHT',
 
-   n_sidebar4: 'ITEM',
-   n_sidebar5: 'STAT',
-   n_sidebar6: 'CELL',
-   n_sidebar7: 'CONF',
+   m_sidebar1: 'ITEM',
+   m_sidebar2: 'STAT',
+   m_sidebar3: 'CELL',
+   m_sidebar4: 'CONF',
 
-   n_sidebarCell1: 'Settings',
+   m_start1: [
+      '--- Instruction ---',
+      '[Z or ENTER] - Confirm',
+      '[X or SHIFT] - Cancel',
+      '[C or CTRL] - Menu (In-game)',
+      '[F4] - Fullscreen',
+      '[Hold ESC] - Quit',
+      'When HP is 0, you lose.'
+   ],
+   m_start2: 'Begin Game',
 
-   n_sidebarCellBox1: 'INVENTORY',
-   n_sidebarCellBox2: 'BOX',
-   n_sidebarCellBox3: 'Press [X] to Finish',
+   m_stat1: 'AT',
+   m_stat2: 'DF',
+   m_stat3: 'WEAPON',
+   m_stat4: 'ARMOR',
+   m_stat5: 'GOLD',
+   m_stat6: 'EXP',
+   m_stat7: 'NEXT',
+   m_stat8: '§fill:#ff0§Warning:\nSAVE file\ninvalid.',
+   m_stat9: 'KILLS',
+   m_stat10: 'N/A',
+   m_stat11: 'BULLY',
 
-   n_sidebarItem1: 'USE',
-   n_sidebarItem2: 'EQUIP',
-   n_sidebarItem3: 'INFO',
-   n_sidebarItem4: 'DROP',
-
-   n_sidebarStat3: 'AT',
-   n_sidebarStat4: 'DF',
-   n_sidebarStat5: 'WEAPON',
-   n_sidebarStat6: 'ARMOR',
-   n_sidebarStat7: 'GOLD',
-   n_sidebarStat8: 'EXP',
-   n_sidebarStat9: 'NEXT',
-   n_sidebarStat10: '§fill:#f00§Error.',
-   n_sidebarStat12: 'KILLS',
-   n_sidebarStat13: 'N/A',
-   n_sidebarStat14: 'BULLY',
+   m_story1: [ 'Long ago, {^3}two species ruled the solar system: {^5}HUMANS and MONSTERS.' ],
+   m_story2: [ 'As time passed, {^3}a war broke out between the two species.' ],
+   m_story3: [ "After the MONSTERS' home planet was destroyed, {^3}HUMANS declared victory." ],
+   m_story4: [ 'The remaining MONSTERS were banished to an abandoned outpost.' ],
+   m_story5: [ 'A powerful force field was erected, {^3}and the MONSTERS were sealed in.' ],
+   m_story6: [ 'Many years later.{^8}.{^8}.' ],
+   m_story7: [ 'µµµµ EBOTT SECTOR µµµµ µµµµµµµµ 251X{^20}' ],
+   m_story8: [ 'Tales speak of a place from which spacecraft never return.{^20}' ],
+   m_story9: [ '{^100}' ],
+   m_story10: [ '{^100}' ],
+   m_story11: [ '{^100}' ],
 
    x_quitText1: 'Quitting',
    x_quitText2: 'Quitting.',

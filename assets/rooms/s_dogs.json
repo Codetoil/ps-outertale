@@ -1,16 +1,22 @@
 {
    "$schema": "./room.schema.json",
    "background": "below",
-   "preload": [ "amStarton", "amStartonEmpty", "iocSansDownStatic", "avSans", "idcSans", "ieBiodome" ],
+   "preload": [ "amStarton", "amStartonEmpty", "iocSansDownStatic", "avSans", "idcSans", "iooSBiodome" ],
    "layers": {
       "below": [
          {
             "triggers": [
                {
-                  "position": { "x": 5, "y": 40 },
-                  "size": { "x": -20, "y": 120 },
+                  "position": { "x": 5, "y": 135 },
+                  "size": { "x": -20, "y": 90 },
                   "name": "teleport",
-                  "args": [ "s_stand", "left", "300", "100" ]
+                  "args": [ "s_maze", "left", "300", "100" ]
+               },
+               {
+                  "position": { "x": 315, "y": 135 },
+                  "size": { "x": 20, "y": 90 },
+                  "name": "teleport",
+                  "args": [ "s_lesser", "right", "20", "120" ]
                }
             ],
             "interacts": [
@@ -28,10 +34,15 @@
                }
             ],
             "barriers": [
-               { "position": { "x": 0, "y": 55 }, "size": { "x": 50, "y": -40 } },
+               { "position": { "x": 0, "y": 135 }, "size": { "x": 30, "y": -20 } },
                { "position": { "x": 50, "y": 15 }, "size": { "x": 180, "y": -20 } },
-               { "position": { "x": 230, "y": 14 }, "size": { "x": 20, "y": 130 } },
-               { "position": { "x": 230, "y": 145 }, "size": { "x": -230, "y": 20 } }
+               { "position": { "x": 230, "y": 14 }, "size": { "x": 20, "y": 145 } },
+               { "position": { "x": 320, "y": 225 }, "size": { "x": -320, "y": 20 } },
+               { "position": { "x": 30, "y": 15 }, "size": { "x": 20, "y": 145 } },
+               { "position": { "x": 30, "y": 200 }, "size": { "x": 220, "y": 25 } },
+               { "position": { "x": 50, "y": 160 }, "size": { "x": 70, "y": -15 } },
+               { "position": { "x": 160, "y": 160 }, "size": { "x": 70, "y": -15 } },
+               { "position": { "x": 250, "y": 135 }, "size": { "x": 70, "y": -20 } }
             ]
          }
       ],
@@ -100,12 +111,18 @@
                }
             ],
             "position": { "x": 68, "y": 50 },
-            "barriers": [ { "size": { "x": 53, "y": -18 }, "position": { "x": 3, "y": 0 } } ]
+            "barriers": [
+               { "size": { "x": 53, "y": -5 }, "position": { "x": 3, "y": 0 } },
+               { "position": { "x": 3, "y": -12 }, "size": { "x": 53, "y": -20 } }
+            ]
          },
          {
             "attachments": [ { "type": "sprite", "frames": [ "iooSSentry3" ], "anchor": { "x": 0, "y": 1 } } ],
             "position": { "x": 185, "y": 50 },
-            "barriers": [ { "position": { "x": -29, "y": 0 }, "size": { "x": 53, "y": -18 } } ]
+            "barriers": [
+               { "position": { "x": -29, "y": 0 }, "size": { "x": 53, "y": -5 } },
+               { "position": { "x": -29, "y": -12 }, "size": { "x": 53, "y": -20 } }
+            ]
          },
          {
             "attachments": [ { "type": "sprite", "frames": [ "iooSSign" ], "anchor": { "x": 0, "y": 1 } } ],
@@ -126,25 +143,25 @@
                   "type": "sprite",
                   "frames": [ "iooSSentryBack3" ],
                   "anchor": { "x": -1, "y": 1 },
-                  "position": { "x": 0, "y": 0 }
+                  "position": { "x": 0, "y": 20 }
                }
             ],
-            "position": { "x": 68, "y": 50 }
+            "position": { "x": 68, "y": 30 }
          },
          {
             "attachments": [
                {
                   "type": "sprite",
-                  "position": { "x": 185, "y": 0 },
+                  "position": { "x": 185, "y": 20 },
                   "anchor": { "x": 0, "y": 1 },
                   "frames": [ "iooSSentryBack3" ]
                }
             ],
-            "position": { "x": 0, "y": 50 }
+            "position": { "x": 0, "y": 30 }
          }
       ]
    },
-   "neighbors": [ "s_stand" ],
-   "region": [ { "x": 160, "y": 80 }, { "x": 160, "y": 80 } ],
+   "neighbors": [ "s_maze", "s_lesser" ],
+   "region": [ { "x": 160, "y": 60 }, { "x": 160, "y": 140 } ],
    "score": { "music": "starton", "gain": 0.8 }
 }

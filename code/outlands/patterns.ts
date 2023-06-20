@@ -1,18 +1,12 @@
 import { legacy, starGenerator } from '../common/patterns';
 import content from '../content';
 import { events, random, renderer, speech, timer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosEventHost,
-   CosmosHitbox,
-   CosmosMath,
-   CosmosPoint,
-   CosmosPointSimple,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosUtils,
-   CosmosValue
-} from '../engine';
+import { CosmosEventHost } from '../engine/core';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPoint, CosmosPointSimple, CosmosValue } from '../engine/numerics';
+import { CosmosHitbox } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosUtils } from '../engine/utils';
 import { battler } from '../mantle';
 import save from '../save';
 
@@ -185,7 +179,7 @@ const patterns = {
                      autoAttach: false,
                      autoDetach: false,
                      metadata: { bullet: true, damage: 2, detach: 'menu' },
-                     position: { x: battler.SOUL.position.x + (index - 0.5) * 2 * 20, y: 190 },
+                     position: { x: battler.SOUL.x + (index - 0.5) * 2 * 20, y: 190 },
                      scale: 0.5,
                      async handler (self) {
                         let velo = 0;
@@ -293,15 +287,15 @@ const patterns = {
                      if (tick) {
                         const waveValue =
                            (CosmosMath.wave((timer.value - time) / 450) * 2 - 0.5) * (modifier === 'loox' ? 1 : 1.6);
-                        Object.assign(bullet1.position, {
-                           x: basePos.x + (vertical ? waveValue * 2 : 0),
-                           y: basePos.y + (vertical ? 0 : waveValue * 1.5)
-                        });
+                        bullet1.position.set(
+                           basePos.x + (vertical ? waveValue * 2 : 0),
+                           basePos.y + (vertical ? 0 : waveValue * 1.5)
+                        );
                         positions.unshift(bullet1.position.value());
                         if (positions.length > 3) {
-                           Object.assign(bullet2.position, positions[3]);
+                           bullet2.position.set(positions[3]);
                            if (positions.length > 5) {
-                              Object.assign(bullet3.position, positions.splice(5, 1)[0]);
+                              bullet3.position.set(positions.splice(5, 1)[0]);
                            }
                         }
                         next();
@@ -408,13 +402,13 @@ const patterns = {
                         basePos = basePos.endpoint(angle, remainder);
                      }
                   }
-                  Object.assign(bullet1.position, basePos.value());
+                  bullet1.position.set(basePos);
                   positions.unshift(bullet1.position.value());
                   if (positions.length > 3) {
-                     Object.assign(bullet2.position, positions[3]);
+                     bullet2.position.set(positions[3]);
                      if (positions.length > 5) {
                         const finalPos = positions.splice(5, 1)[0];
-                        Object.assign(bullet3.position, finalPos);
+                        bullet3.position.set(finalPos);
                         if (
                            stage === 1 &&
                            (finalPos.x < minX || finalPos.x > maxX || finalPos.y < minY || finalPos.y > maxY)
@@ -619,9 +613,9 @@ const patterns = {
    },
    async toriel (index: number, hard = false) {
       if (index === 0) {
-         Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+         battler.SOUL.position.set(160);
          let state = true;
-         const bas = battler.box.position.y + battler.box.size.y + 20;
+         const bas = battler.box.y + battler.box.size.y + 20;
          const corner = battler.box.position.subtract(battler.box.size.divide(2));
          const random3 = random.clone();
          await battler.sequence(40, async () => {
@@ -638,16 +632,16 @@ const patterns = {
                   self.on('tick', () => {
                      if (state && self.position.y < bas) {
                         self.position.y += speedY.value;
-                        if (self.position.extentOf({ x: self.position.x, y: battler.SOUL.position.y }) < 50) {
+                        if (self.position.extentOf({ x: self.position.x, y: battler.SOUL.y }) < 50) {
                            self.position.x +=
                               ((180 /
                                  (self.position.extentOf({
-                                    x: battler.SOUL.position.x,
+                                    x: battler.SOUL.x,
                                     y: self.position.y
                                  }) +
                                     10) -
                                  1) *
-                                 (battler.SOUL.position.x > self.position.x ? -1 : 1)) /
+                                 (battler.SOUL.x > self.position.x ? -1 : 1)) /
                               4;
                         } else {
                            self.position.x += offsetX / speedY.value / 12;
@@ -674,7 +668,7 @@ const patterns = {
                }),
             [
                async () => {
-                  Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+                  battler.SOUL.position.set(160);
                   const corner1 = battler.box.position.subtract(battler.box.size.divide(2));
                   const corner2 = corner1.add(battler.box.size.x, 0);
                   const corner3 = corner1.add(battler.box.size);
@@ -743,7 +737,7 @@ const patterns = {
                   });
                },
                async () => {
-                  Object.assign(battler.SOUL.position, { x: 160 + (random.next() ? 25 : -25), y: 160 });
+                  battler.SOUL.position.set(160 + (random.next() < 0.5 ? 25 : -25), 160);
                   let done = false;
                   let angle = 0;
                   const angleChangeRate = new CosmosValue(0);
@@ -792,7 +786,7 @@ const patterns = {
                   done = true;
                },
                async () => {
-                  Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+                  battler.SOUL.position.set(160);
                   await battler.sequence(save.data.b.genocide ? 7 : 5, async promises => {
                      if (save.data.n.hp > 4) {
                         const seed = random.next();
@@ -868,7 +862,7 @@ const patterns = {
                   });
                },
                async () => {
-                  Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+                  battler.SOUL.position.set(160);
                   await battler.sequence(save.data.b.genocide ? 8 : 6, async promises => {
                      if (save.data.n.hp > 4) {
                         legacy.bullets.firebol({

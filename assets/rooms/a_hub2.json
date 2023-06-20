@@ -88,8 +88,7 @@
                { "position": { "x": 340, "y": 300 }, "size": { "x": 20, "y": -20 } },
                { "position": { "x": 460, "y": 300 }, "size": { "x": -40, "y": -40 } },
                { "position": { "x": 520, "y": 200 }, "size": { "x": -20, "y": 20 } }
-            ],
-            "barriers": []
+            ]
          }
       ],
       "main": [
@@ -235,8 +234,7 @@
                   "name": "trivia",
                   "args": [ "chesstable" ]
                }
-            ],
-            "tags": []
+            ]
          },
          {
             "tags": [ "a_drakemom" ],

@@ -40,8 +40,7 @@
                   "name": "teleport",
                   "args": [ "a_hub3", "up", "220", "490" ]
                }
-            ],
-            "interacts": []
+            ]
          },
          {
             "tags": [ "cornerbarrier" ],
@@ -56,8 +55,7 @@
                { "position": { "x": 380, "y": 360 }, "size": { "x": -80, "y": -80 } },
                { "position": { "x": 420, "y": 260 }, "size": { "x": -40, "y": -40 } },
                { "position": { "x": 440, "y": 200 }, "size": { "x": -20, "y": -20 } }
-            ],
-            "barriers": []
+            ]
          },
          {
             "tags": [ "xtrabarrier" ],

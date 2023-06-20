@@ -1,23 +1,17 @@
 import assets from '../assets';
 import { OutertaleOpponent } from '../classes';
 import { faces as commonFaces } from '../common/bootstrap';
-import commonOpponents from '../common/opponents';
 import commonPatterns from '../common/patterns';
 import commonText from '../common/text';
 import content, { inventories } from '../content';
 import { atlas, events, game, random, renderer, speech, timer, typer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosInstance,
-   CosmosInventory,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosUtils,
-   CosmosValue
-} from '../engine';
+import { CosmosInstance } from '../engine/audio';
+import { CosmosInventory } from '../engine/core';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPoint, CosmosValue } from '../engine/numerics';
+import { CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosUtils } from '../engine/utils';
 import { battler, header, oops, world } from '../mantle';
 import save from '../save';
 import { faces, resetThreshold } from './bootstrap';
@@ -26,6 +20,7 @@ import text from './text';
 
 const opponents = {
    dummy: new OutertaleOpponent({
+      flirted: () => save.data.n.state_wastelands_dummy === 6,
       assets: new CosmosInventory(
          content.ibcDummy,
          content.ibcDummyDefeated,
@@ -105,7 +100,7 @@ const opponents = {
          humantext.length > 0 && (await battler.human(...humantext));
          if (volatile.vars.slaps === 3) {
             assets.sounds.slidewhistle.instance(timer);
-            await volatile.container.position.modulate(timer, 1250, { x: volatile.container.position.x, y: -80 });
+            await volatile.container.position.modulate(timer, 1250, { x: volatile.container.x, y: -80 });
             await timer.pause(650);
             await battler.human(...commonText.b_opponent_dummy.slapped2);
          }
@@ -134,6 +129,7 @@ const opponents = {
          })
    }),
    froggit: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_froggit,
       assets: new CosmosInventory(
          content.ibcFroggitDefeated,
          content.ibcFroggitHead,
@@ -217,6 +213,7 @@ const opponents = {
                      case 'flirt':
                         save.data.b.flirt_froggit = true;
                         save.data.b.spared_froggit = true;
+                        volatile.flirted = true;
                         if (!volatile.vars.mercymod && volatile.hp === volatile.opponent.hp) {
                            volatile.vars.mercymod = true;
                            battler.g += 2;
@@ -300,6 +297,7 @@ const opponents = {
       }
    }),
    whimsun: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_whimsun,
       assets: new CosmosInventory(content.ibcWhimsun, content.ibcWhimsunDefeated, content.ibbStarfly),
       metadata: { arc: true },
       bullyable: true,
@@ -370,6 +368,7 @@ const opponents = {
                      return;
                   case 'flirt':
                      save.data.b.flirt_whimsun = true;
+                     volatile.flirted = true;
                      save.data.b.spared_whimsun = true;
                      if (!volatile.vars.mercymod && volatile.hp === volatile.opponent.hp) {
                         volatile.vars.mercymod = true;
@@ -433,6 +432,7 @@ const opponents = {
          })
    }),
    migosp: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_migosp,
       assets: new CosmosInventory(
          content.ibcMigosp,
          content.ibcMigospDefeated,
@@ -489,6 +489,7 @@ const opponents = {
             flirt (state) {
                if (battler.alive.length === 1) {
                   save.data.b.flirt_migosp = true;
+                  state.volatile.flirted = true;
                   state.talk = text.b_opponent_migosp.flirtTalk;
                }
             },
@@ -534,6 +535,7 @@ const opponents = {
       }
    }),
    loox: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_loox,
       assets: new CosmosInventory(
          content.ibcLoox,
          content.ibcLooxDefeated,
@@ -600,6 +602,7 @@ const opponents = {
                switch (choice.act) {
                   case 'flirt':
                      save.data.b.flirt_loox = true;
+                     volatile.flirted = true;
                      save.data.b.spared_loox = true;
                      if (!volatile.vars.mercymod && volatile.hp === volatile.opponent.hp) {
                         volatile.vars.mercymod = true;
@@ -666,6 +669,7 @@ const opponents = {
          })
    }),
    mushy: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_mushy,
       assets: new CosmosInventory(
          content.ibcMushy,
          content.ibcMushyDefeated,
@@ -733,6 +737,7 @@ const opponents = {
                      break;
                   case 'flirt':
                      save.data.b.flirt_mushy = true;
+                     volatile.flirted = true;
                      monstertext = [ text.b_opponent_mushy.flirtTalk1 ];
                      statustext = [ text.b_opponent_mushy.flirtStatus1 ];
                      break;
@@ -803,6 +808,7 @@ const opponents = {
          })
    }),
    napstablook: new OutertaleOpponent({
+      flirted: () => save.data.n.state_wastelands_napstablook === 1,
       assets: new CosmosInventory(content.ibcNapstablook, content.ibcNapstaSad, content.ibcNapstaHat, content.ibbTear),
       exp: -1,
       hp: 88,
@@ -1116,7 +1122,7 @@ const opponents = {
                battler.resume();
             } else {
                await battler.box.size.modulate(timer, 300, { x: 120, y: 65 });
-               Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+               battler.SOUL.position.set(160);
                battler.resume(async () => {
                   battler.SOUL.alpha.value = 1;
                   const turn = volatile.vars.turns++;
@@ -1145,6 +1151,7 @@ const opponents = {
          })
    }),
    toriel: new OutertaleOpponent({
+      flirted: () => save.data.b.cell_flirt,
       dramatic: true,
       assets: new CosmosInventory(
          content.ibcTorielBattle1,
@@ -1211,10 +1218,6 @@ const opponents = {
                            text.b_opponent_toriel.talk6,
                            text.b_opponent_toriel.talk7
                         ][index];
-                        if (!save.data.b.oops && index === 5 && save.data.b.w_state_diary) {
-                           battler.assist = true;
-                           humantext.push(...text.b_opponent_toriel.talk6a);
-                        }
                      }
                      break;
                }
@@ -1306,7 +1309,7 @@ const opponents = {
                         : text.b_opponent_toriel.death3)
                   );
                   await battler.vaporize(volatile.container.objects[0]);
-                  save.data.n.exp = 200;
+                  save.data.n.exp += 200;
                   const baze = new CosmosPoint({ x: 160, y: 83 });
                   const bossSOUL = new CosmosSprite({
                      alpha: 0,
@@ -1320,10 +1323,10 @@ const opponents = {
                   renderer.attach('menu', bossSOUL);
                   battler.box.size.x = 1000;
                   battler.box.size.y = 1000;
-                  battler.box.position.x = 160;
-                  battler.box.position.y = 120;
-                  battler.SOUL.position.x = 160;
-                  battler.SOUL.position.y = 123;
+                  battler.box.x = 160;
+                  battler.box.y = 120;
+                  battler.SOUL.x = 160;
+                  battler.SOUL.y = 123;
                   battler.SOUL.alpha.value = 1;
                   battler.stat.speed.value = 0.3;
                   game.movement = true;
@@ -1713,6 +1716,10 @@ const opponents = {
                }
                battler.SOUL.alpha.value = 0;
                await battler.box.size.modulate(timer, 300, { x: 282.5, y: 65 });
+               if (!save.data.b.oops && save.data.b.w_state_diary && turnValue === 5) {
+                  battler.assist = true;
+                  battler.status = text.b_opponent_toriel.assistStatus;
+               }
             });
          } else {
             battler.resume();

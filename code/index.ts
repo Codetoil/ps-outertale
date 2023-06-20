@@ -1,11 +1,14 @@
-import './../node_modules/vite/client.d';
-import { atlas, backend, events, game, keys, launch, reload, renderer } from './core';
-import * as developer from './developer';
-import { editor, logician } from './developer';
-import { CosmosUtils } from './engine';
-import * as global from './global';
-import { battler } from './mantle';
-import './types.d';
+/////////////////////////////////////////////////////////////////////////////
+//                                                                         //
+//    ::::::::   ::::::::   ::::::::  ::::::::::::  ::::::::   ::::::::    //
+//   :+:    :+: :+:    :+: :+:        :+:  ::  :+: :+:    :+: :+:          //
+//   +:+        +:+    +:+ +:+        +:+  ::  +:+ +:+    +:+ +:+          //
+//   +#+        +#+    +#+  #++::++#  +#+  ++  +#+ +#+    +#+  #++::++#    //
+//   +#+        +#+    +#+        +#+ +#+  ++  +#+ +#+    +#+        +#+   //
+//   #+#    #+# #+#    #+#        #+# #+#      #+# #+#    #+#        #+#   //
+//    ########   ########   ########  ###      ###  ########   ########    //
+//                                                                         //
+//// powered by cosmos - highly optimizated /////////////////////////////////
 
 import './common';
 
@@ -17,16 +20,34 @@ import './foundry';
 
 import './aerialis';
 
-(import.meta.hot || { on: () => {} }).on('vite:beforeFullReload', () => {
-   throw logician.viteError;
+import './citadel';
+
+import { BaseTexture, SCALE_MODES, settings } from 'pixi.js';
+import * as api from './api';
+import { atlas, backend, events, game, keys, launch, reload, renderer } from './core';
+import * as developer from './developer';
+import { CosmosUtils } from './engine/utils';
+import { battler, saveSelector } from './mantle';
+import save from './save';
+import './types.d';
+
+export type OutertaleMod = (mod: string, api: typeof import('./api')) => any;
+
+import.meta.hot?.on('vite:beforeFullReload', () => {
+   throw developer.logician.viteError;
 });
 
+settings.RESOLUTION = 1;
+settings.ROUND_PIXELS = true;
+BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
+
 const respawn = new URLSearchParams(location.search).has('respawn');
+const namespace = new URLSearchParams(location.search).has('namespace');
 
 function atlasInput (key = null as string | null) {
    return (
       !keys.altKey.active() &&
-      (game.input || (editor.input && [ 'ArrowLeft', 'ArrowRight' ].includes(key!))) &&
+      (game.input || (developer.editor.input && [ 'ArrowLeft', 'ArrowRight' ].includes(key!))) &&
       (!game.movement || battler.active) &&
       atlas.target
    );
@@ -51,7 +72,7 @@ addEventListener('keydown', event => {
       backend.available || (document.fullscreenElement ? document.exitFullscreen() : document.body.requestFullscreen());
    } else if (!game.developer || [ 'Tab', 'F11' ].includes(event.code)) {
       event.preventDefault();
-   } else if (event.ctrlKey && event.code === 'KeyR') {
+   } else if ((event.ctrlKey || event.altKey) && event.code === 'KeyR') {
       event.preventDefault();
       reload(event.shiftKey);
    }
@@ -69,12 +90,18 @@ Promise.race([ renderer.on('tick'), developer.panel.renderer.on('tick') ]).then(
 });
 
 (async () => {
-   Object.assign(globalThis, global, developer);
-
-   await Promise.all(backend.mods.map(name => import(/* @vite-ignore */ name).then(value => void value.default?.())));
+   await Promise.all(
+      backend.mods.map(async mod => {
+         const value = await import(/* @vite-ignore */ `mods:${mod}/index.js?${performance.now()}`);
+         await value.default?.(mod, api);
+         await Promise.all(events.fire('loaded-mod', mod));
+      })
+   );
    await Promise.all(events.fire('modded'));
+   launch.timeline && save.data.s.name && !namespace && (await saveSelector());
+   await Promise.all(events.fire('loaded'));
 
-   launch.intro && !respawn && (await Promise.all(events.fire('init-intro')));
+   launch.intro && !respawn && !namespace && (await Promise.all(events.fire('init-intro')));
    await Promise.all(events.fire('init-between'));
    launch.overworld && (await Promise.all(events.fire('init-overworld')));
 

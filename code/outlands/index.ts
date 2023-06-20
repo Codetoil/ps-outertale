@@ -3,7 +3,7 @@ import './bootstrap';
 import { BLEND_MODES, Graphics } from 'pixi.js';
 import assets from '../assets';
 import { OutertaleLayerKey } from '../classes';
-import { characters, goatbro, runEncounter } from '../common';
+import { characters, azzie, runEncounter, stalkerSetup } from '../common';
 import commonGroups from '../common/groups';
 import commonText from '../common/text';
 import content, { inventories } from '../content';
@@ -22,23 +22,14 @@ import {
    timer,
    typer
 } from '../core';
-import {
-   CosmosAnimation,
-   CosmosCharacter,
-   CosmosEntity,
-   CosmosHitbox,
-   CosmosInstance,
-   CosmosInventory,
-   CosmosKeyed,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosPointSimple,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosUtils,
-   CosmosValue
-} from '../engine';
+import { CosmosInstance } from '../engine/audio';
+import { CosmosInventory } from '../engine/core';
+import { CosmosCharacter, CosmosEntity } from '../engine/entity';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPoint, CosmosPointSimple, CosmosValue } from '../engine/numerics';
+import { CosmosHitbox, CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosKeyed, CosmosProvider, CosmosUtils } from '../engine/utils';
 import {
    battler,
    calcHP,
@@ -54,6 +45,7 @@ import {
    player,
    saver,
    shake,
+   sineWaver,
    talkFilter,
    teleport,
    teleporter,
@@ -68,25 +60,25 @@ import groups from './groups';
 import patterns from './patterns';
 import text, { areaKills, toriCheck } from './text';
 
-const states = {
+export const states = {
    rooms: {} as Partial<CosmosKeyed<CosmosKeyed<any>>>,
    scripts: {} as Partial<CosmosKeyed<CosmosKeyed<any>>>
 };
 
 export const wasGeno = { state: false };
 
-function compat () {
+export function compat () {
    save.data.b.toriel_phone = !save.data.b.oops;
    save.data.n.kills_wastelands = save.data.n.kills;
    save.data.n.plot = 16;
    save.storage.dimboxA.add('glove');
 }
 
-function toriSV () {
+export function toriSV () {
    return save.data.n.plot < 16 ? save.data.b.oops : !save.data.b.toriel_phone;
 }
 
-function instanceDestroy (tags: string[], layer = 'main' as OutertaleLayerKey) {
+export function instanceDestroy (tags: string[], layer = 'main' as OutertaleLayerKey) {
    renderer.detach(
       layer,
       ...objectsByTag(objectTags => {
@@ -100,7 +92,7 @@ function instanceDestroy (tags: string[], layer = 'main' as OutertaleLayerKey) {
    );
 }
 
-function objectsByTag (filter: (tags: string[]) => boolean) {
+export function objectsByTag (filter: (tags: string[]) => boolean) {
    const objects = [] as CosmosObject[];
    Object.values(renderer.layers).map(layer =>
       CosmosUtils.chain(layer as { objects: CosmosObject[] }, (layer, next) => {
@@ -116,7 +108,7 @@ function objectsByTag (filter: (tags: string[]) => boolean) {
    return objects;
 }
 
-async function phase (time: number, position: CosmosPointSimple) {
+export async function phase (time: number, position: CosmosPointSimple) {
    assets.sounds.phase.instance(timer);
    player.scale.modulate(timer, 125, { x: 1.05, y: 1 }).then(() => {
       player.scale.modulate(timer, 50, { x: 0, y: 1 });
@@ -138,7 +130,7 @@ async function phase (time: number, position: CosmosPointSimple) {
    await player.alpha.modulate(timer, 100, 1);
 }
 
-function talkerEngine (key: string, ...talkers: CosmosSprite[]) {
+export function talkerEngine (key: string, ...talkers: CosmosSprite[]) {
    let state = true;
    CosmosUtils.chain(void 0 as void, (none, next) => {
       header(key).then(() => {
@@ -182,23 +174,23 @@ export function torielOverride () {
    }
 }
 
-function walkHer (
+export function walkHer (
    entity: CosmosEntity,
    direction: CosmosPointSimple,
    threshold: (position: CosmosPointSimple) => boolean
 ) {
    return CosmosUtils.chain<void, Promise<void>>(void 0, async (x, next) => {
       await renderer.on('tick');
-      entity.move(direction, renderer, 'main');
+      entity.move(direction, renderer);
       if (threshold(entity.position)) {
          await next();
       } else {
-         entity.move({ x: 0, y: 0 }, renderer, 'main');
+         entity.move({ x: 0, y: 0 }, renderer);
       }
    });
 }
 
-function spawnBreakfast () {
+export function spawnBreakfast () {
    temporary(
       new CosmosHitbox({
          anchor: 0,
@@ -217,29 +209,27 @@ function spawnBreakfast () {
    );
 }
 
-const script = async (subscript: string, ...args: string[]): Promise<any> => {
+export const script = async (subscript: string, ...args: string[]): Promise<any> => {
    const roomState = states.rooms[game.room] || (states.rooms[game.room] = {});
    if (subscript === 'tick') {
       switch (game.room) {
          case 'w_twinkly':
             if (!roomState.goated) {
                roomState.goated = true;
-               if (world.goatbro && save.flag.n.ga_asrielOutlands7 < 1) {
-                  await timer.when(() => game.room === 'w_twinkly' && player.y > 60);
+               if (world.azzie && save.flag.n.ga_asrielOutlands7 < 1) {
+                  await timer.when(() => game.room === 'w_twinkly' && player.y > 60 && game.movement);
                   save.flag.n.ga_asrielOutlands7 = 1;
                   await dialogue('auto', ...text.a_outlands.noticestart);
                }
             }
             break;
          case 'w_puzzle1': {
-            if (save.data.n.plot < 6 && save.data.n.plot_call < 1) {
+            if (save.data.n.plot < 6 && save.data.n.plot_call < 1 && game.movement) {
                game.movement = false;
                save.data.n.plot_call = 1;
                atlas.switch('dialoguerBottom');
                assets.sounds.phone.instance(timer);
-               await typer.text(...text.a_outlands.plot_call.a);
-               assets.sounds.equip.instance(timer);
-               await typer.text(commonText.c_endcall);
+               await typer.text(...text.a_outlands.plot_call.a, commonText.c_call2);
                atlas.switch(null);
                save.data.n.choice_flavor = choicer.result as 0 | 1;
                game.movement = true;
@@ -247,7 +237,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'w_puzzle2': {
-            if (save.data.n.plot_call < 2) {
+            if (save.data.n.plot_call < 2 && game.movement) {
                game.movement = false;
                save.data.n.plot_call = 2;
                atlas.switch('dialoguerBottom');
@@ -259,36 +249,31 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   await typer.text(...text.a_outlands.plot_call.b2);
                   save.data.b.snail_pie = true;
                }
-               assets.sounds.equip.instance(timer);
-               await typer.text(commonText.c_endcall);
+               await typer.text(commonText.c_call2);
                atlas.switch(null);
                game.movement = true;
             }
             break;
          }
          case 'w_puzzle3': {
-            if (save.data.n.plot_call < 3) {
+            if (save.data.n.plot_call < 3 && game.movement) {
                game.movement = false;
                save.data.n.plot_call = 3;
                atlas.switch('dialoguerBottom');
                assets.sounds.phone.instance(timer);
-               await typer.text(...text.a_outlands.plot_call.c);
-               assets.sounds.equip.instance(timer);
-               await typer.text(commonText.c_endcall);
+               await typer.text(...text.a_outlands.plot_call.c, commonText.c_call2);
                atlas.switch(null);
                game.movement = true;
             }
             break;
          }
          case 'w_pacing': {
-            if (save.data.n.plot_call < 4) {
+            if (save.data.n.plot_call < 4 && game.movement) {
                game.movement = false;
                save.data.n.plot_call = 4;
                atlas.switch('dialoguerBottom');
                assets.sounds.phone.instance(timer);
-               await typer.text(...text.a_outlands.plot_call.d);
-               assets.sounds.equip.instance(timer);
-               await typer.text(commonText.c_endcall);
+               await typer.text(...text.a_outlands.plot_call.d, commonText.c_call2);
                atlas.switch(null);
                game.movement = true;
             }
@@ -376,7 +361,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          case 'w_alley4':
             if (!roomState.goated) {
                roomState.goated = true;
-               if (world.goatbro && save.flag.n.ga_asrielOutlands6++ < 1) {
+               if (world.azzie && save.flag.n.ga_asrielOutlands6++ < 1) {
                   dialogue('auto', ...text.a_outlands.noticereturn);
                }
             }
@@ -409,6 +394,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             if (player.face !== 'down') {
                break;
             }
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             atlas.switch('dialoguerBottom');
             if (save.storage.inventory.size === 8) {
@@ -425,6 +413,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'piecheck': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             await dialogue('auto', ...text.a_outlands.piecheck());
             if (save.data.n.plot > 7 && world.population < 7 && save.data.n.state_wastelands_mash < 1) {
@@ -448,6 +439,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'latetoriel': {
+            if (!game.movement) {
+               return;
+            }
             instance('main', 'latetoriel')?.talk(
                'a',
                talkFilter(),
@@ -458,14 +452,15 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'fireplace': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             await dialogue('auto', ...text.a_outlands.fireplace1);
             if (choicer.result === 0) {
-               goatbro.metadata.override = true;
+               azzie.metadata.override = true;
                const promo = Promise.all([
-                  world.goatbro
-                     ? goatbro.walk(timer, 1, { x: 168, y: 101 }).then(() => (goatbro.face = 'down'))
-                     : void 0,
+                  world.azzie ? azzie.walk(timer, 1, { x: 168, y: 101 }).then(() => (azzie.face = 'down')) : void 0,
                   player.walk(timer, 1, { x: 168 }, { x: 168, y: 72 })
                ]);
                await dialogue('auto', ...text.a_outlands.fireplace2b());
@@ -482,9 +477,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                await promo;
                await keys.interactKey.on('down');
                await player.walk(timer, 1, { y: 80 });
-               goatbro.metadata.override = false;
-               goatbro.metadata.reposition = true;
-               goatbro.metadata.repositionFace = 'up';
+               azzie.metadata.override = false;
+               azzie.metadata.reposition = true;
+               azzie.metadata.repositionFace = 'up';
             } else {
                await dialogue('auto', ...text.a_outlands.fireplace2a);
             }
@@ -492,6 +487,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'twinkly': {
+            if (!game.movement) {
+               return;
+            }
             if (save.data.n.plot > 0) {
                return;
             } else {
@@ -527,7 +525,6 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                content.ibbPellet,
                content.ibuBubbleTwinkly,
                content.idcTwinklyPissed,
-               inventories.battleAssets,
                content.idcTwinklyNice
             );
             const battleQueue = progress < 3 ? battleAssets.load() : timer.pause();
@@ -538,7 +535,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                const beamScaleX = new CosmosValue();
                const beam = new CosmosRectangle({
                   anchor: 0,
-                  position: { x: player.position.x, y: renderer.position.clamp(...renderer.region).y },
+                  position: { x: player.x, y: renderer.position.clamp(...renderer.region).y },
                   size: { x: 40, y: 240 },
                   priority: -10,
                   fill: '#fff7',
@@ -552,7 +549,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   alpha: 0,
                   priority: -1,
                   anchor: { x: 0, y: 1 },
-                  position: { x: player.position.x },
+                  position: { x: player.x },
                   resources: content.iocTwinkly
                }).on('tick', function () {
                   this.position.y = starPositionY.value + CosmosMath.wave(((timer.value - time) % 2500) / 2500) * 5;
@@ -652,7 +649,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      assets.sounds.noise.instance(timer);
                      renderer.attach('menu', battler.SOUL);
                      battler.SOUL.alpha.value = 1;
-                     Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+                     battler.SOUL.position.set(160);
                      renderer.alpha.value = 1;
                   }
                   const battleStar = new CosmosObject({
@@ -664,8 +661,8 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   });
                   battler.box.size.x = 155 / 2;
                   battler.box.size.y = 130 / 2;
-                  battler.box.position.x = 160;
-                  battler.box.position.y = 160;
+                  battler.box.x = 160;
+                  battler.box.y = 160;
                   atlas.switch('battlerSimple');
                   starPositionY.value = 85;
                   renderer.detach('main', star);
@@ -855,6 +852,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          case 'tutorial_puzzle': {
             if (args[0] === 'encourage') {
                if (save.data.n.plot < 2.2) {
+                  if (!game.movement || !game.menu) {
+                     return;
+                  }
                   game.movement = false;
                   atlas.switch('dialoguerBottom');
                   await typer.text(...text.a_outlands.tutorial_puzzle8);
@@ -901,6 +901,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             if (scriptState.active || save.data.n.plot > 2.2) {
                return;
             } else if (save.data.n.plot < 2.2) {
+               if (!game.movement) {
+                  return;
+               }
                game.movement = false;
             }
             if (save.data.n.plot < 2.21) {
@@ -927,7 +930,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   if (
                      game.room === 'w_tutorial' &&
                      save.data.n.plot === 2.2 &&
-                     (player.position.y > this.position.y || player.position.extentOf(this.position) < 60)
+                     (player.y > this.position.y || player.position.extentOf(this.position) < 60)
                   ) {
                      save.data.n.plot = 2.21;
                      await Promise.race([
@@ -1078,6 +1081,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          }
          case 'dummy': {
             if (args[0] === 'prompt') {
+               if (!game.movement) {
+                  return;
+               }
                game.movement = false;
                atlas.switch('dialoguerBottom');
                if (save.data.n.plot < 2.31) {
@@ -1093,12 +1099,14 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                game.movement = true;
                return;
             } else if (args[0] === 'dummybody') {
+               if (!game.movement) {
+                  return;
+               }
                if (save.data.n.plot < 2.4) {
                   game.music!.gain.value = 0;
                   game.movement = false;
                   await Promise.all([ battler.load(groups.dummy), battler.battlefall(player) ]);
                   await battler.start(groups.dummy);
-                  game.movement = true;
                   game.music!.gain.modulate(timer, 300, world.level);
                   if (save.data.n.state_wastelands_dummy === 1 || save.data.n.state_wastelands_dummy === 5) {
                      instanceDestroy([ 'dummybody' ]);
@@ -1146,10 +1154,10 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             const dgone = save.data.n.state_wastelands_dummy === 1 || save.data.n.state_wastelands_dummy === 5;
             const dflee = world.genocide && save.data.n.plot > 13;
             (dgone || dflee) && instanceDestroy([ 'dummybody' ]);
-            if (!dgone && dflee && world.goatbro && !scriptState.goated) {
+            if (!dgone && dflee && world.azzie && !scriptState.goated) {
                scriptState.goated = true;
                timer
-                  .when(() => player.y > 40 && game.room === 'w_dummy')
+                  .when(() => player.y > 40 && game.room === 'w_dummy' && game.movement)
                   .then(async () => {
                      if (save.flag.n.ga_asrielOutlands5++ < 1) {
                         await dialogue('auto', ...text.a_outlands.noticedummy);
@@ -1159,6 +1167,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             if (scriptState.active) {
                return;
             } else if (save.data.n.plot < 2.3) {
+               if (!game.movement) {
+                  return;
+               }
                game.movement = false;
             }
             if (save.data.n.plot < 2.41) {
@@ -1214,6 +1225,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          }
          case 'danger_puzzle': {
             if (args[0] === 'froggit') {
+               if (!game.movement) {
+                  return;
+               }
                if (save.data.n.plot < 2.6) {
                   save.data.n.plot = 2.6;
                   game.music!.gain.value = 0;
@@ -1228,6 +1242,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   game.music!.gain.modulate(timer, 300, world.level);
                }
             } else if (args[0] === 'terminal') {
+               if (!game.movement) {
+                  return;
+               }
                game.movement = false;
                atlas.switch('dialoguerBottom');
                await typer.text(...text.a_outlands.danger_puzzle2);
@@ -1326,6 +1343,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             if (scriptState.active || save.data.n.plot > 2.61) {
                return;
             } else if (save.data.n.plot < 2.5) {
+               if (!game.movement) {
+                  return;
+               }
                game.movement = false;
             }
             scriptState.active = true;
@@ -1354,6 +1374,8 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   player.position.extentOf(tori.position) < 45
                ) {
                   save.data.n.plot = 2.62;
+                  this.metadata.barrier = false;
+                  this.metadata.interact = false;
                   await Promise.race([
                      events.on('teleport'),
                      walkHer(this, { x: -3, y: 0 }, pos => pos.x > 20).then(() => this.alpha.modulate(timer, 300, 0))
@@ -1422,6 +1444,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                (game.room === 'w_zigzag' && player.position.extentOf({ x: 810, y: 105 }) < 50) || (await next());
             });
             if (save.data.n.plot < 2.7) {
+               await timer.when(() => game.movement);
                game.movement = false;
                await timer.pause(350);
                atlas.switch('dialoguerBottom');
@@ -1431,10 +1454,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   if (choicer.result === 1) {
                      await typer.text(...text.a_outlands.indie1b);
                      if (choicer.result === 1) {
-                        const queue2 = content.amToriel.load();
                         atlas.switch(null);
                         game.music!.gain.value = 0;
-                        await Promise.all([ queue2, timer.pause(1e3) ]);
+                        await timer.pause(1e3);
                         atlas.switch('dialoguerBottom');
                         await typer.text(...text.a_outlands.indie2b);
                         const feels = assets.music.toriel.instance(timer);
@@ -1488,10 +1510,11 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            feels.stop();
                            audio.musicReverb.value = 0;
                            audio.musicMixer.value = 0;
-                           content.amToriel.unload();
                         });
                         await timer.pause(1350);
                         await teleport('w_toriel_asriel', 'left', 221, 139, world);
+                        teleporter.movement = false;
+                        game.movement = false;
                         game.music!.gain.value = 0;
                         (states.scripts.toriel_asriel_lamp || {}).active || script('toriel_asriel_lamp', 'silent');
                         await renderer.alpha.modulate(timer, 0, 0);
@@ -1546,13 +1569,11 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             }
             await destiePromise;
             game.movement = false;
-            const queue2 = content.amToriel.load();
-            await Promise.all([ queue2, timer.pause(650) ]);
+            await timer.pause(450);
             if (tori.position.angleFrom(player.position) > 45) {
                tori.face = 'down';
             }
-            await game.music!.gain.modulate(timer, 650, world.level);
-            await timer.pause(350);
+            game.music!.gain.modulate(timer, 650, world.level);
             cutscene = true;
             atlas.switch('dialoguerBottom');
             if (save.data.n.plot < 2.71) {
@@ -1570,18 +1591,15 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             save.data.n.plot = 4;
             let garbo = 0;
             let valid = true;
-            events.on('teleport', async () => {
+            events.on('teleport').then(async () => {
                script('froggit');
                if (valid) {
                   valid = false;
                   save.data.n.plot = 5;
-                  await renderer.on('tick');
+                  teleporter.movement = false;
                   game.movement = false;
                   atlas.switch('dialoguerBottom');
-                  assets.sounds.phone.instance(timer);
-                  await typer.text(commonText.c_call, ...text.a_outlands.indie6);
-                  assets.sounds.equip.instance(timer);
-                  await typer.text(commonText.c_endcall);
+                  await typer.text(commonText.c_call1, ...text.a_outlands.indie6, commonText.c_call2);
                   if (garbo < 1) {
                      await typer.text(...text.a_outlands.indie6a);
                   } else {
@@ -1599,7 +1617,6 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                await timer.when(() => game.movement);
                game.movement = false;
                atlas.switch('dialoguerBottom');
-               assets.sounds.phone.instance(timer);
                switch (garbo) {
                   case 2:
                      save.data.n.plot = 4.1;
@@ -1608,9 +1625,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      save.data.n.plot = 4.2;
                      break;
                }
-               await typer.text(commonText.c_call, ...text.a_outlands.indie5[garbo++]);
-               assets.sounds.equip.instance(timer);
-               await typer.text(commonText.c_endcall);
+               await typer.text(commonText.c_call1, ...text.a_outlands.indie5[garbo++], commonText.c_call2);
                atlas.switch(null);
                if (garbo === text.a_outlands.indie5.length) {
                   valid = false;
@@ -1636,8 +1651,8 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   tori.position.x = 810;
                   tori.position.y = 105;
                   player.face = 'up';
-                  player.position.x = 810;
-                  player.position.y = 135;
+                  player.x = 810;
+                  player.y = 135;
                   renderer.attach('main', tori);
                   tori.alpha.value = 1;
                   await queue3;
@@ -1737,6 +1752,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'goner': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             atlas.switch('dialoguerTop');
@@ -1754,6 +1772,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'coffin': {
+            if (!game.movement) {
+               return;
+            }
             let page = 0;
             game.movement = false;
             atlas.switch('dialoguerTop');
@@ -1783,6 +1804,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             scriptState.sequence || (scriptState.sequence = []);
             if (args[0] === 'switch') {
                if (save.data.n.plot > 5) {
+                  if (!game.movement) {
+                     return;
+                  }
                   game.movement = false;
                   atlas.switch('dialoguerBottom');
                   await typer.text(...text.a_outlands.puzzle1A);
@@ -1868,8 +1892,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   top: for (const [ index1, objects ] of scriptState.buttons.entries()) {
                      for (const [ index2, anim ] of objects.entries()) {
                         if (
-                           Math.abs(anim.position.x - player.position.x) < 7 &&
-                           Math.abs(anim.position.y - player.position.y) <= 10
+                           Math.abs(anim.position.x - player.x) < 7 &&
+                           Math.abs(anim.position.y - player.y) <= 10 &&
+                           game.movement
                         ) {
                            if (anim.index === 6) {
                               scriptState.pressed.push(anim);
@@ -1967,7 +1992,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   }
                });
                obj.on('tick', async function () {
-                  if (save.data.n.plot > 5.1 || scriptState.fail) {
+                  if (save.data.n.plot > 5.1 || scriptState.fail || !game.movement) {
                      return;
                   }
                   this.metadata.runs ??= 0;
@@ -2065,6 +2090,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             scriptState.sequence || (scriptState.sequence = []);
             if (args[0] === 'switch') {
                if (save.data.n.plot > 5.2) {
+                  if (!game.movement) {
+                     return;
+                  }
                   game.movement = false;
                   atlas.switch('dialoguerBottom');
                   await typer.text(...text.a_outlands.puzzle3A);
@@ -2150,8 +2178,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   top: for (const [ index1, objects ] of scriptState.buttons.entries()) {
                      for (const [ index2, anim ] of objects.entries()) {
                         if (
-                           Math.abs(anim.position.x - player.position.x) < 7 &&
-                           Math.abs(anim.position.y - player.position.y) <= 10
+                           Math.abs(anim.position.x - player.x) < 7 &&
+                           Math.abs(anim.position.y - player.y) <= 10 &&
+                           game.movement
                         ) {
                            if (anim.index === 6) {
                               scriptState.pressed.push(anim);
@@ -2250,7 +2279,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   }
                });
                obj.on('tick', async function () {
-                  if (save.data.n.plot > 5.3 || scriptState.fail) {
+                  if (save.data.n.plot > 5.3 || scriptState.fail || !game.movement) {
                      return;
                   }
                   this.metadata.runs ??= 0;
@@ -2344,6 +2373,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          }
          case 'blooky': {
             if (args[0] === 'talk') {
+               if (!game.movement) {
+                  return;
+               }
                const loader = battler.load(groups.napstablook);
                game.movement = false;
                atlas.switch('dialoguerBottom');
@@ -2455,6 +2487,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             if (save.data.n.plot > 6.2) {
                return;
             } else {
+               if (!game.movement) {
+                  return;
+               }
                save.data.n.plot = 7;
             }
             game.movement = false;
@@ -2466,7 +2501,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                key: 'toriel'
             });
             renderer.attach('main', tori);
-            await walkHer(tori, { x: 0, y: 3 }, pos => pos.y < player.position.y);
+            await walkHer(tori, { x: 0, y: 3 }, pos => pos.y < player.y);
             assets.sounds.notify.instance(timer);
             const notifier = new CosmosAnimation({
                anchor: { x: 0, y: 1 },
@@ -2476,14 +2511,14 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             renderer.attach('menu', notifier);
             await timer.pause(450);
             renderer.detach('menu', notifier);
-            await Promise.all([ vibesPromise, walkHer(tori, { x: -4, y: 0 }, pos => pos.x > player.position.x + 25) ]);
+            await Promise.all([ vibesPromise, walkHer(tori, { x: -4, y: 0 }, pos => pos.x > player.x + 25) ]);
             const feels = assets.music.toriel.instance(timer);
             feels.gain.value /= 4;
             feels.gain.modulate(timer, 300, (feels.gain.value * 4) / rooms.of(game.room).score.gain);
             atlas.switch('dialoguerBottom');
             await typer.text(...text.a_outlands.return1);
             atlas.switch(null);
-            await walkHer(tori, { x: -1, y: 0 }, pos => pos.x > player.position.x + 20);
+            await walkHer(tori, { x: -1, y: 0 }, pos => pos.x > player.x + 20);
             await timer.pause(450);
             atlas.switch('dialoguerBottom');
             if (save.data.n.hp < 5) {
@@ -2491,22 +2526,24 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                save.data.b.genocide && (await typer.text(...text.a_outlands.return2e));
             } else if (save.data.b.genocide) {
                await typer.text(...text.a_outlands.return2d);
-            } else if (save.data.n.hp === calcHP()) {
-               await typer.text(...text.a_outlands.return2a);
-            } else {
+            } else if (save.data.n.hp < calcHP()) {
                await typer.text(...text.a_outlands.return2b);
+            } else {
+               await typer.text(...text.a_outlands.return2a);
             }
             atlas.switch(null);
             await timer.pause(550);
-            heal();
-            await timer.pause(950);
+            if (save.data.n.hp < calcHP()) {
+               heal();
+               await timer.pause(950);
+            }
             atlas.switch('dialoguerBottom');
             await typer.text(...text.a_outlands.return3);
             atlas.switch(null);
             await timer.pause(450);
             const handholder = new CosmosCharacter({
                anchor: { x: 0, y: 1 },
-               position: { x: player.position.x + 12.5, y: player.position.y },
+               position: { x: player.x + 12.5, y: player.y },
                preset: characters.torielHandhold,
                key: 'toriel'
             }).on('tick', function () {
@@ -2544,15 +2581,18 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          }
          case 'room': {
             if (save.data.n.plot < 8) {
+               if (!game.movement) {
+                  return;
+               }
                save.data.n.plot = 8;
                game.movement = false;
                const handholder = new CosmosCharacter({
                   anchor: { x: 0, y: 1 },
-                  position: { x: player.position.x + 12.5, y: player.position.y },
+                  position: { x: player.x + 12.5, y: player.y },
                   preset: characters.torielHandhold,
                   key: 'toriel'
                }).on('tick', () => {
-                  Object.assign(player.position, handholder.position.subtract(12.5, 0).value());
+                  player.position.set(handholder.position.subtract(12.5, 0));
                });
                handholder.face = 'right';
                player.alpha.value = 0;
@@ -2561,7 +2601,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                renderer.detach('main', handholder);
                const tori = new CosmosCharacter({
                   anchor: { x: 0, y: 1 },
-                  position: { x: player.position.x + 24, y: player.position.y },
+                  position: { x: player.x + 24, y: player.y },
                   preset: characters.toriel,
                   key: 'toriel'
                });
@@ -2575,7 +2615,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                const ruffler = new CosmosAnimation({
                   active: true,
                   anchor: { x: 0, y: 1 },
-                  position: { x: player.position.x + 13.5, y: player.position.y },
+                  position: { x: player.x + 13.5, y: player.y },
                   resources: content.iocTorielRuffle
                });
                player.alpha.value = 0;
@@ -2591,7 +2631,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                game.movement = true;
                await Promise.race([
                   events.on('teleport'),
-                  walkHer(tori, { x: 0, y: 3 }, pos => pos.y < player.position.y + 10).then(async () => {
+                  walkHer(tori, { x: 0, y: 3 }, pos => pos.y < player.y + 10).then(async () => {
                      await walkHer(tori, { x: -3, y: 0 }, pos => pos.x > 15);
                      await tori.alpha.modulate(timer, 300, 0);
                   })
@@ -2616,6 +2656,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'front': {
+            if (!game.movement) {
+               break;
+            }
             if (save.data.n.plot === 8.1) {
                game.movement = false;
                save.data.n.plot = 8.2;
@@ -2643,8 +2686,8 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                await timer.pause(1e3);
                renderer.detach('menu', notifier);
                tori.preset = characters.toriel;
-               await walkHer(tori, { x: 3, y: 3 }, pos => pos.y < player.position.y);
-               await walkHer(tori, { x: 3, y: 0 }, pos => pos.x < player.position.x - 25);
+               await walkHer(tori, { x: 3, y: 3 }, pos => pos.y < player.y);
+               await walkHer(tori, { x: 3, y: 0 }, pos => pos.x < player.x - 25);
                atlas.switch('dialoguerBottom');
                if (save.data.b.genocide) {
                   await typer.text(...text.a_outlands.front4());
@@ -2675,18 +2718,18 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                });
                renderer.attach('main', bedcover);
                player.priority.value = 118;
-               goatbro.priority.value = 118;
+               azzie.priority.value = 118;
                await player.position.modulate(timer, 1450, {
                   x: bedcover.x + bedcover.compute().x / 2,
-                  y: player.position.y
+                  y: player.y
                });
                await Promise.all([ fd.alpha.modulate(timer, 1850, 1), audio.musicMixer.modulate(timer, 1850, 0) ]);
                player.priority.value = 0;
-               goatbro.priority.value = 0;
+               azzie.priority.value = 0;
                renderer.detach('main', bedcover);
                player.position.set({ x: 195, y: 145 });
                player.face = 'down';
-               world.goatbro && (goatbro.metadata.reposition = true);
+               world.azzie && (azzie.metadata.reposition = true);
                await timer.pause(950);
                let sleep = true;
                if ((save.data.b.genocide || save.data.n.plot > 8) && save.data.n.plot > 9.1) {
@@ -2712,7 +2755,6 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                await Promise.all([ fd.alpha.modulate(timer, 300, 0), audio.musicMixer.modulate(timer, 300, 1) ]);
                renderer.detach('menu', fd);
             }
-            game.movement = true;
             break;
          }
          case 'pie': {
@@ -2752,6 +2794,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                });
                renderer.attach('below', pieHitbox);
             } else {
+               if (!game.movement) {
+                  break;
+               }
                game.movement = false;
                atlas.switch('dialoguerBottom');
                if (save.storage.inventory.size === 8) {
@@ -2771,6 +2816,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'socks': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             atlas.switch('dialoguerBottom');
             let coffin = false;
@@ -2814,6 +2862,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'chairiel': {
+            if (!game.movement) {
+               return;
+            }
             if (!toriCheck()) {
                await dialogue('dialoguerBottom', ...text.a_outlands.chair3);
                break;
@@ -2879,6 +2930,8 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   });
                   await timer.pause(1350);
                   await teleport('w_toriel_asriel', 'left', 221, 139, world);
+                  teleporter.movement = false;
+                  game.movement = false;
                   (states.scripts.toriel_asriel_lamp || {}).active || script('toriel_asriel_lamp', 'silent');
                   await renderer.alpha.modulate(timer, 0, 0);
                   renderer.detach('menu', overlay);
@@ -3081,19 +3134,22 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'runaway': {
+            if (!game.movement) {
+               return;
+            }
             if (save.data.n.plot < 10) {
                game.movement = false;
                const tori = new CosmosCharacter({
                   alpha: 0,
                   anchor: { x: 0, y: 1 },
-                  position: { x: 40, y: player.position.y },
+                  position: { x: 40, y: player.y },
                   preset: characters.toriel,
                   key: 'toriel'
                });
                tori.face = 'right';
                renderer.attach('main', tori);
                await tori.alpha.modulate(timer, 300, 1);
-               await walkHer(tori, { x: 4, y: 0 }, pos => pos.x < player.position.x - 24);
+               await walkHer(tori, { x: 4, y: 0 }, pos => pos.x < player.x - 24);
                atlas.switch('dialoguerBottom');
                if (save.data.n.plot < 8) {
                   await typer.text(...text.a_outlands.runaway2);
@@ -3114,8 +3170,8 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                tori.position.x = 520 - 12;
                tori.position.y = 170;
                const ticker = () => {
-                  player.position.x = tori.position.x + 12;
-                  player.position.y = tori.position.y;
+                  player.x = tori.position.x + 12;
+                  player.y = tori.position.y;
                };
                renderer.on('tick', ticker);
                await walkHer(tori, { x: -3, y: 0 }, pos => pos.x > 465);
@@ -3136,181 +3192,11 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             }
             break;
          }
-         case 'alley': {
-            game.movement = false;
-            atlas.switch('dialoguerBottom');
-            await typer.text(...text.a_outlands.exit4);
-            atlas.switch(null);
-            const overlay = new CosmosRectangle({
-               alpha: 0,
-               size: { x: 1000, y: 1000 },
-               position: { x: 160, y: 120 },
-               anchor: 0,
-               priority: -1,
-               fill: 'black',
-               stroke: 'transparent'
-            });
-            renderer.attach('main', overlay);
-            await Promise.all([
-               battler.load(groups.toriel),
-               content.amTorielboss.load(),
-               CosmosUtils.chain<number, Promise<void>>(0, async (value, next) => {
-                  assets.sounds.noise.instance(timer);
-                  overlay.alpha.value += 0.25;
-                  if (value < 3) {
-                     await timer.pause(350);
-                     await next(value + 1);
-                  } else {
-                     await timer.pause(850);
-                     await battler.battlefall(player);
-                  }
-               })
-            ]);
-            await battler.start(groups.toriel);
-            if (save.data.n.state_wastelands_toriel > 2) {
-               save.flag.b.demo_complete = true;
-            } else if (save.data.n.state_wastelands_toriel === 2) {
-               torielOverride();
-            }
-            content.amTorielboss.unload();
-            renderer.detach('main', overlay);
-            save.data.n.plot = 14;
-            const inst = instance('main', 'toriButNotGarb')!;
-            const tori = inst.object as CosmosCharacter;
-            player.position.x = 230;
-            player.position.y = 240;
-            player.face = 'up';
-            if (save.data.n.state_wastelands_toriel === 2) {
-               if (save.data.b.genocide) {
-                  tori.preset = characters.asriel;
-                  tori.position.y = 200;
-                  tori.face = 'down';
-                  script('tick');
-                  atlas.switch('dialoguerBottom');
-                  await typer.text(...text.a_outlands.asriel1);
-                  Promise.race([
-                     events.on('teleport'),
-                     tori.walk(timer, 4, { y: 160 }).then(() => tori.alpha.modulate(timer, 300, 0))
-                  ]).then(() => {
-                     renderer.detach('main', tori);
-                  });
-                  await typer.text(...text.a_outlands.asriel1b);
-                  atlas.switch(null);
-                  game.movement = true;
-               } else {
-                  game.movement = true;
-                  renderer.detach('main', tori);
-               }
-            } else {
-               tori.face = 'down';
-               await content.amToriel.load();
-               const feels = assets.music.toriel.instance(timer);
-               feels.gain.value /= 4;
-               feels.gain.modulate(timer, 300, feels.gain.value * 4);
-               events.on('teleport').then(async () => {
-                  await feels.gain.modulate(timer, 300, 0);
-                  feels.stop();
-                  content.amToriel.unload();
-               });
-               atlas.switch('dialoguerBottom');
-               if (save.data.n.state_wastelands_toriel > 2) {
-                  const splashQueue = inventories.splashAssets.load();
-                  await typer.text(
-                     ...[ text.a_outlands.goodbye5a, text.a_outlands.goodbye5b ][save.data.n.state_wastelands_toriel - 3]
-                  );
-                  atlas.switch(null);
-                  const overlay = new CosmosRectangle({
-                     alpha: 0,
-                     size: { x: 1000, y: 1000 },
-                     position: { x: 160, y: 120 },
-                     anchor: 0,
-                     fill: 'black',
-                     stroke: 'transparent'
-                  });
-                  renderer.attach('menu', overlay);
-                  await Promise.all([
-                     feels.gain.modulate(timer, 3000, feels.gain.value, feels.gain.value / 2, feels.gain.value / 2),
-                     overlay.alpha.modulate(timer, 3000, 1).then(() => timer.pause(850))
-                  ]);
-                  atlas.switch('dialoguerBottom');
-                  await typer.text(...text.a_outlands.exitfail1());
-                  atlas.switch(null);
-                  game.timer = false;
-                  await Promise.all([ splashQueue, feels.gain.modulate(timer, 2000, 0) ]);
-                  await script('splash', 'noteleport');
-                  atlas.switch('dialoguerBottom');
-                  await typer.text(...commonText.x_credits);
-                  atlas.switch(null);
-                  await timer.pause(1000);
-                  await reload();
-                  break;
-               } else {
-                  await typer.text(...(save.data.b.oops ? text.a_outlands.goodbye1a : text.a_outlands.goodbye1));
-                  atlas.switch(null);
-                  const midpoint = player.position.y - (player.position.y - tori.position.y) / 2;
-                  await Promise.all([
-                     walkHer(tori, { x: 0, y: 3 }, pos => pos.y < midpoint - 0.5),
-                     walkHer(player, { x: 0, y: -3 }, pos => pos.y > midpoint + 0.5)
-                  ]);
-                  tori.position.y = midpoint - 0.5;
-                  player.position.y = midpoint + 0.5;
-                  const hugger = new CosmosAnimation({
-                     anchor: { x: 0, y: 1 },
-                     position: player.position.value(),
-                     resources: content.iocTorielHug
-                  });
-                  player.alpha.value = 0;
-                  tori.alpha.value = 0;
-                  renderer.attach('main', hugger);
-                  await timer.pause(60);
-                  hugger.index = 1;
-                  await timer.pause(120);
-                  hugger.index = 2;
-                  await timer.pause(4150);
-                  keys.interactKey.active() && (await keys.interactKey.on('up'));
-                  hugger.index = 1;
-                  await timer.pause(120);
-                  hugger.index = 0;
-                  await timer.pause(850);
-                  renderer.detach('main', hugger);
-                  player.alpha.value = 1;
-                  tori.alpha.value = 1;
-                  atlas.switch('dialoguerBottom');
-                  if (save.data.b.oops) {
-                     await typer.text(...text.a_outlands.goodbye3);
-                  } else {
-                     await typer.text(...text.a_outlands.goodbye2);
-                  }
-               }
-               atlas.switch(null);
-               const speed = save.data.b.oops ? 4 : 3;
-               await Promise.race([
-                  events.on('teleport').then(() => {
-                     save.data.b.w_state_fightroom = true;
-                  }),
-                  walkHer(tori, { x: -speed, y: 0 }, pos => pos.x > 180).then(async () => {
-                     await walkHer(tori, { x: 0, y: speed }, pos => pos.y < 240);
-                     await walkHer(tori, { x: -speed, y: 0 }, pos => pos.x > 100);
-                     await timer.pause(450);
-                     tori.face = 'right';
-                     await timer.pause(950);
-                     if (!save.data.b.oops) {
-                        atlas.switch('dialoguerBottom');
-                        await typer.text(...text.a_outlands.goodbye4);
-                        atlas.switch(null);
-                     }
-                     await timer.pause(750);
-                     game.movement = true;
-                     await walkHer(tori, { x: -speed, y: 0 }, pos => pos.x > 35);
-                     await tori.alpha.modulate(timer, 300, 0);
-                  })
-               ]);
-               renderer.detach('main', tori);
-            }
-            break;
-         }
          case 'partner': {
             if (args[0] === 'talk') {
+               if (!game.movement) {
+                  return;
+               }
                (roomState.goatbro as CosmosEntity).face = 'down';
                game.movement = false;
                await scriptState.assetQueue!;
@@ -3393,6 +3279,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'candy': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             atlas.switch('dialoguerBottom');
             if (save.data.n.state_wastelands_candy < 4) {
@@ -3432,6 +3321,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'fridgetrap': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             atlas.switch('dialoguerTop');
             if (save.data.b.item_chocolate) {
@@ -3468,6 +3360,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             ) {
                return;
             } else {
+               if (!game.movement) {
+                  return;
+               }
                save.data.n.plot = 15;
             }
             const twinklyAssets = new CosmosInventory(
@@ -3491,7 +3386,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             const beamScaleX = new CosmosValue();
             const beam = new CosmosRectangle({
                anchor: 0,
-               position: { x: player.position.x, y: renderer.position.clamp(...renderer.region).y },
+               position: { x: player.x, y: renderer.position.clamp(...renderer.region).y },
                size: { x: 40, y: 240 },
                priority: -10,
                fill: '#fff7',
@@ -3505,7 +3400,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                alpha: 0,
                priority: -1,
                anchor: { x: 0, y: 1 },
-               position: { x: player.position.x },
+               position: { x: player.x },
                resources: content.iocTwinkly
             }).on('tick', function () {
                this.position.y = starPositionY.value + CosmosMath.wave(((timer.value - time) % 2500) / 2500) * 5;
@@ -3573,7 +3468,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                                    ...text.a_outlands.endtwinklyBB,
                                    ...(outcomeY > 1 ? text.a_outlands.endtwinklyBBB : text.a_outlands.endtwinklyBBA)
                                 ]
-                              : text.a_outlands.endtwinklyBA)
+                              : text.a_outlands.endtwinklyBA())
                         );
                         break;
                      case 4:
@@ -3737,6 +3632,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'exit': {
+            if (!game.movement) {
+               return;
+            }
             if (save.data.n.plot < 16) {
                game.movement = false;
                const splashQueue = new CosmosInventory(content.asSplash, content.ieSplashForeground).load();
@@ -3761,6 +3659,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'torieldanger': {
+            if (!game.movement) {
+               return;
+            }
             if (save.data.n.plot < 2.61) {
                (states.scripts.danger_puzzle ??= {}).tori.face = 'down';
                const lines = text.a_outlands[subscript];
@@ -3781,6 +3682,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'cryme': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             const talker = talkerEngine(
@@ -3799,6 +3703,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'afrog': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             const talker = talkerEngine(
@@ -3817,6 +3724,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'patron': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             const talker = talkerEngine(
@@ -3836,6 +3746,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'loox': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             const talker = talkerEngine(
@@ -3858,6 +3771,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'manana': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             const talker = talkerEngine(
@@ -3893,6 +3809,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'doorRed': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             atlas.switch('dialoguerBottom');
@@ -3917,6 +3836,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'doorYellow': {
+            if (!game.movement) {
+               return;
+            }
             if (areaKills() > 6) {
                game.movement = false;
                atlas.switch('dialoguerBottom');
@@ -3927,6 +3849,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'supervisor': {
+            if (!game.movement) {
+               return;
+            }
             const imthesupervisor = objectsByTag(tags => tags.includes('w_supervisor'))[0];
             if (!imthesupervisor) {
                break;
@@ -4000,7 +3925,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            steaksalesman.alpha.value = 0;
                            bpatron.alpha.value = 0;
                            player.alpha.value = 0;
-                           player.position.y = 210;
+                           player.y = 210;
 
                            const time = timer.value;
                            const blookyPositionY = new CosmosValue(152);
@@ -4127,20 +4052,14 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            renderer.detach('main', crowd);
                            loader1.unload();
                            loader2.unload();
-                           await timer.pause(850);
-                           if (!save.data.b.oops) {
-                              atlas.switch('dialoguerBottom');
-                              await typer.text(...lines.f);
-                              atlas.switch(null);
-                           }
-                           await timer.pause(450);
+                           await timer.pause(1250);
                            soupguy.alpha.value = 1;
                            player.alpha.value = 1;
                            tomcryme.alpha.value = 1;
                            steaksalesman.alpha.value = 1;
                            bpatron.alpha.value = 1;
-                           player.position.x = 180;
-                           player.position.y = 158;
+                           player.x = 180;
+                           player.y = 158;
                            player.face = 'down';
                            Promise.all([
                               overlay.alpha.modulate(timer, 300, 0),
@@ -4166,6 +4085,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'terminal': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             const container = objectsByTag(tags => tags.includes('w_term'))[0].objects[0] as CosmosSprite;
@@ -4192,6 +4114,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'dipper': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             atlas.switch('dialoguerBottom');
@@ -4209,6 +4134,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'halo': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             atlas.switch('dialoguerBottom');
@@ -4226,6 +4154,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'backdesk': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             atlas.switch('dialoguerBottom');
@@ -4245,6 +4176,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'closetrocket': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             atlas.switch('dialoguerBottom');
@@ -4268,6 +4202,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'silencio': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             const talker = talkerEngine(
@@ -4286,6 +4223,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'soupguy': {
+            if (!game.movement) {
+               return;
+            }
             const lines = text.a_outlands[subscript];
             game.movement = false;
             const talker = talkerEngine(
@@ -4306,6 +4246,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'steaksale': {
+            if (!game.movement) {
+               return;
+            }
             if (player.face !== 'up') {
                break;
             }
@@ -4428,7 +4371,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      game.movement && scriptState.time++;
                      sludgespr.position = player.position.clone();
                      timer.post().then(() => {
-                        if (player.position.x !== oldpos.x || player.position.y !== oldpos.y) {
+                        if (player.x !== oldpos.x || player.y !== oldpos.y) {
                            oldpos = player.position.value();
                            sludgespr.enable();
                         } else {
@@ -4444,12 +4387,15 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'partydoor': {
+            if (!game.movement) {
+               return;
+            }
             if (!save.data.b.genocide && (save.data.n.plot < 8.2 || areaKills() > 6)) {
                game.movement = false;
                atlas.switch('dialoguerBottom');
                await typer.text(...text.a_outlands.guard.a());
                atlas.switch(null);
-               player.position.y += 3;
+               player.y += 3;
                player.face = 'down';
                game.movement = true;
             } else {
@@ -4506,7 +4452,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             await trivia(
                ...CosmosUtils.provide(text.a_outlands.trivia[args[0] as keyof typeof text.a_outlands.trivia])
             );
-            player.move({ x: +args[1], y: +args[2] }, renderer, 'main');
+            player.move({ x: +args[1], y: +args[2] }, renderer);
             break;
          }
          case 'x-elevation': {
@@ -4517,7 +4463,6 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   player.move(
                      { x: 0, y: +args[0] * diff },
                      renderer,
-                     'main',
                      [ 'below', 'main' ],
                      hitbox => hitbox.metadata.barrier === true
                   );
@@ -4535,13 +4480,11 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
 };
 
 events.on('drop', async key => {
-   await renderer.on('tick');
    if (game.room === 'w_toriel_living' && save.data.n.plot < 10 && save.data.n.plot !== 9) {
       switch (key) {
          case 'pie':
          case 'pie2':
          case 'snails':
-            game.movement = false;
             atlas.switch('dialoguerBottom');
             await typer.text(...text.a_outlands[`drop_${key === 'snails' ? 'snails' : 'pie'}`]);
             if (!save.data.b.oops) {
@@ -4549,7 +4492,6 @@ events.on('drop', async key => {
                oops();
             }
             atlas.switch(null);
-            game.movement = true;
             break;
       }
    }
@@ -4557,7 +4499,6 @@ events.on('drop', async key => {
       switch (key) {
          case 'soda':
          case 'steak':
-            game.movement = false;
             const talker = talkerEngine(
                'n1',
                objectsByTag(tags => tags.includes('w2_steaksalesman'))[0].objects[0] as CosmosAnimation
@@ -4570,7 +4511,6 @@ events.on('drop', async key => {
             }
             atlas.switch(null);
             talker.end();
-            game.movement = true;
             break;
       }
    }
@@ -4607,7 +4547,7 @@ events.on('step', () => {
          case 'w_pacing':
          case 'w_junction':
          case 'w_annex':
-            return runEncounter(
+            return !!runEncounter(
                (areaKills() + save.data.n.bully_wastelands) / 16,
                (() => {
                   switch (game.room) {
@@ -4654,7 +4594,7 @@ events.on('step', () => {
    }
 });
 
-events.on('modded').then(() => {
+events.on('loaded').then(() => {
    if (world.genocide && save.data.n.plot > 13) {
       wasGeno.state = true;
    }
@@ -4678,6 +4618,7 @@ events.on('teleport', async (from, to) => {
          break;
       }
       case 'w_lobby': {
+         stalkerSetup(1);
          const scriptState = (states.scripts.lobby_puzzle ||= {});
          if (save.data.n.plot > 1) {
             instanceDestroy([ 'security_field' ]);
@@ -4698,7 +4639,7 @@ events.on('teleport', async (from, to) => {
                if (
                   game.room === 'w_lobby' &&
                   save.data.n.plot === 2 &&
-                  (player.position.x > this.position.x || player.position.extentOf(this.position) < 60)
+                  (player.x > this.position.x || player.position.extentOf(this.position) < 60)
                ) {
                   save.data.n.plot = 2.01;
                   await Promise.race([
@@ -4805,6 +4746,35 @@ events.on('teleport', async (from, to) => {
          }
          break;
       }
+      case 'w_tutorial':
+         stalkerSetup(
+            2,
+            () => save.data.n.plot === 2.2,
+            () => game.room === 'w_tutorial'
+         );
+         break;
+      case 'w_danger':
+         stalkerSetup(3);
+         break;
+      case 'w_froggit':
+         stalkerSetup(4);
+         break;
+      case 'w_puzzle4':
+         stalkerSetup(5);
+         break;
+      case 'w_pacing':
+         stalkerSetup(6);
+         break;
+      case 'w_courtyard':
+         stalkerSetup(7);
+         break;
+      case 'w_toriel_front':
+         stalkerSetup(
+            8,
+            () => save.data.n.plot === 8.1,
+            () => game.room === 'w_toriel_front'
+         );
+         break;
       case 'w_wonder': {
          save.flag.b.w_state_core && instanceDestroy([ 'w_goner' ]);
          save.data.b.item_little_dipper && instanceDestroy([ 'w_dipper' ]);
@@ -4879,8 +4849,8 @@ events.on('teleport', async (from, to) => {
                   }),
                   new CosmosAnimation({ anchor: { x: 0, y: 1 } }).on('tick', function () {
                      this.position = renderer.projection({
-                        x: player.position.x,
-                        y: 116.5 - (player.position.y - 116.5)
+                        x: player.x,
+                        y: 116.5 - (player.y - 116.5)
                      });
                      const source = player.sprites[
                         player.face === 'up' ? 'down' : player.face === 'down' ? 'up' : player.face
@@ -4894,10 +4864,11 @@ events.on('teleport', async (from, to) => {
          );
          break;
       }
-      case 'w_alley1':
-      case 'w_alley2':
+      case 'w_alley4':
+         stalkerSetup(9, true, () => save.flag.n.genocide_twinkly < resetThreshold());
       case 'w_alley3':
-      case 'w_alley4': {
+      case 'w_alley2':
+      case 'w_alley1': {
          const toriTarget = to === 'w_alley1' ? 10 : to === 'w_alley2' ? 11 : to === 'w_alley3' ? 12 : 13;
          if (save.data.n.plot !== toriTarget) {
             break;
@@ -4913,16 +4884,21 @@ events.on('teleport', async (from, to) => {
                   metadata: {
                      name: 'outlands',
                      args: [ 'alley' ],
-                     interact: to === 'w_alley4',
-                     barrier: to === 'w_alley4',
                      tags: [ 'toriButNotGarb' ],
                      battle: false
-                  },
-                  size: to === 'w_alley4' ? { y: 20, x: 40 } : void 0
+                  }
                }
             ).on('tick', async function () {
-               if (game.room === to && to !== 'w_alley4' && save.data.n.plot === toriTarget && player.x > this.x - 30) {
+               if (
+                  game.room === to &&
+                  save.data.n.plot === toriTarget &&
+                  (to === 'w_alley4'
+                     ? player.y < 180 || (player.x > 160 && player.x < 320 && player.y < 210)
+                     : player.x > this.x - 30) &&
+                  game.movement
+               ) {
                   save.data.n.plot++;
+                  game.movement = false;
                   await dialogue(
                      'dialoguerBottom',
                      ...CosmosUtils.provide(
@@ -4930,13 +4906,180 @@ events.on('teleport', async (from, to) => {
                            ? text.a_outlands.exit1
                            : to === 'w_alley2'
                            ? text.a_outlands.exit2
-                           : text.a_outlands.exit3
+                           : to === 'w_alley3' ? text.a_outlands.exit3 :  text.a_outlands.exit4
                      )
                   );
-                  await Promise.race([
-                     events.on('teleport'),
-                     this.walk(timer, 4, { x: 360 }).then(() => this.alpha.modulate(timer, 300, 0))
-                  ]);
+                  if (to === 'w_alley4') {
+                     game.movement = false;
+                     const overlay = new CosmosRectangle({
+                        alpha: 0,
+                        size: { x: 1000, y: 1000 },
+                        position: { x: 160, y: 120 },
+                        anchor: 0,
+                        priority: -1,
+                        fill: 'black',
+                        stroke: 'transparent'
+                     });
+                     renderer.attach('main', overlay);
+                     await Promise.all([
+                        battler.load(groups.toriel),
+                        CosmosUtils.chain<number, Promise<void>>(0, async (value, next) => {
+                           assets.sounds.noise.instance(timer);
+                           overlay.alpha.value += 0.25;
+                           if (value < 3) {
+                              await timer.pause(350);
+                              await next(value + 1);
+                           } else {
+                              await timer.pause(850);
+                              await battler.battlefall(player);
+                           }
+                        })
+                     ]);
+                     await battler.start(groups.toriel);
+                     battler.unload(groups.toriel);
+                     if (save.data.n.state_wastelands_toriel > 2) {
+                        save.flag.b.true_reset = true;
+                     } else if (save.data.n.state_wastelands_toriel === 2) {
+                        torielOverride();
+                     }
+                     renderer.detach('main', overlay);
+                     save.data.n.plot = 14;
+                     player.x = 230;
+                     player.y = 240;
+                     player.face = 'up';
+                     if (save.data.n.state_wastelands_toriel === 2) {
+                        if (save.data.b.genocide) {
+                           this.preset = characters.asriel;
+                           this.position.y = 200;
+                           this.face = 'down';
+                           script('tick');
+                           atlas.switch('dialoguerBottom');
+                           await typer.text(...text.a_outlands.asriel1);
+                           Promise.race([
+                              events.on('teleport'),
+                              this.walk(timer, 4, { y: 160 }).then(() => this.alpha.modulate(timer, 300, 0))
+                           ]).then(() => {
+                              renderer.detach('main', this);
+                           });
+                           await typer.text(...text.a_outlands.asriel1b);
+                           atlas.switch(null);
+                           game.movement = true;
+                        } else {
+                           game.movement = true;
+                           renderer.detach('main', this);
+                        }
+                     } else {
+                        this.face = 'down';
+                        const feels = assets.music.toriel.instance(timer);
+                        feels.gain.value /= 4;
+                        feels.gain.modulate(timer, 300, feels.gain.value * 4);
+                        events.on('teleport').then(async () => {
+                           await feels.gain.modulate(timer, 300, 0);
+                           feels.stop();
+                           content.amToriel.unload();
+                        });
+                        atlas.switch('dialoguerBottom');
+                        if (save.data.n.state_wastelands_toriel > 2) {
+                           save.flag.b.true_reset = true;
+                           const splashQueue = inventories.splashAssets.load();
+                           await typer.text(
+                              ...[ text.a_outlands.goodbye5a, text.a_outlands.goodbye5b ][save.data.n.state_wastelands_toriel - 3]
+                           );
+                           atlas.switch(null);
+                           const overlay = new CosmosRectangle({
+                              alpha: 0,
+                              size: { x: 1000, y: 1000 },
+                              position: { x: 160, y: 120 },
+                              anchor: 0,
+                              fill: 'black',
+                              stroke: 'transparent'
+                           });
+                           renderer.attach('menu', overlay);
+                           await Promise.all([
+                              feels.gain.modulate(timer, 3000, feels.gain.value, feels.gain.value / 2, feels.gain.value / 2),
+                              overlay.alpha.modulate(timer, 3000, 1).then(() => timer.pause(850))
+                           ]);
+                           atlas.switch('dialoguerBottom');
+                           await typer.text(...text.a_outlands.exitfail1());
+                           atlas.switch(null);
+                           game.timer = false;
+                           await Promise.all([ splashQueue, feels.gain.modulate(timer, 2000, 0) ]);
+                           await script('splash', 'noteleport');
+                           atlas.switch('dialoguerBottom');
+                           await typer.text(...commonText.x_credits());
+                           atlas.switch(null);
+                           await timer.pause(1000);
+                           await reload(!save.data.s.name);
+                        } else {
+                           await typer.text(...(save.data.b.oops ? text.a_outlands.goodbye1a : text.a_outlands.goodbye1));
+                           atlas.switch(null);
+                           const midpoint = player.y - (player.y - this.position.y) / 2;
+                           await Promise.all([
+                              walkHer(this, { x: 0, y: 3 }, pos => pos.y < midpoint - 0.5),
+                              walkHer(player, { x: 0, y: -3 }, pos => pos.y > midpoint + 0.5)
+                           ]);
+                           this.position.y = midpoint - 0.5;
+                           player.y = midpoint + 0.5;
+                           const hugger = new CosmosAnimation({
+                              anchor: { x: 0, y: 1 },
+                              position: player.position.value(),
+                              resources: content.iocTorielHug
+                           });
+                           player.alpha.value = 0;
+                           this.alpha.value = 0;
+                           renderer.attach('main', hugger);
+                           await timer.pause(60);
+                           hugger.index = 1;
+                           await timer.pause(120);
+                           hugger.index = 2;
+                           await timer.pause(4150);
+                           keys.interactKey.active() && (await keys.interactKey.on('up'));
+                           hugger.index = 1;
+                           await timer.pause(120);
+                           hugger.index = 0;
+                           await timer.pause(850);
+                           renderer.detach('main', hugger);
+                           player.alpha.value = 1;
+                           this.alpha.value = 1;
+                           atlas.switch('dialoguerBottom');
+                           if (save.data.b.oops) {
+                              await typer.text(...text.a_outlands.goodbye3);
+                           } else {
+                              await typer.text(...text.a_outlands.goodbye2);
+                           }
+                        }
+                        atlas.switch(null);
+                        const speed = save.data.b.oops ? 4 : 3;
+                        await Promise.race([
+                           events.on('teleport').then(() => {
+                              save.data.b.w_state_fightroom = true;
+                           }),
+                           walkHer(this, { x: -speed, y: 0 }, pos => pos.x > 180).then(async () => {
+                              await walkHer(this, { x: 0, y: speed }, pos => pos.y < 240);
+                              await walkHer(this, { x: -speed, y: 0 }, pos => pos.x > 100);
+                              await timer.pause(450);
+                              this.face = 'right';
+                              await timer.pause(950);
+                              if (!save.data.b.oops) {
+                                 atlas.switch('dialoguerBottom');
+                                 await typer.text(...text.a_outlands.goodbye4);
+                                 atlas.switch(null);
+                              }
+                              await timer.pause(750);
+                              game.movement = true;
+                              await walkHer(this, { x: -speed, y: 0 }, pos => pos.x > 35);
+                              await this.alpha.modulate(timer, 300, 0);
+                           })
+                        ]);
+                        renderer.detach('main', this);
+                     }
+                  } else {
+                     game.movement = true;
+                     await Promise.race([
+                        events.on('teleport'),
+                        this.walk(timer, 4, { x: 360 }).then(() => this.alpha.modulate(timer, 300, 0))
+                     ]);
+                  }
                   renderer.detach('main', this);
                }
             }),
@@ -5005,7 +5148,6 @@ events.on('use', async key => {
          case 'pie':
          case 'pie2':
          case 'snails':
-            game.movement = false;
             atlas.switch('dialoguerBottom');
             await typer.text(...text.a_outlands[`eat_${key === 'snails' ? 'snails' : 'pie'}`]);
             atlas.switch(null);
@@ -5016,7 +5158,6 @@ events.on('use', async key => {
       switch (key) {
          case 'soda':
          case 'steak':
-            game.movement = false;
             const talker = talkerEngine(
                'n1',
                objectsByTag(tags => tags.includes('w2_steaksalesman'))[0].objects[0] as CosmosAnimation
@@ -5039,9 +5180,6 @@ events.on('use', {
          case 'starbertB':
             // case 'starbertC':
             if (!battler.active) {
-               timer.post().then(() => {
-                  game.movement = false;
-               });
                let done = false;
                const view = new CosmosAnimation({
                   anchor: 0,
@@ -5103,7 +5241,6 @@ events.on('use', {
                      await dialogue('auto', ...text.a_outlands.stargum2);
                   }
                }
-               game.movement = true;
             } else if (key === 'starbertB' && !save.data.b.stargum) {
                if (choicer.result === 0) {
                   save.data.b.stargum = true;
@@ -5116,7 +5253,5 @@ events.on('use', {
       }
    }
 });
-
-export default { script, states, shops: {} };
 
 CosmosUtils.status(`LOAD MODULE: OUTLANDS AREA (${Math.floor(performance.now()) / 1000})`, { color: '#07f' });

@@ -2,6 +2,10 @@ import fileDialog from 'file-dialog';
 import objectInspect from 'object-inspect';
 import { OutlineFilter } from 'pixi-filters';
 import { Filter, Graphics } from 'pixi.js';
+import { sources as aerialisSources } from './aerialis/bootstrap';
+import { sources as citadelSources } from './citadel/bootstrap';
+import citadelGroups from './citadel/groups';
+import aerialisGroups from './aerialis/groups';
 import {
    OutertaleChildAnimationDecorator,
    OutertaleChildBarrierDecorator,
@@ -14,6 +18,8 @@ import {
    OutertaleParentObjectDecorator,
    OutertaleSpriteDecorator
 } from './classes';
+import { sources as commonSources } from './common/bootstrap';
+import commonGroups from './common/groups';
 import content, { inventories } from './content';
 import {
    atlas,
@@ -31,39 +37,62 @@ import {
    timer,
    typer
 } from './core';
+import { CosmosNavigator } from './engine/atlas';
+import { CosmosCharacter, CosmosEntity, CosmosPlayer } from './engine/entity';
+import { CosmosAnimation, CosmosBitmap, CosmosImage, CosmosSprite } from './engine/image';
+import { CosmosMath, CosmosPoint, CosmosValue } from './engine/numerics';
 import {
    CosmosAnchoredObject,
-   CosmosAnimation,
    CosmosBase,
    CosmosBaseEvents,
-   CosmosBitmap,
-   CosmosCharacter,
-   CosmosEntity,
    CosmosHitbox,
-   CosmosImage,
-   CosmosKeyed,
-   CosmosMath,
-   CosmosNavigator,
    CosmosObject,
-   CosmosPlayer,
-   CosmosPoint,
-   CosmosRectangle,
    CosmosRenderer,
    CosmosRendererLayer,
-   CosmosSprite,
-   CosmosText,
-   CosmosTransform,
-   CosmosUtils,
-   CosmosValue
-} from './engine';
-import { groups, sources } from './global';
+   CosmosTransform
+} from './engine/renderer';
+import { CosmosRectangle } from './engine/shapes';
+import { CosmosText } from './engine/text';
+import { CosmosKeyed, CosmosUtils } from './engine/utils';
+import { sources as foundrySources } from './foundry/bootstrap';
+import foundryGroups from './foundry/groups';
 import { battler, calcHP, heal, player, resume, saver, teleport, ultraPosition, world } from './mantle';
+import { sources as outlandsSources } from './outlands/bootstrap';
+import outlandsGroups from './outlands/groups';
 import save, { OutertaleDataString } from './save';
+import { sources as startonSources } from './starton/bootstrap';
+import startonGroups from './starton/groups';
 import text from './text';
 
-class OutertaleDeveloperHitbox extends CosmosHitbox<CosmosBaseEvents & { click: []; wheel: [1 | -1] }> {}
+export class OutertaleDeveloperHitbox extends CosmosHitbox<CosmosBaseEvents & { click: []; wheel: [1 | -1] }> {}
 
-const zoomFactor = 2 ** (1 / 4);
+export const zoomFactor = 2 ** (1 / 4);
+
+export const speedValues = [
+   1 / 30 / 60 / 60,
+   1 / 30 / 60,
+   1 / 30,
+   1 / 10,
+   1 / 6,
+   1 / 5,
+   1 / 4,
+   1 / 3,
+   1 / 2,
+   0.8,
+   0.9,
+   1,
+   1.3,
+   1.6,
+   2,
+   3,
+   4,
+   5,
+   6,
+   CosmosMath.FRAME / 5,
+   10,
+   CosmosMath.FRAME,
+   CosmosMath.FRAME * 10
+];
 
 export const pallete = {
    c0: '#000000cf',
@@ -76,7 +105,7 @@ export const pallete = {
    cf: '#ffffff'
 };
 
-function editorProperty (property: string) {
+export function editorProperty (property: string) {
    if (atlas.target === 'editorObject' || property !== editor.property) {
       return '§fill:#fff§';
    } else if (atlas.target === 'editorProperty') {
@@ -86,7 +115,7 @@ function editorProperty (property: string) {
    }
 }
 
-function editorValue (property: string, index: number) {
+export function editorValue (property: string, index: number) {
    if (atlas.target === 'editorValue' && property === editor.property) {
       if (index === editor.index) {
          return '§fill:#f00§';
@@ -98,10 +127,79 @@ function editorValue (property: string, index: number) {
    }
 }
 
-function historianInfo<A extends string, B extends CosmosKeyed> (domain: A, store: B) {
+export function historianInfo<A extends string, B extends CosmosKeyed> (domain: A, store: B, ...exclude: string[]) {
    return Object.keys(store)
+      .filter(key => !exclude.includes(key))
       .sort((info1, info2) => (info1 < info2 ? -1 : info1 > info2 ? 1 : 0))
       .map(key => ({ key, domain })) as { domain: A; key: keyof B & string }[];
+}
+
+export function decreaseSpeed () {
+   const index = speedValues.indexOf(timer.speed.value);
+   if (index > 0) {
+      timer.speed.value = speedValues[index - 1];
+   }
+}
+
+export function increaseSpeed () {
+   const index = speedValues.indexOf(timer.speed.value);
+   if (index < speedValues.length - 1) {
+      timer.speed.value = speedValues[index + 1];
+   }
+}
+
+export function prevRoom () {
+   let rev = keys.altKey.active() ? 5 : 1;
+   while (rev-- > 0) {
+      const i = godhome.rooms.indexOf(godhome.room);
+      if (i === -1) {
+         godhome.room = game.room;
+      } else if (i === 0) {
+         godhome.room = godhome.rooms[godhome.rooms.length - 1];
+      } else {
+         godhome.room = godhome.rooms[i - 1];
+      }
+   }
+}
+
+export function nextRoom () {
+   let rev = keys.altKey.active() ? 5 : 1;
+   while (rev-- > 0) {
+      godhome.room = godhome.rooms[(godhome.rooms.indexOf(godhome.room) + 1) % godhome.rooms.length];
+   }
+}
+
+export function prevGroup () {
+   let rev = keys.altKey.active() ? 5 : 1;
+   while (rev-- > 0) {
+      const i = godhome.groups.indexOf(godhome.group);
+      if (i === -1) {
+         godhome.group = godhome.groups[0];
+      } else if (i === 0) {
+         godhome.group = godhome.groups[godhome.groups.length - 1];
+      } else {
+         godhome.group = godhome.groups[i - 1];
+      }
+   }
+}
+
+export function nextGroup () {
+   let rev = keys.altKey.active() ? 5 : 1;
+   while (rev-- > 0) {
+      godhome.group = godhome.groups[(godhome.groups.indexOf(godhome.group) + 1) % godhome.groups.length];
+   }
+}
+
+export function prevContainer () {
+   storage.container =
+      storage.container === 'inventory' ? 'dimboxB' : storage.container === 'dimboxB' ? 'dimboxA' : 'inventory';
+   storage.disable();
+}
+
+export function nextContainer () {
+   storage.container =
+      storage.container === 'inventory' ? 'dimboxA' : storage.container === 'dimboxA' ? 'dimboxB' : 'inventory';
+   storage.disable();
 }
 
 export const editor = {
@@ -117,50 +215,54 @@ export const editor = {
                   fill: { attachment: '#ffffff3f', barrier: '#ff00003f', interact: '#00ff003f', trigger: '#0000ff3f' }[
                      child.metadata.class
                   ],
+                  metadata: {
+                     display: false,
+                     graphics: new Graphics()
+                  },
                   stroke: {
                      attachment: '#ffffffdf',
                      barrier: '#ff0000df',
                      interact: '#00ff00df',
                      trigger: '#0000ffdf'
-                  }[child.metadata.class],
-                  objects: [
-                     new CosmosObject()
-                        .on('render', function () {
-                           const { x, y } = this.position;
-                           if (editor.target?.object === child) {
-                              const size = child.compute();
-                              const half = new CosmosPoint(size?.x || 0, size?.y || 0).divide(2);
-                              const base = new CosmosPoint(x, y).subtract(half.add(half.multiply(child.anchor)));
-                              const graphics = new Graphics().lineStyle({
-                                 width: 1.5,
-                                 color: 0xffffff,
-                                 alpha: 1
-                              });
-                              graphics.position.set(base.x, base.y);
-                              for (const [ dx, dy ] of [
-                                 [ 0, 0 ],
-                                 [ size?.x ?? 0, 0 ],
-                                 [ 0, size?.y ?? 0 ],
-                                 [ size?.x ?? 0, size?.y ?? 0 ]
-                              ]) {
-                                 graphics.beginFill().moveTo(dx, dy).lineTo(x, y).endFill();
-                              }
-                              graphics.beginFill(0xffffff, 1).arc(x, y, 1.5, 0, 360).endFill();
-                              this.container.addChild(graphics);
-                           }
-                        })
-                        .on('tick', function () {
-                           for (const child of this.container.removeChildren(0, this.container.children.length)) {
-                              child.destroy();
-                           }
-                        })
-                  ]
+                  }[child.metadata.class]
                }).on('tick', function () {
                   this.alpha.value = editor.target?.object === child ? 1 : 0.6;
                   this.anchor.set(child.anchor);
                   this.position.set(parent.position.add(child));
                   this.size.set(child.compute());
                   this.rotation.value = child.rotation.value;
+                  if (editor.target?.object === child) {
+                     const graphics = this.metadata.graphics.clear().lineStyle({
+                        width: 1.5,
+                        color: { attachment: 0xffffff, barrier: 0xff3f3f, interact: 0x3fff3f, trigger: 0x3f3fff }[
+                           child.metadata.class
+                        ],
+                        alpha: 0x6f / 0xff
+                     });
+                     const size = child.compute();
+                     const half = new CosmosPoint(size?.x || 0, size?.y || 0).divide(2);
+                     const diff = half.add(half.multiply(child.anchor));
+                     for (const [ dx, dy ] of [
+                        [ 0, 0 ],
+                        [ size?.x ?? 0, 0 ],
+                        [ 0, size?.y ?? 0 ],
+                        [ size?.x ?? 0, size?.y ?? 0 ]
+                     ]) {
+                        graphics
+                           .beginFill()
+                           .moveTo(dx - diff.x, dy - diff.y)
+                           .lineTo(0, 0)
+                           .endFill();
+                     }
+                     graphics.beginFill().arc(0, 0, 1.5, 0, 360).endFill();
+                     if (!this.metadata.display) {
+                        this.metadata.display = true;
+                        this.container.addChild(graphics);
+                     }
+                  } else if (this.metadata.display) {
+                     this.metadata.display = false;
+                     this.container.removeChild(this.metadata.graphics);
+                  }
                })
             );
          return editor.associations.get(child)!;
@@ -188,7 +290,10 @@ export const editor = {
       atlas.switch(null);
       editor.wrapper.objects.splice(0, editor.wrapper.objects.length);
       game.movement = true;
-      Object.assign(editor, { containers: [], depth: -1, position: { x: 0, y: 0 } });
+      editor.containers = [];
+      editor.depth = -1;
+      editor.pos.x = 0;
+      editor.pos.y = 0;
       panel.renderer.detach('main', editor.wrapper, editor.text);
    },
    editTime: Infinity,
@@ -254,9 +359,9 @@ export const editor = {
    },
    layers: [ 'below', 'main', 'above' ] as OutertaleLayerKey[],
    get parent () {
-      return editor.containers[editor.position.x];
+      return editor.containers[editor.pos.x];
    },
-   position: { x: 0, y: 0 },
+   pos: { x: 0, y: 0 },
    get property () {
       return atlas.navigators.of('editorProperty').selection() as string;
    },
@@ -267,7 +372,7 @@ export const editor = {
       if (editor.depth === -1) {
          return null;
       } else if (editor.depth > 0) {
-         return editor.parent.children[editor.position.y];
+         return editor.parent.children[editor.pos.y];
       } else if (editor.containers.length > 0) {
          return editor.parent;
       } else {
@@ -434,11 +539,13 @@ export const editor = {
 
 export const godhome = {
    room: '',
-   rooms: Object.keys(sources).filter(key => key !== '_'),
-   group: [ 'nobody', groups.nobody ] as [string, OutertaleGroup],
-   groups: Object.entries(groups).sort((group1, group2) =>
-      group1[0] < group2[0] ? -1 : group1[0] > group2[0] ? 1 : 0
-   ),
+   rooms: [ commonSources, outlandsSources, startonSources, foundrySources, aerialisSources, citadelSources ]
+      .flatMap(sources => Object.keys(sources))
+      .filter(key => key !== '_'),
+   group: [ 'nobody', commonGroups.nobody ] as [string, OutertaleGroup],
+   groups: [ commonGroups, outlandsGroups, startonGroups, foundryGroups, aerialisGroups, citadelGroups ]
+      .flatMap(groups => Object.entries(groups))
+      .sort((group1, group2) => (group1[0] < group2[0] ? -1 : group1[0] > group2[0] ? 1 : 0)),
    menu: null as string | null,
    menus: [ null, ...atlas.navigators.keys() ]
 };
@@ -455,7 +562,7 @@ export const historian = {
       dataNumber: historianInfo('dataNumber', save.data.n),
       dataString: historianInfo('dataString', save.data.s),
       flagBoolean: historianInfo('flagBoolean', save.flag.b),
-      flagNumber: historianInfo('flagNumber', save.flag.n),
+      flagNumber: historianInfo('flagNumber', save.flag.n, 'hash'),
       flagString: historianInfo('flagString', save.flag.s)
    },
    get entries () {
@@ -677,22 +784,11 @@ export const inspector = {
 };
 
 export const logician = {
-   active: false,
    error: void 0 as any,
    errored: false,
-   input: '',
    scroll: 0,
-   output: void 0 as any,
-   restoreInput: false,
    tab: 0,
    viteError: Symbol('ViteError'),
-   disable () {
-      if (logician.active) {
-         logician.active = false;
-         game.input = logician.restoreInput;
-         logician.restoreInput = false;
-      }
-   },
    inspect (value: any) {
       return objectInspect(value, { depth: value instanceof CosmosBase ? 1 : 4, quoteStyle: 'single', indent: 3 });
    },
@@ -715,7 +811,7 @@ export const logician = {
                panel.start();
             }
             logician.tab = panel.tab.value;
-            panel.tab.switch(4);
+            panel.tab.switch(panel.tab.objects.length - 1);
          }
          logician.error = error?.stack ?? error;
       }
@@ -758,7 +854,7 @@ export const panel = {
          new CosmosHitbox(),
          new CosmosObject({ position: { y: 40 } }),
          new CosmosObject({
-            objects: CosmosUtils.populate(6, index =>
+            objects: CosmosUtils.populate(5, index =>
                new OutertaleDeveloperHitbox({
                   size: { x: 80, y: 20 },
                   position: { x: (index % 4) * 80, y: Math.floor(index / 4) * 20 },
@@ -775,7 +871,6 @@ export const panel = {
                                  text.d_godhome.tab,
                                  text.d_savemod.tab,
                                  text.d_inspect.tab,
-                                 text.d_console.tab,
                                  text.d_storage.tab
                               ][index],
                               font: '18px DeterminationMono'
@@ -828,7 +923,7 @@ export const panel = {
       );
    },
    start () {
-      param('panel', true);
+      param('panel', '');
       game.developer = true;
       backend.toggle.panel(true);
       panel.renderer.active = true;
@@ -1100,21 +1195,21 @@ export const panel = {
                                  this.metadata.lastClick = panel.timer.value;
                                  switch (index) {
                                     case 0:
-                                       timer.speed.value /= 2;
+                                       decreaseSpeed();
                                        break;
                                     case 1:
                                        timer.speed.value = 1;
                                        break;
                                     case 2:
-                                       timer.speed.value *= 2;
+                                       increaseSpeed();
                                        break;
                                  }
                               })
                               .on('wheel', function (dir) {
                                  if (dir === 1) {
-                                    timer.speed.value /= 2;
+                                    decreaseSpeed();
                                  } else {
-                                    timer.speed.value *= 2;
+                                    increaseSpeed();
                                  }
                               })
                         )
@@ -1176,42 +1271,22 @@ export const panel = {
                                     this.metadata.lastClick = panel.timer.value;
                                     switch (index) {
                                        case 0:
-                                          const i = godhome.rooms.indexOf(godhome.room);
-                                          if (i === -1) {
-                                             godhome.room = game.room;
-                                          } else if (i === 0) {
-                                             godhome.room = godhome.rooms[godhome.rooms.length - 1];
-                                          } else {
-                                             godhome.room = godhome.rooms[i - 1];
-                                          }
+                                          prevRoom();
                                           break;
                                        case 1:
                                           godhome.room = game.active ? game.room : save.data.s.room;
                                           break;
                                        case 2:
-                                          godhome.room =
-                                             godhome.rooms[
-                                                (godhome.rooms.indexOf(godhome.room) + 1) % godhome.rooms.length
-                                             ];
+                                          nextRoom();
                                           break;
                                     }
                                     game.active || (save.data.s.room = godhome.room);
                                  })
                                  .on('wheel', function (dir) {
                                     if (dir === 1) {
-                                       godhome.room =
-                                          godhome.rooms[
-                                             (godhome.rooms.indexOf(godhome.room) + 1) % godhome.rooms.length
-                                          ];
+                                       nextRoom();
                                     } else {
-                                       const i = godhome.rooms.indexOf(godhome.room);
-                                       if (i === -1) {
-                                          godhome.room = game.room;
-                                       } else if (i === 0) {
-                                          godhome.room = godhome.rooms[godhome.rooms.length - 1];
-                                       } else {
-                                          godhome.room = godhome.rooms[i - 1];
-                                       }
+                                       prevRoom();
                                     }
                                     game.active || (save.data.s.room = godhome.room);
                                  })
@@ -1308,38 +1383,18 @@ export const panel = {
                                     this.metadata.lastClick = panel.timer.value;
                                     switch (index) {
                                        case 0:
-                                          const i = godhome.groups.indexOf(godhome.group);
-                                          if (i === -1) {
-                                             godhome.group = godhome.groups[0];
-                                          } else if (i === 0) {
-                                             godhome.group = godhome.groups[godhome.groups.length - 1];
-                                          } else {
-                                             godhome.group = godhome.groups[i - 1];
-                                          }
+                                          prevGroup();
                                           break;
                                        case 2:
-                                          godhome.group =
-                                             godhome.groups[
-                                                (godhome.groups.indexOf(godhome.group) + 1) % godhome.groups.length
-                                             ];
+                                          nextGroup();
                                           break;
                                     }
                                  })
                                  .on('wheel', function (dir) {
                                     if (dir === 1) {
-                                       godhome.group =
-                                          godhome.groups[
-                                             (godhome.groups.indexOf(godhome.group) + 1) % godhome.groups.length
-                                          ];
+                                       nextGroup();
                                     } else {
-                                       const i = godhome.groups.indexOf(godhome.group);
-                                       if (i === -1) {
-                                          godhome.group = godhome.groups[0];
-                                       } else if (i === 0) {
-                                          godhome.group = godhome.groups[godhome.groups.length - 1];
-                                       } else {
-                                          godhome.group = godhome.groups[i - 1];
-                                       }
+                                       prevGroup();
                                     }
                                  })
                            ),
@@ -1583,12 +1638,14 @@ export const panel = {
                                  switch (index) {
                                     case 0:
                                        --historian.page === -1 && (historian.page = historian.pages - 1);
+                                       historian.clearIndex();
                                        break;
                                     case 1:
                                        historian.page = 0;
                                        break;
                                     case 2:
                                        ++historian.page === historian.pages && (historian.page = 0);
+                                       historian.clearIndex();
                                        break;
                                  }
                               })
@@ -1692,7 +1749,6 @@ export const panel = {
                      inspector.target as CosmosRendererLayer | CosmosObject,
                      inspector.index!
                   );
-                  Object.assign(globalThis, { $0: inspector.target });
                } else {
                   inspector.index = null;
                }
@@ -1763,123 +1819,6 @@ export const panel = {
                         }
                      })
             );
-         }),
-         new CosmosObject({
-            objects: [
-               new CosmosRectangle({
-                  fill: 'transparent',
-                  stroke: pallete.cf,
-                  anchor: { x: 0 },
-                  size: { x: 280, y: 46 + 10 * 29 },
-                  position: { x: 160, y: 7 },
-                  objects: [
-                     new CosmosText({
-                        fill: pallete.cf,
-                        font: '24px MarsNeedsCunnilingus',
-                        anchor: { x: 0 },
-                        position: { y: 9 },
-                        objects: [
-                           new CosmosText({
-                              alpha: 0.7,
-                              font: '16px DeterminationMono',
-                              stroke: 'transparent',
-                              plain: true,
-                              position: { x: -130, y: 25 },
-                              filters: [ new OutlineFilter(2, 0x000000, 0, 1) ]
-                           }).on('tick', function () {
-                              this.fill = logician.errored ? '#ff7f7f' : pallete.cf;
-                              if (logician.errored) {
-                                 if (typeof logician.error === 'string') {
-                                    let line = 2;
-                                    let content = '> ';
-                                    for (const char of logician.error) {
-                                       if (char === '\n') {
-                                          line = 2;
-                                          content += '\n> ';
-                                       } else if (line++ === 33) {
-                                          line = 1;
-                                          content += `\n${char}`;
-                                       } else {
-                                          content += char;
-                                       }
-                                    }
-                                    this.content = logician.process(content);
-                                 } else {
-                                    this.content = logician.process(logician.inspect(logician.error));
-                                 }
-                              } else if (editor.active || inspector.target || logician.output === void 0) {
-                                 this.content = '';
-                                 logician.scroll = 0;
-                              } else {
-                                 this.content = logician.process(logician.inspect(logician.output));
-                              }
-                           })
-                        ]
-                     }).on('tick', function () {
-                        this.content = logician.errored ? text.d_console.altHeader : text.d_console.header;
-                     })
-                  ]
-               }),
-               new CosmosRectangle({
-                  fill: 'transparent',
-                  stroke: pallete.cf,
-                  anchor: { x: 0 },
-                  size: { x: 280, y: 80 },
-                  position: { x: 160, y: 350 },
-                  objects: [
-                     new CosmosText({
-                        fill: pallete.cf,
-                        font: '24px MarsNeedsCunnilingus',
-                        anchor: { x: 0 },
-                        position: { y: 9 },
-                        objects: [
-                           new CosmosRectangle({
-                              font: '18px DeterminationMono',
-                              stroke: pallete.cf,
-                              anchor: { x: 0 },
-                              size: { x: 255, y: 25 },
-                              position: { y: 30 },
-                              objects: [
-                                 new CosmosText({
-                                    stroke: 'transparent',
-                                    anchor: 0,
-                                    position: { y: 12.5 }
-                                 }).on('tick', function () {
-                                    if (logician.errored) {
-                                       this.content = text.d_console.p_input.resume;
-                                    } else {
-                                       this.content = logician.input;
-                                    }
-                                 }),
-                                 new OutertaleDeveloperHitbox({ anchor: { x: 0 }, size: { x: 255, y: 25 } }).on(
-                                    'click',
-                                    function () {
-                                       if (logician.errored) {
-                                          logician.resume();
-                                       } else if (logician.active) {
-                                          logician.disable();
-                                       } else {
-                                          logician.active = true;
-                                          logician.restoreInput = game.input;
-                                          game.input = false;
-                                       }
-                                    }
-                                 )
-                              ]
-                           }).on('tick', function () {
-                              this.fill = logician.errored || logician.active ? pallete.c2 : pallete.c0;
-                              this.objects[0].fill = !logician.errored && logician.active ? pallete.cf : pallete.c7;
-                              this.stroke = logician.errored ? 'transparent' : pallete.cf;
-                           })
-                        ]
-                     }).on('tick', function () {
-                        this.content = logician.errored
-                           ? text.d_console.p_input.altHeader
-                           : text.d_console.p_input.header;
-                     })
-                  ]
-               })
-            ]
          }),
          new CosmosObject({
             objects: [
@@ -2004,13 +1943,7 @@ export const panel = {
                                  this.metadata.lastClick = panel.timer.value;
                                  switch (index) {
                                     case 0:
-                                       storage.container =
-                                          storage.container === 'inventory'
-                                             ? 'dimboxB'
-                                             : storage.container === 'dimboxB'
-                                             ? 'dimboxA'
-                                             : 'inventory';
-                                       storage.disable();
+                                       prevContainer();
                                        break;
                                     case 1:
                                        if (storage.container !== 'inventory') {
@@ -2019,36 +1952,110 @@ export const panel = {
                                        }
                                        break;
                                     case 2:
-                                       storage.container =
-                                          storage.container === 'inventory'
-                                             ? 'dimboxA'
-                                             : storage.container === 'dimboxA'
-                                             ? 'dimboxB'
-                                             : 'inventory';
-                                       storage.disable();
+                                       nextContainer();
                                        break;
                                  }
                               })
                               .on('wheel', function (dir) {
                                  if (dir === 1) {
-                                    storage.container =
-                                       storage.container === 'inventory'
-                                          ? 'dimboxB'
-                                          : storage.container === 'dimboxB'
-                                          ? 'dimboxA'
-                                          : 'inventory';
-                                    storage.disable();
+                                    nextContainer();
                                  } else {
-                                    storage.container =
-                                       storage.container === 'inventory'
-                                          ? 'dimboxA'
-                                          : storage.container === 'dimboxA'
-                                          ? 'dimboxB'
-                                          : 'inventory';
-                                    storage.disable();
+                                    prevContainer();
                                  }
                               })
                         )
+                     })
+                  ]
+               })
+            ]
+         }),
+         new CosmosObject({
+            objects: [
+               new CosmosRectangle({
+                  fill: 'transparent',
+                  stroke: pallete.cf,
+                  anchor: { x: 0 },
+                  size: { x: 280, y: 46 + 10 * 29 },
+                  position: { x: 160, y: 7 },
+                  objects: [
+                     new CosmosText({
+                        fill: pallete.cf,
+                        font: '24px MarsNeedsCunnilingus',
+                        anchor: { x: 0 },
+                        position: { y: 9 },
+                        content: text.d_console.header,
+                        objects: [
+                           new CosmosText({
+                              alpha: 0.7,
+                              font: '16px DeterminationMono',
+                              stroke: 'transparent',
+                              plain: true,
+                              position: { x: -130, y: 25 },
+                              filters: [ new OutlineFilter(2, 0x000000, 0, 1) ]
+                           }).on('tick', function () {
+                              this.fill = logician.errored ? '#ff7f7f' : pallete.cf;
+                              if (typeof logician.error === 'string') {
+                                 let line = 2;
+                                 let content = '> ';
+                                 for (const char of logician.error) {
+                                    if (char === '\n') {
+                                       line = 2;
+                                       content += '\n> ';
+                                    } else if (line++ === 33) {
+                                       line = 1;
+                                       content += `\n${char}`;
+                                    } else {
+                                       content += char;
+                                    }
+                                 }
+                                 this.content = logician.process(content);
+                              } else {
+                                 this.content = logician.process(logician.inspect(logician.error));
+                              }
+                           })
+                        ]
+                     })
+                  ]
+               }),
+               new CosmosRectangle({
+                  fill: 'transparent',
+                  stroke: pallete.cf,
+                  anchor: { x: 0 },
+                  size: { x: 280, y: 80 },
+                  position: { x: 160, y: 350 },
+                  objects: [
+                     new CosmosText({
+                        fill: pallete.cf,
+                        font: '24px MarsNeedsCunnilingus',
+                        anchor: { x: 0 },
+                        position: { y: 9 },
+                        content: text.d_console.p_resume.header,
+                        objects: [
+                           new CosmosRectangle({
+                              font: '18px DeterminationMono',
+                              stroke: 'transparent',
+                              anchor: { x: 0 },
+                              size: { x: 255, y: 25 },
+                              position: { y: 30 },
+                              fill: pallete.c2,
+                              objects: [
+                                 new CosmosText({
+                                    fill: pallete.c7,
+                                    stroke: 'transparent',
+                                    anchor: 0,
+                                    position: { y: 12.5 }
+                                 }).on('tick', function () {
+                                    this.content = text.d_console.p_resume.resume;
+                                 }),
+                                 new OutertaleDeveloperHitbox({ anchor: { x: 0 }, size: { x: 255, y: 25 } }).on(
+                                    'click',
+                                    function () {
+                                       logician.resume();
+                                    }
+                                 )
+                              ]
+                           })
+                        ]
                      })
                   ]
                })
@@ -2058,7 +2065,6 @@ export const panel = {
       switch (tab: number) {
          historian.clearIndex();
          historian.clearInput();
-         logician.disable();
          storage.disable();
          for (const [ index, object ] of panel.object.objects[2].objects.entries()) {
             object.metadata.active = index === tab;
@@ -2117,7 +2123,7 @@ atlas.navigators.register({
             editor.save();
             for (const [ index, child ] of editor.parent.children.entries()) {
                if (child.object === object) {
-                  editor.position.y = index;
+                  editor.pos.y = index;
                   break;
                }
             }
@@ -2138,7 +2144,7 @@ atlas.navigators.register({
             editor.save();
             for (const [ index, parent ] of editor.containers.entries()) {
                if (parent.object === object) {
-                  editor.position.x = index;
+                  editor.pos.x = index;
                   break;
                }
             }
@@ -2185,9 +2191,9 @@ atlas.navigators.register({
       }
    }).on('change', function () {
       if (editor.depth > 0) {
-         editor.position.y = this.position.y;
+         editor.pos.y = this.position.y;
       } else {
-         editor.position.x = this.position.y;
+         editor.pos.x = this.position.y;
       }
    }),
    editorProperty: new CosmosNavigator({
@@ -2233,12 +2239,12 @@ atlas.navigators.register({
          if (property === 'objects') {
             if (editor.depth === -1) {
                editor.depth = 0;
-               editor.position.x = 0;
+               editor.pos.x = 0;
                return editor.containers.length > 0 ? 'editorObject' : 'editorAdd';
             } else {
                const target = editor.target as OutertaleEditorContainer;
                editor.depth = 1;
-               editor.position.y = 0;
+               editor.pos.y = 0;
                return target.children.length > 0 ? 'editorObject' : 'editorAdd';
             }
          } else if (property === 'delete') {
@@ -2255,7 +2261,7 @@ atlas.navigators.register({
                editor.generate();
                editor.save();
                if (editor.containers.length > 0) {
-                  editor.position.x = Math.min(editor.position.x, editor.containers.length - 1);
+                  editor.pos.x = Math.min(editor.pos.x, editor.containers.length - 1);
                   return 'editorObject';
                } else {
                   editor.depth = -1;
@@ -2286,12 +2292,12 @@ atlas.navigators.register({
                editor.save();
                for (const [ index, other ] of editor.containers.entries()) {
                   if (other.object === parent.object) {
-                     editor.position.x = index;
+                     editor.pos.x = index;
                      break;
                   }
                }
                if (parent.children.length > 0) {
-                  editor.position.y = Math.min(editor.position.y, parent.children.length - 1);
+                  editor.pos.y = Math.min(editor.pos.y, parent.children.length - 1);
                   return 'editorObject';
                } else {
                   editor.depth = 0;
@@ -2439,11 +2445,17 @@ atlas.navigators.register({
                      position.y = 1;
                   }
                   if (property === 'spawn') {
-                     rooms.of(game.room).spawn = Object.assign({}, room.spawn);
+                     const spawn = rooms.of(game.room).spawn;
+                     spawn.x = room.spawn?.x;
+                     spawn.y = room.spawn?.y;
                   } else {
-                     renderer.region = rooms.of(game.room).region = [
-                        Object.assign({}, room.region![0]),
-                        Object.assign({}, room.region![1])
+                     rooms.of(game.room).region = [
+                        { x: room.region![0].x, y: room.region![0].y },
+                        { x: room.region![1].x, y: room.region![1].y }
+                     ];
+                     renderer.region = [
+                        { x: room.region![0].x, y: room.region![0].y },
+                        { x: room.region![1].x, y: room.region![1].y }
                      ];
                   }
                   editor.save();
@@ -2515,8 +2527,6 @@ atlas.navigators.register({
       })
 });
 
-Object.assign(globalThis, { $0: void 0 });
-
 inspector.hitboxGraphics.scale.set(2, 2);
 panel.renderer.attach('main', panel.object);
 panel.tab.switch(0);
@@ -2579,12 +2589,12 @@ keys.openKey.on('down', async () => {
                const strings: Partial<OutertaleDataString> = CosmosUtils.parse(data).s ?? {};
                if (
                   confirm(
-                     `${text.d_prompt_open}\n${strings.name || text.n_unknown} @ ${
+                     `${text.d_prompt_open}\n${strings.name || text.g_unknown} @ ${
                         saver.locations.of(strings.room || 'w_start').name
                      }`
                   )
                ) {
-                  saver.reset(true);
+                  saver.reset(true, false, true);
                   for (const [ key, value ] of entries) {
                      saver.protected.includes(key.slice(save.namespace.length)) || save.manager.setItem(key, value);
                   }
@@ -2599,7 +2609,7 @@ keys.openKey.on('down', async () => {
          const data = keys.shiftKey.active() ? '[]' : await backend.dialog.open();
          if (data) {
             await backend.file.writeSave(data);
-            reload();
+            reload(!save.data.s.name);
          }
       }
    }
@@ -2612,15 +2622,15 @@ keys.saveKey.on('down', async () => {
          const strings: Partial<OutertaleDataString> = CosmosUtils.parse(data).s ?? {};
          if (
             confirm(
-               `${text.d_prompt_save}\n${strings.name || text.n_unknown} @ ${
+               `${text.d_prompt_save}\n${strings.name || text.g_unknown} @ ${
                   saver.locations.of(strings.room || 'w_start').name
                }`
             )
          ) {
-            Object.assign(document.createElement('a'), {
-               download: 'universe.json',
-               href: `data:text/json,${panel.serializeSAVE()}`
-            }).click();
+            const link = document.createElement('a');
+            link.download = 'universe.json';
+            link.href = `data:text/json,${panel.serializeSAVE()}`;
+            link.click();
          }
       } else if (game.developer) {
          typeof random === 'object' && (save.data.n.base1 = random.value);
@@ -2777,8 +2787,11 @@ panel.renderer.on('render', function () {
 panel.renderer.wrapper!.addEventListener('click', event => {
    const target = panel.object.objects[0];
    target.position.set(event.offsetX - 640, event.offsetY);
-   for (const hitbox of panel.renderer.detect('main', target as CosmosHitbox, ...panel.renderer.calculate('main'))) {
-      hitbox instanceof OutertaleDeveloperHitbox && hitbox.fire('click');
+   for (const hitbox of panel.renderer.detect(
+      target as CosmosHitbox,
+      ...panel.renderer.calculate('main', hbox => hbox instanceof OutertaleDeveloperHitbox)
+   )) {
+      (hitbox as OutertaleDeveloperHitbox).fire('click');
    }
 });
 
@@ -2788,8 +2801,11 @@ panel.renderer.wrapper!.addEventListener(
       const direction = event.deltaY < 0 ? -1 : 1;
       const target = panel.object.objects[0];
       target.position.set(event.offsetX - 640, event.offsetY);
-      for (const hitbox of panel.renderer.detect('main', target as CosmosHitbox, ...panel.renderer.calculate('main'))) {
-         hitbox instanceof OutertaleDeveloperHitbox && hitbox.fire('wheel', direction);
+      for (const hitbox of panel.renderer.detect(
+         target as CosmosHitbox,
+         ...panel.renderer.calculate('main', hbox => hbox instanceof OutertaleDeveloperHitbox)
+      )) {
+         (hitbox as OutertaleDeveloperHitbox).fire('wheel', direction);
       }
    },
    { passive: true }
@@ -2841,12 +2857,6 @@ panel.renderer.wrapper!.addEventListener(
             renderer.zoom.value *= zoomFactor;
          } else {
             renderer.zoom.value /= zoomFactor;
-         }
-      } else if (logician.input !== '') {
-         if (event.deltaY < 0) {
-            logician.scroll = Math.max(logician.scroll - 3, 0);
-         } else {
-            logician.scroll += 3;
          }
       }
    },
@@ -3066,19 +3076,6 @@ addEventListener('keydown', event => {
             save.flag.s[infoEntry.key] = value;
             break;
       }
-   } else if (logician.active) {
-      if (event.key === 'Backspace') {
-         logician.input = logician.input.slice(0, -1);
-      } else if (event.key.length === 1) {
-         logician.input += event.key;
-      } else if (event.key === 'Enter') {
-         try {
-            logician.output = eval(`'use strict';${logician.input}`);
-         } catch (error) {
-            logician.output = error;
-         }
-         logician.disable();
-      }
    } else if (storage.index > -1) {
       const container = save.storage[storage.container];
       let value = container.of(storage.index) ?? '';
@@ -3105,13 +3102,15 @@ addEventListener('unhandledrejection', event => {
 
 keys.noclipKey
    .on('down', () => game.developer && game.input && !editor.input && (game.noclip = true))
-   .on('up', () => (game.noclip = false));
+   .on('up', () => game.developer && game.input && !editor.input && (game.noclip = false));
 
 keys.freecamKey
    .on('down', () => game.developer && game.input && !editor.input && (renderer.freecam = true))
    .on('up', () => {
-      renderer.freecam = false;
-      renderer.zoom.value = 1;
+      if (game.developer && game.input && !editor.input) {
+         renderer.freecam = false;
+         renderer.zoom.value = 1;
+      }
    });
 
 CosmosUtils.status(`LOAD MODULE: DEVELOPER (${Math.floor(performance.now()) / 1000})`, { color: '#07f' });

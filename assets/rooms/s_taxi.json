@@ -1,11 +1,10 @@
 {
    "$schema": "./room.schema.json",
    "background": "below",
-   "preload": [ "ieBiodome", "iooTaxi", "iooTaxiOverlay", "ionRiverboi", "amWonder" ],
+   "preload": [ "iooSBiodome", "iooTaxi", "iooTaxiOverlay", "ionRiverboi", "amWonder" ],
    "layers": {
       "below": [
          {
-            "attachments": [],
             "barriers": [
                { "position": { "x": 0, "y": 35 }, "size": { "x": 110, "y": -20 } },
                { "position": { "x": 210, "y": 15 }, "size": { "x": 20, "y": 90 } },

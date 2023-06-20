@@ -2,20 +2,12 @@ import assets from '../assets';
 import { bulletSetup, legacy, pastBox, starGenerator } from '../common/patterns';
 import content from '../content';
 import { audio, random, renderer, timer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosDaemon,
-   CosmosHitbox,
-   CosmosInstance,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosPointSimple,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosUtils,
-   CosmosValue
-} from '../engine';
+import { CosmosDaemon, CosmosInstance } from '../engine/audio';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPoint, CosmosPointSimple, CosmosValue } from '../engine/numerics';
+import { CosmosHitbox, CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosUtils } from '../engine/utils';
 import { battler, shake } from '../mantle';
 import save from '../save';
 
@@ -96,7 +88,7 @@ const patterns = {
             scale: 0.5,
             metadata: { bullet: true, damage: 5, color: 'blue' },
             rotation: angle,
-            objects: [ new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.ibbSword ] }) ]
+            objects: [ new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.ibbSword ], tint: 0x00a2e8 }) ]
          }).on('tick', () => {
             bullet.rotation.value = angle + angleOffset.value + 90;
             bullet.position = center.endpoint(angle + angleOffset.value, distance.value);
@@ -118,26 +110,27 @@ const patterns = {
       done = true;
       renderer.off('tick', ticker);
    },
-   lesserdog (index?: number, modifier?: string) {
+   lesserdog (index?: number) {
       return legacy.pattern(index, () => {
          let flip = false;
-         return battler.sequence(7, async (promises, index) => {
+         return battler.sequence(7, async promises => {
             const extent = CosmosMath.remap(random.next(), 4, 9);
             const spear = new CosmosHitbox({
-               size: { x: 6, y: 82 },
+               size: { x: 11, y: 95 },
                anchor: { x: 0 },
                metadata: { damage: 5, bullet: true },
                velocity: { x: -CosmosMath.remap(random.next(), 2, 3) },
                scale: 0.5,
                position: {
-                  x: battler.box.position.x + battler.box.size.x / 1.9,
-                  y: battler.box.position.y + (flip ? extent : -extent)
+                  x: battler.box.x + battler.box.size.x / 1.9,
+                  y: battler.box.y + (flip ? extent : -extent)
                },
                objects: [
-                  new CosmosAnimation({
-                     anchor: { x: 0 },
+                  new CosmosSprite({
+                     anchor: { x: 0, y: 1 },
                      position: { y: -3 },
-                     resources: content.ibbSpear
+                     scale: { y: -1 },
+                     frames: [ content.ibbSword ]
                   })
                ],
                rotation: flip ? 180 : 0
@@ -152,7 +145,7 @@ const patterns = {
                   timer.when(() => !battler.bullets.objects.includes(spear))
                ])
             );
-            await timer.pause(750 + random.next() * 350);
+            await timer.pause(850 + random.next() * 350);
          });
       });
    },
@@ -478,7 +471,7 @@ const patterns = {
                anchor: { x: 0, y: 1 },
                size: { x: 29, y: 15 },
                metadata: { damage: 3, bullet: true },
-               position: { x: 160, y: battler.box.position.y + battler.box.size.y / 2 },
+               position: { x: 160, y: battler.box.y + battler.box.size.y / 2 },
                objects: [ trueDoggie ]
             }),
             false
@@ -518,7 +511,7 @@ const patterns = {
          (async () => {
             while (active) {
                const pos = battler.SOUL.position.value();
-               await timer.when(() => battler.SOUL.position.x !== pos.x || battler.SOUL.position.y !== pos.y);
+               await timer.when(() => battler.SOUL.x !== pos.x || battler.SOUL.y !== pos.y);
                if (active) {
                   assets.sounds.bark.instance(timer);
                   trueDoggie.resources = content.ibbPomWake;
@@ -582,10 +575,7 @@ const patterns = {
          bullet.gravity.extent = 0.15;
          bullet.scale.modulate(timer, 2000, { x: 1.5, y: 0.8 });
          timer
-            .when(
-               () =>
-                  bullet.position.x - battler.SOUL.position.x < 50 && battler.SOUL.position.y < bullet.position.y - 15
-            )
+            .when(() => bullet.position.x - battler.SOUL.x < 50 && battler.SOUL.y < bullet.position.y - 15)
             .then(() => {
                bullet.scale.modulate(timer, 1500, { x: 1.5, y: 1.5 }, { x: 1, y: 1 }, { x: 1, y: 1 }, { x: 1, y: 1 });
                bullet.gravity.angle = 90;
@@ -610,7 +600,7 @@ const patterns = {
       if (random.next() < 0.5) {
          await battler.sequence(Math.floor(CosmosMath.remap(random.next(), 4, 7)), async (promises, index) => {
             const center = 160 + (random.next() - 0.5) * 70;
-            const bottom = battler.box.position.y + battler.box.size.y / 1.95;
+            const bottom = battler.box.y + battler.box.size.y / 1.95;
             const shaker = new CosmosValue();
             const random3 = random.clone();
             const anim1 = new CosmosAnimation({
@@ -688,7 +678,7 @@ const patterns = {
             const sequin = battler.sequence(6, async (promises, index) => {
                if (index !== theGap) {
                   const center = 101 + 2 / 3 + index * (140 / 6);
-                  const bottom = battler.box.position.y + battler.box.size.y / 1.95;
+                  const bottom = battler.box.y + battler.box.size.y / 1.95;
                   const anim = new CosmosAnimation({
                      active: true,
                      anchor: { x: 0, y: 1 },
@@ -713,7 +703,7 @@ const patterns = {
                   promises.push(
                      mouz1.position.modulate(timer, 600, mouz1.position.value(), mouz1.position.value(), {
                         x: center,
-                        y: battler.box.position.y - battler.box.size.y / 2
+                        y: battler.box.y - battler.box.size.y / 2
                      })
                   );
                   timer
@@ -760,8 +750,7 @@ const patterns = {
                size,
                speed,
                damage = 4,
-               despawn = self =>
-                  Math.abs(battler.box.position.x - self.x) > 150 || Math.abs(battler.box.position.y - self.y) > 190
+               despawn = self => Math.abs(battler.box.x - self.x) > 150 || Math.abs(battler.box.y - self.y) > 190
             ) => {
                if (save.data.n.hp === 1) {
                   return new CosmosHitbox();
@@ -891,7 +880,7 @@ const patterns = {
             });
          }
          renderer.attach('menu', hitbox);
-         const trueTarget = Object.assign(hitbox.position.value(), targetPosition);
+         const trueTarget = { x: targetPosition.x ?? hitbox.x, y: targetPosition.y ?? hitbox.y };
          await Promise.all([
             hitbox.position.modulate(timer, duration, trueTarget, trueTarget),
             hitbox.rotation.modulate(timer, duration, targetRotation, targetRotation)
@@ -956,11 +945,11 @@ const patterns = {
                if (save.data.n.hp > 1) {
                   assets.sounds.bell.instance(timer);
                   battler.SOUL.metadata.color = 'blue';
-                  if (battler.SOUL.position.y < 188) {
+                  if (battler.SOUL.y < 188) {
                      battler.SOUL.velocity.y = -1;
                   }
                }
-               await timer.when(() => battler.SOUL.position.y > 168);
+               await timer.when(() => battler.SOUL.y > 168);
                await pattern(async factory => void factory(0, 13, 4));
                await renderer.pause(1000);
                break;
@@ -1355,11 +1344,11 @@ const patterns = {
                await pattern(async factory => {
                   await renderer.pause(1400);
                   const trickster = factory(0, 30, 3);
-                  await timer.when(() => trickster.position.x < battler.SOUL.position.x + 20);
+                  await timer.when(() => trickster.position.x < battler.SOUL.x + 20);
                   trickster.velocity.x = 0;
                   const listener = () => {
-                     if (trickster.position.x < battler.SOUL.position.x + 20) {
-                        trickster.position.x = battler.SOUL.position.x + 20;
+                     if (trickster.position.x < battler.SOUL.x + 20) {
+                        trickster.position.x = battler.SOUL.x + 20;
                      }
                   };
                   trickster.on('tick', listener);
@@ -1372,8 +1361,8 @@ const patterns = {
             case 19:
                const volatile = battler.volatile[0];
                (battler.music as CosmosInstance).gain.modulate(timer, 2000, 0);
-               const cx = volatile.container.position.x;
-               const cy = volatile.container.position.y;
+               const cx = volatile.container.x;
+               const cy = volatile.container.y;
                await timer.pause(500);
                await volatile.container.position.modulate(
                   timer,
@@ -1555,7 +1544,7 @@ const patterns = {
                      await renderer.pause(1150);
                   };
                   let index = 0;
-                  if (battler.SOUL.position.x > 160) {
+                  if (battler.SOUL.x > 160) {
                      factory(1, 80, -4);
                      await renderer.pause(300);
                      await right();

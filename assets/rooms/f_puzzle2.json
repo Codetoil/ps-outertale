@@ -98,8 +98,7 @@
             "position": { "x": 310, "y": 130 },
             "barriers": [
                { "position": { "x": 0, "y": -10 }, "anchor": { "x": 0, "y": -0.05 }, "size": { "x": 14, "y": 14 } }
-            ],
-            "triggers": []
+            ]
          },
          {
             "tags": [ "f_puzzlepylon2B", "pylon" ],
@@ -107,8 +106,7 @@
             "position": { "x": 250, "y": 200 },
             "barriers": [
                { "anchor": { "x": 0, "y": -0.05 }, "size": { "x": 14, "y": 14 }, "position": { "x": 0, "y": -10 } }
-            ],
-            "triggers": []
+            ]
          },
          {
             "tags": [ "f_puzzlepylon2D", "pylon" ],
@@ -116,8 +114,7 @@
             "position": { "x": 350, "y": 150 },
             "barriers": [
                { "position": { "x": 0, "y": -10 }, "anchor": { "x": 0, "y": -0.05 }, "size": { "x": 14, "y": 14 } }
-            ],
-            "triggers": []
+            ]
          },
          {
             "tags": [ "f_puzzlepylon2C", "pylon" ],
@@ -125,8 +122,7 @@
             "position": { "x": 270, "y": 150 },
             "barriers": [
                { "anchor": { "x": 0, "y": -0.05 }, "size": { "x": 14, "y": 14 }, "position": { "x": 0, "y": -10 } }
-            ],
-            "triggers": []
+            ]
          }
       ],
       "above": []

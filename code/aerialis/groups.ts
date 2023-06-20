@@ -6,23 +6,19 @@ import commonOpponents from '../common/opponents';
 import commonPatterns, { screenCheck } from '../common/patterns';
 import content, { inventories } from '../content';
 import { events, game, random, renderer, speech, timer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosHitbox,
-   CosmosInventory,
-   CosmosMath,
-   CosmosPointSimple,
-   CosmosSprite,
-   CosmosText,
-   CosmosUtils
-} from '../engine';
+import { CosmosInventory } from '../engine/core';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPointSimple } from '../engine/numerics';
+import { CosmosHitbox } from '../engine/renderer';
+import { CosmosText } from '../engine/text';
+import { CosmosUtils } from '../engine/utils';
 import { battler, header, world } from '../mantle';
 import save from '../save';
 import opponents, { graphGen, selectMTT } from './opponents';
 import patterns from './patterns';
-import text from './text';
+import text, { trueLizard } from './text';
 
-async function switchColor (orange = false) {
+export async function switchColor (orange = false) {
    const mtt31 = CosmosUtils.populate(2, ind1 => {
       const e = ind1 * 2 - 1;
       return new CosmosAnimation({
@@ -87,7 +83,7 @@ async function switchColor (orange = false) {
    await timer.pause(850);
 }
 
-function spawnAlphys (p: CosmosPointSimple) {
+export function spawnAlphys (p: CosmosPointSimple) {
    let isThumbsup = false;
    const cc = battler.volatile[0].container;
    const ar = (cc.metadata.ar = new CosmosAnimation({
@@ -135,7 +131,7 @@ const groups = {
       grid: content.ibuGrid2,
       music: assets.music.wrongenemy,
       init () {
-         if (save.data.n.bad_lizard < 2) {
+         if (trueLizard() < 2) {
             spawnAlphys({ x: -25, y: 122 });
          } else {
             opponents.glyde.hp = 400;
@@ -153,13 +149,13 @@ const groups = {
                position: { x: -30 }
             });
             renderer.attach('menu', mettaAnim);
-            await mettaAnim.position.step(timer, 2, { x: 5 });
+            await mettaAnim.position.step_legacy(timer, 2, { x: 5 });
             await battler.monster(false, { x: 5, y: 40 }, battler.bubbles.twinkly, ...text.b_opponent_glyde.intro2a());
             await battler.monster(false, { x: 195, y: 13 }, battler.bubbles.twinkly, ...text.b_opponent_glyde.intro2b);
             await timer.pause(650);
             await battler.monster(false, { x: 5, y: 40 }, battler.bubbles.twinkly, ...text.b_opponent_glyde.intro2c);
             await timer.pause(250);
-            mettaAnim.position.step(timer, 2, { x: -20 }).then(() => {
+            mettaAnim.position.step_legacy(timer, 2, { x: -20 }).then(() => {
                renderer.detach('menu', mettaAnim);
             });
             await timer.pause(1450);
@@ -539,6 +535,7 @@ const groups = {
                               } else {
                                  save.data.b.flirt_rg04 = true;
                               }
+                              volatile.flirted = true;
                            } else if (vars.killed === 0) {
                               t2 = text.b_opponent_rg04.flirtTalkLone;
                               if (vars.progress < 2) {
@@ -722,7 +719,7 @@ const groups = {
                if (t3 === null) {
                   if (vars.killed === -1) {
                      if (vars.progress < 1) {
-                        if (world.goatbro) {
+                        if (world.azzie) {
                            t3 = text.b_group_rg();
                         } else {
                            t3 = [
@@ -857,7 +854,7 @@ const groups = {
       assets: new CosmosInventory(content.amBattle1),
       init () {
          battler.grid = content.ibuGrid1;
-         battler.status = world.goatbro ? text.b_opponent_pyrope.genoStatus : text.b_opponent_pyrope.status1;
+         battler.status = world.azzie ? text.b_opponent_pyrope.genoStatus : text.b_opponent_pyrope.status1;
          standardMusic();
          return true;
       },
@@ -870,7 +867,7 @@ const groups = {
       assets: new CosmosInventory(content.amBattle1),
       init () {
          battler.grid = content.ibuGrid1;
-         battler.status = world.goatbro ? text.b_opponent_perigee.genoStatus : text.b_opponent_perigee.status1;
+         battler.status = world.azzie ? text.b_opponent_perigee.genoStatus : text.b_opponent_perigee.status1;
          standardMusic();
          return true;
       },
@@ -941,23 +938,29 @@ const groups = {
          return true;
       },
       opponents: [ [ opponents.madjick, { x: 160, y: 120 } ] ],
-      handler: defaultSetup(
-         async (c, t, v) => {
-            const attacktype = v.vars.attacktype;
-            await patterns.madjick(attacktype, v.vars.crazy);
-            if (attacktype === 1) {
-               const spr = v.container.objects[0].metadata.orb1 as CosmosSprite;
-               spr.active = false;
-               spr.metadata.gen = false;
-            } else if (attacktype === 2) {
-               const spr = v.container.objects[0].metadata.orb2 as CosmosSprite;
-               spr.active = false;
-               spr.metadata.gen = false;
-            }
-         },
-         { x: 120, y: 100 },
-         true
-      )
+      handler: async (c, t, v) => {
+         if (battler.alive.length > 0 && !save.data.b.oops && !battler.assist) {
+            battler.assist = true;
+            battler.status = text.b_opponent_madjick.hint;
+         }
+         await defaultSetup(
+            async (c, t, v) => {
+               const attacktype = v.vars.attacktype;
+               await patterns.madjick(attacktype, v.vars.crazy);
+               if (attacktype === 1) {
+                  const spr = v.container.objects[0].metadata.orb1 as CosmosSprite;
+                  spr.active = false;
+                  spr.metadata.gen = false;
+               } else if (attacktype === 2) {
+                  const spr = v.container.objects[0].metadata.orb2 as CosmosSprite;
+                  spr.active = false;
+                  spr.metadata.gen = false;
+               }
+            },
+            { x: 120, y: 100 },
+            true
+         )(c, t, v);
+      }
    }),
    knightknight: new OutertaleGroup({
       grid: content.ibuGrid2,
@@ -967,7 +970,13 @@ const groups = {
          return true;
       },
       opponents: [ [ opponents.knightknight, { x: 160, y: 120 } ] ],
-      handler: defaultSetup((c, t, v) => patterns.knightknight(v.vars.result === 3), { x: 100, y: 100 }, true)
+      handler: async (c, t, v) => {
+         if (battler.alive.length > 0 && !save.data.b.oops && !battler.assist) {
+            battler.assist = true;
+            battler.status = text.b_opponent_knightknight.hint;
+         }
+         await defaultSetup((c, t, v) => patterns.knightknight(v.vars.result === 3), { x: 100, y: 100 }, true)(c, t, v);
+      }
    }),
    froggitexWhimsalot: new OutertaleGroup({
       grid: content.ibuGrid1,

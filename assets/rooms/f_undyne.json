@@ -34,7 +34,6 @@
                { "position": { "x": 300, "y": 60 }, "size": { "x": 20, "y": 80 } },
                { "position": { "x": 234, "y": 98 }, "size": { "x": 16, "y": 18 } }
             ],
-            "interacts": [],
             "triggers": [
                {
                   "position": { "x": 140, "y": 235 },
@@ -60,15 +59,13 @@
                { "position": { "x": 220, "y": 160 }, "size": { "x": 40, "y": 20 } },
                { "position": { "x": 60, "y": 160 }, "size": { "x": 20, "y": 20 } },
                { "position": { "x": 160, "y": 140 }, "size": { "x": 20, "y": 20 } }
-            ],
-            "barriers": []
+            ]
          }
       ],
       "main": [
          {
             "tags": [ "f_unddate_barrier" ],
-            "barriers": [ { "position": { "x": 141, "y": 98 }, "size": { "x": 38, "y": -20 } } ],
-            "interacts": []
+            "barriers": [ { "position": { "x": 141, "y": 98 }, "size": { "x": 38, "y": -20 } } ]
          },
          {
             "attachments": [
@@ -129,8 +126,7 @@
                }
             ],
             "position": { "x": 160, "y": 97 },
-            "tags": [ "f_undyne_door" ],
-            "filters": []
+            "tags": [ "f_undyne_door" ]
          }
       ]
    },

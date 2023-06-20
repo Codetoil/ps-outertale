@@ -2,37 +2,26 @@ import assets from '../assets';
 import { boxCheck, bulletSetup, legacy, pastBox, screenCheck, starGenerator } from '../common/patterns';
 import content from '../content';
 import { events, keys, random, renderer, timer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosBitmap,
-   CosmosColor,
-   CosmosDirection,
-   CosmosHitbox,
-   CosmosKeyboardInput,
-   CosmosKeyed,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosRectangle,
-   CosmosSizedObjectProperties,
-   CosmosSprite,
-   CosmosUtils,
-   CosmosValue
-} from '../engine';
+import { CosmosAnimation, CosmosBitmap, CosmosColor, CosmosSprite } from '../engine/image';
+import { CosmosKeyboardInput } from '../engine/input';
+import { CosmosMath, CosmosPoint, CosmosValue } from '../engine/numerics';
+import { CosmosHitbox, CosmosObject, CosmosSizedObjectProperties } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosDirection, CosmosKeyed, CosmosUtils } from '../engine/utils';
 import { battler, distanceGravity, shadow, shake, sineWaver, world } from '../mantle';
 import save from '../save';
 
 const patterns = {
-   undynefast: async () => {
+   async undynefast () {
       await battler.sequence(15, async promises => {
          assets.sounds.arrow.instance(timer);
-         const posx = battler.box.position.x;
+         const posx = battler.box.x;
          const half = battler.box.size.x / 2;
          const { detach, detached } = bulletSetup(
             new CosmosHitbox({
                position: {
                   x: CosmosMath.remap(random.next(), posx - half, posx + half),
-                  y: battler.box.position.y - battler.box.size.y / 2 - 10
+                  y: battler.box.y - battler.box.size.y / 2 - 10
                },
                metadata: { bullet: true, damage: 5 },
                scale: 0.5,
@@ -127,7 +116,7 @@ const patterns = {
             alpha: 0.5,
             active: true,
             anchor: 0,
-            position: new CosmosPoint(side === -1 ? 40 : 280, battler.box.position.y),
+            position: new CosmosPoint(side === -1 ? 40 : 280, battler.box.y),
             resources: content.ibbFroggitWarn,
             spin: side * 5
          });
@@ -138,7 +127,7 @@ const patterns = {
          while (index++ < lim) {
             const speerz = new CosmosObject({
                gravity: { angle: 0, extent: 0.5 * -side },
-               position: new CosmosPoint(side === -1 ? -10 : 330, battler.box.position.y),
+               position: new CosmosPoint(side === -1 ? -10 : 330, battler.box.y),
                objects: CosmosUtils.populate(4, index =>
                   yoSpeer({
                      size: { x: 50, y: 84 },
@@ -149,7 +138,7 @@ const patterns = {
                )
             });
             renderer.attach('menu', speerz);
-            const speerzX = battler.box.position.x + battler.box.size.x * 0.45 * side;
+            const speerzX = battler.box.x + battler.box.size.x * 0.45 * side;
             await CosmosUtils.chain(void 0 as void, async (n, next) => {
                await renderer.on('tick');
                if ((side === -1 && speerz.position.x > speerzX) || (side === 1 && speerz.position.x < speerzX)) {
@@ -159,20 +148,20 @@ const patterns = {
                   speerz.gravity.extent = 0;
                   speerz.velocity.set(4 * -side, 0);
                   speerz.acceleration.value = 1 / 1.005;
-                  const boxX = battler.box.position.x;
+                  const boxX = battler.box.x;
                   let mov = true;
                   speerz.on('tick', () => {
-                     mov && (battler.box.position.x = boxX + Math.abs(speerz.position.x - speerzX) * -side);
+                     mov && (battler.box.x = boxX + Math.abs(speerz.position.x - speerzX) * -side);
                   });
-                  await timer.when(() => Math.abs(160 - battler.box.position.x) < 40);
+                  await timer.when(() => Math.abs(160 - battler.box.x) < 40);
                   if (index === lim) {
-                     await timer.when(() => Math.abs(160 - battler.box.position.x) < 5);
-                     speerz.position.x += 160 - battler.box.position.x;
-                     battler.box.position.x = 160;
+                     await timer.when(() => Math.abs(160 - battler.box.x) < 5);
+                     speerz.position.x += 160 - battler.box.x;
+                     battler.box.x = 160;
                   } else {
                      await Promise.race([
                         timer.pause(random.next() * 1000 + 500),
-                        timer.when(() => Math.abs(160 - battler.box.position.x) > 60)
+                        timer.when(() => Math.abs(160 - battler.box.x) > 60)
                      ]);
                   }
                   mov = false;
@@ -274,7 +263,7 @@ const patterns = {
             let line = battler.box.size.y / -2 + battler.line.offset + row * 20;
             let sy = 0;
             let vy = vert * speed * speedstat * 0.75;
-            const sx = battler.box.position.x + side * (battler.box.size.x / 2 + 45);
+            const sx = battler.box.x + side * (battler.box.size.x / 2 + 45);
             const vx = -side * speed * speedstat * [ 1, 1.5, 1.25 ][id];
             const { bullet, detached, detach } = bulletSetup(
                new CosmosHitbox({
@@ -290,11 +279,11 @@ const patterns = {
                                 side *
                                 distanceGravity(
                                    Math.abs(vx),
-                                   Math.abs(battler.box.position.x - side * (battler.box.size.x / 2 - 15) - sx)
+                                   Math.abs(battler.box.x - side * (battler.box.size.x / 2 - 15) - sx)
                                 )
                           }
                         : void 0,
-                  position: { x: sx, y: battler.box.position.y + line },
+                  position: { x: sx, y: battler.box.y + line },
                   metadata: { bullet: true, damage: 5 },
                   objects: [
                      new CosmosSprite({
@@ -303,9 +292,9 @@ const patterns = {
                      })
                   ]
                }).on('tick', function () {
-                  this.position.y = battler.box.position.y + (line += battler.line.loop) + (sy += vy);
+                  this.position.y = battler.box.y + (line += battler.line.loop) + (sy += vy);
                   if (id === 2) {
-                     const checkBase = battler.box.position.y - battler.box.size.y / 2 + battler.line.offset;
+                     const checkBase = battler.box.y - battler.box.size.y / 2 + battler.line.offset;
                      if (this.position.y <= checkBase) {
                         vy = Math.abs(vy);
                      } else if (checkBase + 40 <= this.position.y) {
@@ -315,7 +304,7 @@ const patterns = {
                   if (
                      end ||
                      (tick++ > 120 / speed &&
-                        Math.abs(this.position.x - battler.box.position.x) > battler.box.size.x / 2 + 24)
+                        Math.abs(this.position.x - battler.box.x) > battler.box.size.x / 2 + 24)
                   ) {
                      detach();
                   }
@@ -331,7 +320,7 @@ const patterns = {
             }).on('tick', function () {
                this.position.set(bullet.position);
                this.rotation.value = bullet.rotation.value;
-               if (done || Math.abs(shadow.position.x - battler.box.position.x) < battler.box.size.x / 3) {
+               if (done || Math.abs(shadow.position.x - battler.box.x) < battler.box.size.x / 3) {
                   battler.overlay.objects.splice(battler.overlay.objects.indexOf(this), 1);
                }
             });
@@ -403,30 +392,31 @@ const patterns = {
                };
                battler.box.on('tick', rotter);
                let ebic = true;
-               Promise.all([ pos.step(timer, 3, { y: endPosY }), battler.box.size.step(timer, 3, { y: endSizeY }) ]).then(
-                  async () => {
-                     battler.line.loop = 1.5;
-                     const rows = {} as CosmosKeyed<boolean>;
-                     while (ebic) {
-                        const possible = CosmosUtils.populate(battler.line.amount, index => index - 2);
-                        const middle = Math.ceil((battler.line.position.y - battler.line.offset) / 20) - 1;
-                        for (const possibility of possible) {
-                           if (rows[possibility] || Math.abs(possibility - middle) > 2) {
-                              possible.splice(possible.indexOf(possibility), 1);
-                           }
+               Promise.all([
+                  pos.step_legacy(timer, 3, { y: endPosY }),
+                  battler.box.size.step_legacy(timer, 3, { y: endSizeY })
+               ]).then(async () => {
+                  battler.line.loop = 1.5;
+                  const rows = {} as CosmosKeyed<boolean>;
+                  while (ebic) {
+                     const possible = CosmosUtils.populate(battler.line.amount, index => index - 2);
+                     const middle = Math.ceil((battler.line.pos.y - battler.line.offset) / 20) - 1;
+                     for (const possibility of possible) {
+                        if (rows[possibility] || Math.abs(possibility - middle) > 2) {
+                           possible.splice(possible.indexOf(possibility), 1);
                         }
-                        if (possible.length > 0) {
-                           const row = possible[Math.floor(random.next() * possible.length)];
-                           rows[row] = true;
-                           spawn(1, row, random.next() < 0.5 ? -1 : 1, 3.5).then(async () => {
-                              await renderer.pause(850);
-                              rows[row] = false;
-                           });
-                        }
-                        await renderer.pause(350);
                      }
+                     if (possible.length > 0) {
+                        const row = possible[Math.floor(random.next() * possible.length)];
+                        rows[row] = true;
+                        spawn(1, row, random.next() < 0.5 ? -1 : 1, 3.5).then(async () => {
+                           await renderer.pause(850);
+                           rows[row] = false;
+                        });
+                     }
+                     await renderer.pause(350);
                   }
-               );
+               });
                await renderer.pause(1000);
                battler.line.maxY = endPosY + endSizeY / 3;
                const time2 = timer.value;
@@ -474,7 +464,7 @@ const patterns = {
                renderer.attach('menu', purpleRect);
                renderer.detach('menu', battler.SOUL);
                battler.bullets.attach(battler.SOUL);
-               battler.SOUL.position.y = Math.round(battler.SOUL.position.y);
+               battler.SOUL.y = Math.round(battler.SOUL.y);
                const amt = 12;
                await battler.sequence(amt, async (promises, superindex) => {
                   const droplets = CosmosUtils.populate(2, index => {
@@ -503,7 +493,7 @@ const patterns = {
                   timer.post().then(() => renderer.attach('menu', ...droplets));
                   promises.push(
                      timer
-                        .when(() => droplets[0].position.y > battler.box.position.y - 20)
+                        .when(() => droplets[0].position.y > battler.box.y - 20)
                         .then(async () => {
                            await timer.post();
                            renderer.detach('menu', ...droplets);
@@ -520,13 +510,13 @@ const patterns = {
                         })
                   );
                   await timer.pause(250);
-                  superindex === 19 && biasNumber.modulate(timer, 1000, -0.1, -0.1);
+                  superindex === amt - 1 && biasNumber.modulate(timer, 1000, 0, 0);
                });
                battler.bullets.objects = [];
                renderer.attach('menu', battler.SOUL);
                battler.SOUL.metadata.color = 'purple';
                battler.line.active = true;
-               Object.assign(battler.SOUL.position, battler.line.position);
+               battler.SOUL.position.set(battler.line.pos);
                await timer.pause(1000);
                await purpleRect.alpha.modulate(timer, 1000, 1, 0);
                renderer.detach('main', purpleRect);
@@ -899,7 +889,7 @@ const patterns = {
             promises.push(detached);
          });
       } else {
-         const limY = battler.box.position.y + battler.box.size.y / 2 + 15;
+         const limY = battler.box.y + battler.box.size.y / 2 + 15;
          await battler.sequence(12, async promises => {
             const { detach, detached } = bulletSetup(
                new CosmosHitbox({
@@ -942,17 +932,17 @@ const patterns = {
          };
          const tl = 30;
          const ti = modifier === 'moldbygg' ? 7000 : 5000;
-         battler.SOUL.position.y = 170;
+         battler.SOUL.y = 170;
          cleaners && events.on('heal', healListener);
          const growhFactor = 1.25;
-         const boxX = battler.box.position.x;
+         const boxX = battler.box.x;
          const spawnCoord = (e: number) => (e - boxX) * growhFactor + boxX;
          const minX = boxX - battler.box.size.x / 2;
          const maxX = boxX + battler.box.size.x / 2;
          const minSpawnX = spawnCoord(minX);
          const maxSpawnX = spawnCoord(maxX);
-         const bY = battler.box.position.y - battler.box.size.y / 2 - 10;
-         const dY = battler.box.position.y + battler.box.size.y / 2 + 10;
+         const bY = battler.box.y - battler.box.size.y / 2 - 10;
+         const dY = battler.box.y + battler.box.size.y / 2 + 10;
          await battler.sequence(tl, async (promises, index) => {
             const r = random.next();
             const green = cleaners && index % 10 === 0;
@@ -992,10 +982,10 @@ const patterns = {
          let ticks = 0;
          const speed = modifier === 'moldbygg' ? 2 : 3;
          const speedinc = modifier === 'moldbygg' ? 0.1 : 0.2;
-         const minX = battler.box.position.x - battler.box.size.x / 2;
-         const maxX = battler.box.position.x + battler.box.size.x / 2;
-         const minY = battler.box.position.y - battler.box.size.y / 2;
-         const maxY = battler.box.position.y + battler.box.size.y / 2;
+         const minX = battler.box.x - battler.box.size.x / 2;
+         const maxX = battler.box.x + battler.box.size.x / 2;
+         const minY = battler.box.y - battler.box.size.y / 2;
+         const maxY = battler.box.y + battler.box.size.y / 2;
          const size = new CosmosPoint({ x: 11, y: 18 });
          const half = size.divide(2);
          const angle = 45;
@@ -1155,11 +1145,11 @@ const patterns = {
       } else {
          const ea = 32;
          const dvPleaseDontDeleteThisViteKthx = ea / 2;
-         const mi = battler.box.position.x - battler.box.size.x / 4;
+         const mi = battler.box.x - battler.box.size.x / 4;
          const ma = mi + battler.box.size.x / 2;
          const gs = 15;
          const sep = 7;
-         const bY = battler.box.position.y - battler.box.size.y / 2 - 5;
+         const bY = battler.box.y - battler.box.size.y / 2 - 5;
          const rY = modifier === 'woshua' ? 1.5 : 2;
          await battler.sequence(modifier === 'woshua' ? 4 : 6, async promises => {
             let cx = mi + random.next() * (ma - mi);
@@ -1606,7 +1596,7 @@ const patterns = {
                   await Promise.all([
                      battler.box.size.modulate(timer, 150, { y: 16 }),
                      battler.box.position.modulate(timer, CosmosMath.linear, 150, {
-                        y: battler.box.position.y - battler.box.size.y / 2 + 8
+                        y: battler.box.y - battler.box.size.y / 2 + 8
                      })
                   ]);
                   const ds = 4;
@@ -1650,8 +1640,8 @@ const patterns = {
                   await boxTo(282.5, 65);
                   const amt = 25;
                   const unit = battler.box.size.x / amt;
-                  const base = battler.box.position.x - battler.box.size.x / 2 + unit / 2;
-                  const gap = new CosmosValue(battler.box.position.x);
+                  const base = battler.box.x - battler.box.size.x / 2 + unit / 2;
+                  const gap = new CosmosValue(battler.box.x);
                   const ext = new CosmosValue(0);
                   const spears = CosmosUtils.populate(amt * 2, index => {
                      const top = index < amt;
@@ -1663,7 +1653,7 @@ const patterns = {
                         }).on('tick', function () {
                            this.alpha.value = ext.value;
                            this.position.y =
-                              battler.box.position.y +
+                              battler.box.y +
                               (top ? -1 : 1) *
                                  CosmosMath.remap(Math.min(Math.abs(gap.value - this.position.x), 40), 25, 1, 0, 40);
                         }),
@@ -1677,7 +1667,7 @@ const patterns = {
                   while (rounds-- > 0) {
                      let nx = gap.value;
                      while (Math.abs(nx - gap.value) < 80) {
-                        nx = battler.box.position.x + (random.next() - 0.5) * battler.box.size.x;
+                        nx = battler.box.x + (random.next() - 0.5) * battler.box.size.x;
                      }
                      await gap.step(timer, 1.6, nx);
                   }
@@ -1730,8 +1720,8 @@ const patterns = {
                   await boxTo(100, 100);
                   const units = 10;
                   const unitX = battler.box.size.x / units;
-                  const baseX = battler.box.position.x - battler.box.size.x / 2;
-                  const botto = battler.box.position.y + battler.box.size.y / 2 + 15;
+                  const baseX = battler.box.x - battler.box.size.x / 2;
+                  const botto = battler.box.y + battler.box.size.y / 2 + 15;
                   await battler.sequence(3, async (promises, round) => {
                      const times = CosmosUtils.populate(10, index => index);
                      await battler.sequence(10, async (subpromises, index) => {
@@ -1740,7 +1730,7 @@ const patterns = {
                         const spear = redspear(vola.vars.aktatk ?? 1, { position: pos, rotation: -90 }).on(
                            'tick',
                            function () {
-                              this.position.y < battler.box.position.y && boxCheck(this, 25) && detach();
+                              this.position.y < battler.box.y && boxCheck(this, 25) && detach();
                            }
                         );
                         const { detach, detached } = bulletSetup(spear, false, null);
@@ -1824,7 +1814,7 @@ const patterns = {
                   await battler.sequence(10, async promises => {
                      const rev = random.next() < 0.5;
                      const x = rev ? -10 : 330;
-                     const y = battler.box.position.y + (random.next() * 2 - 1) * 10;
+                     const y = battler.box.y + (random.next() * 2 - 1) * 10;
                      const { detach, detached } = bulletSetup(
                         redspear(vola.vars.aktatk ?? 1, {
                            position: { x, y },
@@ -1922,7 +1912,7 @@ const patterns = {
                } else {
                   await boxTo(115, 165);
                   battler.SOUL.position.set(160, 160);
-                  const b = battler.box.position.y - battler.box.size.y / 2;
+                  const b = battler.box.y - battler.box.size.y / 2;
                   await battler.sequence(19, async promises => {
                      let stage = 0;
                      const { side, position } = pastBox(5, random.next() < 0.5 ? 1 : 3);

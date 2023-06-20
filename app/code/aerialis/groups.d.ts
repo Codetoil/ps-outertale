@@ -1,0 +1,21 @@
+import { OutertaleGroup } from '../classes';
+import { CosmosPointSimple } from '../engine/numerics';
+export declare function switchColor(orange?: boolean): Promise<void>;
+export declare function spawnAlphys(p: CosmosPointSimple): void;
+declare const groups: {
+    glyde: OutertaleGroup;
+    mettaton1: OutertaleGroup;
+    mettaton2: OutertaleGroup;
+    mettaton3: OutertaleGroup;
+    rg: OutertaleGroup;
+    pyrope: OutertaleGroup;
+    perigee: OutertaleGroup;
+    spacetopTsundere: OutertaleGroup;
+    pyropeTsundere: OutertaleGroup;
+    madjick: OutertaleGroup;
+    knightknight: OutertaleGroup;
+    froggitexWhimsalot: OutertaleGroup;
+    astigmatismMigospel: OutertaleGroup;
+    mushketeer: OutertaleGroup;
+};
+export default groups;

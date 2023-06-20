@@ -1,105 +1,342 @@
 {
    "$schema": "./room.schema.json",
    "background": "below",
-   "preload": [ "amStarton", "amStartonEmpty", "ionSGreatdog", "ieBiodome" ],
+   "preload": [
+      "amStarton",
+      "amStartonEmpty",
+      "ionSGreatdog",
+      "iooSBiodome"
+   ],
    "layers": {
       "below": [
          {
             "triggers": [
                {
-                  "position": { "x": 435, "y": 140 },
-                  "size": { "x": 20, "y": 100 },
+                  "position": {
+                     "x": 315,
+                     "y": 160
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": 40
+                  },
                   "name": "teleport",
-                  "args": [ "s_bridge", "right", "20", "50" ]
+                  "args": [
+                     "s_bridge",
+                     "right",
+                     "20",
+                     "60"
+                  ]
                },
                {
-                  "position": { "x": 5, "y": 20 },
-                  "size": { "x": -20, "y": 80 },
+                  "position": {
+                     "x": 5,
+                     "y": 55
+                  },
+                  "size": {
+                     "x": -20,
+                     "y": 50
+                  },
                   "name": "teleport",
-                  "args": [ "s_puzzle3", "left", "360", "60" ]
+                  "args": [
+                     "s_puzzle3",
+                     "left",
+                     "340",
+                     "200"
+                  ]
+               },
+               {
+                  "position": {
+                     "x": 50,
+                     "y": 5
+                  },
+                  "size": {
+                     "x": 60,
+                     "y": -20
+                  },
+                  "name": "teleport",
+                  "args": [
+                     "s_math",
+                     "up",
+                     "40",
+                     "220"
+                  ]
                }
             ],
             "barriers": [
-               { "position": { "x": 0, "y": 35 }, "size": { "x": 30, "y": -20 } },
-               { "position": { "x": 30, "y": 15 }, "size": { "x": 100, "y": -20 } },
-               { "position": { "x": 131, "y": 15 }, "size": { "x": 150, "y": 25 } },
-               { "position": { "x": 280, "y": 40 }, "size": { "x": 30, "y": 115 } },
-               { "position": { "x": 130, "y": 80 }, "size": { "x": 110, "y": 75 } },
-               { "position": { "x": 190, "y": 155 }, "size": { "x": 20, "y": 70 } },
-               { "position": { "x": 130, "y": 105 }, "size": { "x": -100, "y": 20 } },
-               { "position": { "x": 0, "y": 85 }, "size": { "x": 30, "y": 20 } },
-               { "position": { "x": 310, "y": 135 }, "size": { "x": 120, "y": -20 } },
-               { "position": { "x": 210, "y": 225 }, "size": { "x": 100, "y": 20 } },
-               { "position": { "x": 310, "y": 245 }, "size": { "x": 120, "y": 20 } },
-               { "position": { "x": 430, "y": 135 }, "size": { "x": 10, "y": 20 } },
-               { "position": { "x": 430, "y": 225 }, "size": { "x": 10, "y": 20 } }
+               {
+                  "position": {
+                     "x": 0,
+                     "y": 55
+                  },
+                  "size": {
+                     "x": 30,
+                     "y": -20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 30,
+                     "y": 35
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": -35
+                  }
+               },
+               {
+                  "position": {
+                     "x": 111,
+                     "y": 35
+                  },
+                  "size": {
+                     "x": 20,
+                     "y": -35
+                  }
+               },
+               {
+                  "position": {
+                     "x": 280,
+                     "y": 120
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": 40
+                  }
+               },
+               {
+                  "position": {
+                     "x": 130,
+                     "y": 35
+                  },
+                  "size": {
+                     "x": 50,
+                     "y": 125
+                  }
+               },
+               {
+                  "position": {
+                     "x": 280,
+                     "y": 220
+                  },
+                  "size": {
+                     "x": 40,
+                     "y": -20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 130,
+                     "y": 125
+                  },
+                  "size": {
+                     "x": -30,
+                     "y": 35
+                  }
+               },
+               {
+                  "position": {
+                     "x": 0,
+                     "y": 105
+                  },
+                  "size": {
+                     "x": 30,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 60,
+                     "y": 200
+                  },
+                  "size": {
+                     "x": 120,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 179,
+                     "y": 220
+                  },
+                  "size": {
+                     "x": 100,
+                     "y": 20
+                  }
+               },
+               {
+                  "position": {
+                     "x": 30,
+                     "y": 125
+                  },
+                  "size": {
+                     "x": 30,
+                     "y": 75
+                  }
+               },
+               {
+                  "position": {
+                     "x": 180,
+                     "y": 120
+                  },
+                  "size": {
+                     "x": 100,
+                     "y": -20
+                  }
+               }
             ]
          }
       ],
       "main": [
          {
-            "tags": [ "s_lamp" ],
+            "tags": [
+               "s_lamp"
+            ],
             "attachments": [
                {
                   "auto": true,
                   "type": "animation",
-                  "anchor": { "x": 0, "y": 1 },
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
                   "resources": "iooSLamp",
-                  "position": { "x": 0, "y": 0 }
+                  "position": {
+                     "x": 0,
+                     "y": 0
+                  }
                }
             ],
-            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
-            "position": { "x": 114, "y": 24 }
+            "barriers": [
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
+                  "size": {
+                     "x": -10,
+                     "y": 6
+                  }
+               }
+            ],
+            "position": {
+               "x": 115,
+               "y": 45
+            }
          },
          {
-            "attachments": [ { "type": "animation", "resources": "ionSFaun", "anchor": { "x": 0, "y": 1 } } ],
-            "position": { "x": 47, "y": 24 },
-            "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -18, "y": 8 } } ],
+            "attachments": [
+               {
+                  "type": "animation",
+                  "resources": "ionSFaun",
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  }
+               }
+            ],
+            "position": {
+               "x": 48,
+               "y": 45
+            },
+            "barriers": [
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  },
+                  "size": {
+                     "x": -18,
+                     "y": 8
+                  }
+               }
+            ],
             "interacts": [
                {
-                  "anchor": { "x": 0, "y": -1 },
-                  "size": { "x": 18, "y": -9 },
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": 18,
+                     "y": -9
+                  },
                   "name": "starton",
-                  "args": [ "npc", "s_faun" ]
+                  "args": [
+                     "npc",
+                     "s_faun"
+                  ]
                }
             ],
-            "tags": [ "s_faun" ]
-         },
-         {
-            "attachments": [ { "type": "sprite", "frames": [ "iooSSentry4" ], "anchor": { "x": 0, "y": 1 } } ],
-            "position": { "x": 80, "y": 27 },
-            "barriers": [ { "size": { "x": -34, "y": -18 }, "anchor": { "x": 0, "y": -1 } } ],
-            "interacts": [
-               {
-                  "anchor": { "x": 0, "y": -1 },
-                  "size": { "x": -30, "y": -18 },
-                  "name": "trivia",
-                  "args": [ "s_doghouse" ]
-               }
+            "tags": [
+               "s_faun"
             ]
          },
          {
             "attachments": [
                {
                   "type": "sprite",
-                  "frames": [ "iooSTree" ],
-                  "position": { "x": 0, "y": 0 },
-                  "anchor": { "x": 0, "y": 1 }
+                  "frames": [
+                     "iooSSentry4"
+                  ],
+                  "anchor": {
+                     "x": 0,
+                     "y": 1
+                  }
                }
             ],
-            "position": { "x": 370, "y": 150 },
+            "position": {
+               "x": 230,
+               "y": 140
+            },
             "barriers": [
-               { "size": { "x": -60, "y": -16 }, "anchor": { "x": 0, "y": -1 }, "position": { "x": 0, "y": -4 } },
-               { "position": { "x": 0, "y": -4 }, "anchor": { "x": 0, "y": -1 }, "size": { "x": -55, "y": 7 } },
-               { "position": { "x": 0, "y": 3 }, "anchor": { "x": 0, "y": -1 }, "size": { "x": -20, "y": 3 } }
+               {
+                  "size": {
+                     "x": -34,
+                     "y": -18
+                  },
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  }
+               }
             ],
             "interacts": [
-               { "size": { "x": -60, "y": -20 }, "anchor": { "x": 0, "y": -1 }, "name": "trivia", "args": [ "s_tree" ] }
+               {
+                  "anchor": {
+                     "x": 0,
+                     "y": -1
+                  },
+                  "size": {
+                     "x": -30,
+                     "y": -18
+                  },
+                  "name": "trivia",
+                  "args": [
+                     "s_doghouse"
+                  ]
+               }
             ]
          }
       ]
    },
-   "neighbors": [ "s_puzzle3", "s_bridge" ],
-   "region": [ { "x": 160, "y": 60 }, { "x": 280, "y": 160 } ],
-   "score": { "music": "starton", "gain": 0.8 }
+   "neighbors": [
+      "s_puzzle3",
+      "s_bridge",
+      "s_math"
+   ],
+   "region": [
+      {
+         "x": 160,
+         "y": 120
+      },
+      {
+         "x": 160,
+         "y": 120
+      }
+   ],
+   "score": {
+      "music": "starton",
+      "gain": 0.8
+   }
 }

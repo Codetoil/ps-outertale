@@ -1,12 +1,12 @@
-import { CosmosUtils } from '../engine';
-import { choicer, world } from '../mantle';
+import { CosmosUtils } from '../engine/utils';
+import { battler, choicer, validName, world } from '../mantle';
 import save from '../save';
 
 export default {
-   _1: 'The anomaly did everything they could...',
+   _1: 'The player did everything they could...',
    _2: 'But alas, {^3}his fate was sealed, {^3}and...',
    _3: 'No addendum to the story could unravel it.',
-   _4: 'There was no scenario in which the anomaly could truly be satisfied.',
+   _4: 'There was no scenario in which the player could truly be satisfied.',
    _5: 'Is this what they really deserve?',
    _6: 'To live in bittersweet agony, {^3}knowing he could never be...',
    _7: 'No...{^5}\nI will not allow it.',
@@ -15,32 +15,38 @@ export default {
    _10: 'I will not rest until the task is done.',
    _11: {
       bed: (_0: boolean) => [
-         '<32>{#p/human}* (You inspect the bed.)',
-         ...(_0 ? [ '<32>{#p/kidd}{#f/1}* Looks comfy...', '<32>{#f/1}* What kind of office has a bed?' ] : [])
+         '<33>{#p/narrator}* This bed, albiet well-made, has seen a lot of use.',
+         ...(_0 ? [ '<32>{#p/kidd}{#f/1}* Looks comfy! ' ] : [])
       ],
       plushie: (_0: boolean) => [
-         '<32>{#p/human}* (You inspect the plushie.)',
-         ...(_0 ? [ '<32>{#p/kidd}{#f/3}* Aw...', '<32>* I used to have one of these...' ] : [])
+         "<32>{#p/narrator}* Good to know I'm not the only one who likes the soft things.",
+         ...(_0 ? [ '<32>{#p/kidd}{#f/3}* Aw, cute.' ] : [])
       ],
       computer: (_0: boolean) => [
-         '<32>{#p/human}* (You inspect the computer.)',
-         ...(_0 ? [ '<32>{#p/kidd}{#f/1}* Who\'s "$(name)?"', '<32>* It says that on the screen.' ] : [])
+         '<32>{#p/narrator}* Color-coded text fills the screen in a monospaced font.',
+         ...(_0 ? [ '<32>{#p/kidd}{#f/1}* How OLD is this thing?' ] : [])
       ],
       flowers: (_0: boolean) => [
-         '<32>{#p/human}* (You inspect the flowers.)',
-         ...(_0 ? [ "<32>{#p/kidd}{#f/1}* I've never seen flowers like these...", '<32>* Have you?' ] : [])
+         '<32>{#p/narrator}* Flowers, the universal symbol for sentimentality.',
+         ...(_0 ? [ "<32>{#p/kidd}{#f/1}* I don't think I've ever seen flowers like THESE before..." ] : [])
       ]
    },
 
    b_act: {
       agree: '* Agree',
+      annoy: '* Annoy',
       appease: '* Appease',
       bathe: '* Bathe',
       beckon: '* Beckon',
+      blind: '* Blind',
+      boast: '* Boast',
+      bow: '* Bow',
+      burn: '* Burn',
       challenge: '* Challenge',
       check: '* Check',
       cheer: '* Cheer',
       clean: '* Clean',
+      comfort: '* Comfort',
       compliment: '* Compliment',
       console: '* Console',
       counter: '* Counter',
@@ -48,14 +54,19 @@ export default {
       criticize: '* Criticize',
       dance: '* Dance',
       direct: '* Direct',
+      disarm: '* Disarm',
       disown: '* Disown',
       distance: '* Distance',
       ditch: '* Ditch',
       dontpick: '* Dont Pick On',
       encourage: '* Encourage',
+      flash: '* Flash',
       flirt: '* Flirt',
+      grin: '* Grin',
       guide: '* Guide',
+      handshake: '* Handshake',
       heckle: '* Heckle',
+      heel: '* Heel Turn',
       hug: '* Hug',
       hum: '* Hum',
       imitate: '* Imitate',
@@ -63,19 +74,30 @@ export default {
       joke: '* Joke',
       laugh: '* Laugh',
       lecture: '* Lecture',
+      leech: '* Leech',
       mislead: '* Mislead',
       mystify: '* Mystify',
       pat: '* Pat',
       pay: '* Pay',
+      perch: '* Perch',
       pet: '* Pet',
       pick: '* Pick On',
       play: '* Play',
+      playdead: '* Play Dead',
       plead: '* Plead',
+      poke: '* Poke',
+      pose: '* Pose',
       praise: '* Praise',
+      rap: '* Rap',
       reassure: '* Re-Assure',
       resniff: '* Re-Sniff',
       roll: '* Roll Around',
+      scream: '* Scream',
+      secret: '* Secret',
+      shove: '* Shove',
+      sit: '* Sit',
       slap: '* Slap',
+      spark: '* Spark',
       stare: '* Stare',
       steal: '* Steal',
       talk: '* Talk',
@@ -84,35 +106,13 @@ export default {
       terrorize: '* Terrorize',
       threat: '* Threat',
       translate: '* Translate',
+      travel: '* Travel',
       tug: '* Tug',
+      turn: '* Turn',
+      upgrade: '* Upgrade',
       walk: '* Walk',
       whisper: '* Whisper',
-      playdead: '* Play Dead',
-      flash: '* Flash',
-      comfort: '* Comfort',
-      perch: '* Perch',
-      poke: '* Poke',
-      annoy: '* Annoy',
-      grin: '* Grin',
-      travel: '* Travel',
-      disarm: '* Disarm',
-      turn: '* Turn',
-      burn: '* Burn',
-      boast: '* Boast',
-      scream: '* Scream',
-      heel: '* Heel Turn',
-      pose: '* Pose',
-      whistle: '* Whistle',
-      leech: '* Leech',
-      upgrade: '* Upgrade',
-      bow: '* Bow',
-      blind: '* Blind',
-      rap: '* Rap',
-      spark: '* Spark',
-      sit: '* Sit',
-      handshake: '* Handshake',
-      shove: '* Shove',
-      secret: '* Secret'
+      whistle: '* Whistle'
    },
 
    b_group_nobody: () => (world.bullied ? '* ...but everybody ran.' : '* ...but nobody came.'),
@@ -326,7 +326,10 @@ export default {
             : [ '<32>{#p/story}* Mad Dummy blocks the way!' ]
    },
    b_opponent_moldsmal: {
-      act_check: [ '<32>{#p/story}* Gelatini - ATK 6 DEF 0\n* Stereotypical: Curvaceously attractive, but no brains...' ],
+      act_check: () =>
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Gelatini, the mindless mold.\n* What more can I say?' ]
+            : [ '<32>{#p/story}* Gelatini - ATK 6 DEF 0\n* Stereotypical: Curvaceously attractive, but no brains...' ],
       act_flirt: [
          '<33>{#p/narrator}* You wiggle your hips.\n* Gelatini wiggles back.\n* What a meaningful conversation!'
       ],
@@ -340,18 +343,23 @@ export default {
       name: '* Gelatini',
       perilStatus: [ '<32>{#p/story}* Gelatini has started to rot.' ],
       sexyChat: [ '<08>{~}\x00*Sexy wiggle*' ],
-      status1: [ '<32>{#p/story}* You tripped over a line of Gelatinis.' ],
-      status2: [ '<32>{#p/story}* Gelatini blorbs quietly.' ],
-      status3: [ '<32>{#p/story}* Gelatini waits optimistically.' ],
-      status4: [ '<32>{#p/story}* Gelatini is ruminating.' ],
-      status5: [ '<32>{#p/story}* The aroma of lime gelatin wafts through.' ],
-      status6: [ '<32>{#p/story}* And then, there were two.' ],
-      status7: [ '<32>{#p/story}* And finally, there was one.' ],
+      status1: () =>
+         world.azzie
+            ? [ '<32>{#p/asriel2}* Gelatini times three.' ]
+            : [ '<32>{#p/story}* You tripped over a line of Gelatinis.' ],
+      status2: () => (world.azzie ? [ '<32>{#p/asriel2}* Gelatini.' ] : [ '<32>{#p/story}* Gelatini blorbs quietly.' ]),
+      status3: () =>
+         world.azzie ? [ '<32>{#p/asriel2}* Gelatini.' ] : [ '<32>{#p/story}* Gelatini waits optimistically.' ],
+      status4: () => (world.azzie ? [ '<32>{#p/asriel2}* Gelatini.' ] : [ '<32>{#p/story}* Gelatini is ruminating.' ]),
+      status5: () =>
+         world.azzie ? [ '<32>{#p/asriel2}* Gelatini.' ] : [ '<32>{#p/story}* The aroma of lime gelatin wafts through.' ],
+      status6: () => (world.azzie ? [ '<32>{#p/asriel2}* Two left.' ] : [ '<32>{#p/story}* And then, there were two.' ]),
+      status7: () => (world.azzie ? [ '<32>{#p/asriel2}* One left.' ] : [ '<32>{#p/story}* And finally, there was one.' ]),
       status8: [ '<32>{#p/story}* Gelatini now blorbs solo.' ]
    },
    b_opponent_spacetop: {
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* Astro Serf, the attention- seeking astronaut. Cares for nothing but its antenna.' ]
             : [ "<32>{#p/story}* ASTRO SERF - ATK 11 DEF 4\n* This teen wonders why it isn't named 'Radio Jack.'" ],
       act_compliment: [ '<32>{#p/narrator}* You inform Astro Serf that it has a great antenna!' ],
@@ -359,11 +367,11 @@ export default {
       complimentTalk1: [ "<08>{~}DUH!\nWho DOESN'T know?" ],
       complimentTalk2: [ '<08>{~}Envious?\nTOO BAD!' ],
       createStatus1: () =>
-         world.goatbro
+         world.azzie
             ? [ '<32>{#p/asriel2}* It looks annoyed.' ]
             : [ "<32>{#p/story}* Astro Serf is secretly checking if you're looking at its antenna." ],
       createStatus2: () =>
-         world.goatbro
+         world.azzie
             ? [ "<32>{#p/asriel2}* Hey $(name), it's jealous of your antenna.\n* Hee hee hee." ]
             : [ '<32>{#p/story}* Astro Serf is impressed.' ],
       createTalk1: [ "<09>{~}HELLO???\nMy antenna's up here." ],
@@ -371,18 +379,19 @@ export default {
       createTalk3: [ "<08>{~}But.. it can't be..!" ],
       createTalk4: [ '<08>{~}Woah..\nHow did you do that??' ],
       createTalk5: [ "<08>{~}You're.. making your OWN antenna?" ],
-      createText1: [ '<32>{#p/narrator}* You... somehow... begin to create your own antenna.' ],
-      createText2: [ '<32>{#p/narrator}* You finish creating the antenna, and proceed to put it on.' ],
-      createText3: [
-         '<32>{#p/narrator}* You start on another antenna.\n* Not knowing what to do, Astro Serf runs away.'
-      ],
+      act_create: () =>
+         [
+            [ '<32>{#p/narrator}* You... somehow... begin to create your own antenna.' ],
+            [ '<32>{#p/narrator}* You finish creating the antenna, and proceed to put it on.' ],
+            [ '<32>{#p/narrator}* You start on another antenna.\n* Not knowing what to do, Astro Serf runs away.' ]
+         ][battler.target?.vars.create ?? 0],
       flirtStatus1: [ '<32>{#p/story}* Astro Serf is not impressed by your attire.' ],
       flirtStatus2: [ '<32>{#p/story}* Astro Serf is in love.' ],
       flirtTalk1: [ '<08>{~}No deal!\nNot without a antenna!' ],
       flirtTalk2: [ '<08>{~}W-what??\nUhm..\nI..\nYou..' ],
       genoStatus: [ '<32>{#p/asriel2}* Astro Serf.' ],
       hurtStatus: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ "<32>{#p/story}* Astro Serf's suit is loose." ],
+         world.azzie ? [ '<32>{#p/asriel2}* Almost dead.' ] : [ "<32>{#p/story}* Astro Serf's suit is loose." ],
       idleTalk1: [ "<08>{~}Where's YOUR antenna?" ],
       idleTalk2: [ '<08>{~}Your head looks so ..NAKED' ],
       idleTalk3: [ '<08>{~}What a great antenna!\n(Mine)' ],
@@ -397,15 +406,17 @@ export default {
       status1: [ '<32>{#p/story}* Astro Serf struts into view.' ],
       stealTalk1: [ '<08>{~}I KNEW IT!!!\nTHIEF!!' ],
       stealTalk2: [ '<08>{~}HELP!!!\nFASHION POLICE!!' ],
-      stealText1: [ "<32>{#p/narrator}* You tried stealing Astro Serf's antenna, but it hasn't been weakened enough!" ],
-      stealText2: [
-         "<33>{#p/narrator}* You stole Astro Serf's antenna.\n* Its spacesuit fell off too...",
-         '<33>{#p/narrator}* Looks like it was powered by lithium the whole time.'
-      ]
+      act_steal: () =>
+         battler.hurt.includes(battler.target!)
+            ? [
+                 "<33>{#p/narrator}* You stole Astro Serf's antenna.\n* Its spacesuit fell off too...",
+                 '<33>{#p/narrator}* Looks like it was powered by lithium the whole time.'
+              ]
+            : [ "<32>{#p/narrator}* You tried stealing Astro Serf's antenna, but it hasn't been weakened enough!" ]
    },
    b_opponent_space: {
       act_check: () =>
-         world.goatbro
+         world.azzie
             ? [ "<32>{#p/asriel2}* Lithium.\n* That's literally it." ]
             : [ '<32>{#p/story}* LITHIUM - ATK 1 DEF 0\n* Without its spacesuit...' ],
       act_reassure: [ '<32>{#p/narrator}* You inform Lithium that it still looks fine.' ],
@@ -416,7 +427,7 @@ export default {
       happyTalk3: [ '<08>{~}So I can still impress you?' ],
       happyTalk4: [ '<08>{~}I wanted you to see me as cool.' ],
       hurtStatus: () =>
-         world.goatbro ? [ '<32>{#p/asriel2}* Almost dead.\n* Again.' ] : [ "<32>{#p/story}* It's disintegrating." ],
+         world.azzie ? [ '<32>{#p/asriel2}* Almost dead.\n* Again.' ] : [ "<32>{#p/story}* It's disintegrating." ],
       idleTalk1: [ '<08>{~}I..\nI..' ],
       idleTalk2: [ '<08>{~}What can I say..' ],
       idleTalk3: [ "<08>{~}What's the point.." ],
@@ -569,12 +580,16 @@ export default {
             ? [ '<32>{#p/story}* Skrubbington was grossed out, and their DEFENSE went down!' ]
             : opponent === 'shyren'
             ? [ '<32>{#p/story}* Shyren felt uncomfortable, and her DEFENSE went down!' ]
+            : opponent === 'radtile'
+            ? [ '<32>{#p/story}* Radtile felt uncomfortable, and his DEFENSE went down!' ]
             : [ '<32>{#p/story}* $(x) felt uncomfortable, and their DEFENSE went down!' ],
       mkTurnActResult2: (opponent: string) =>
          opponent === 'woshua'
             ? [ '<32>{#p/story}* Skrubbington felt flattered, and their ATTACK went down!' ]
             : opponent === 'shyren'
             ? [ '<32>{#p/story}* Shyren felt flattered, and her ATTACK went down!' ]
+            : opponent === 'radtile'
+            ? [ '<32>{#p/story}* Radtile felt respected, and his ATTACK went down!' ]
             : [ '<32>{#p/story}* $(x) felt respected, and their ATTACK went down!' ],
       mkTurnActResult3: (opponent: string, multiple: boolean) =>
          opponent === 'woshua'
@@ -582,9 +597,11 @@ export default {
                ? [ '<32>{#p/story}* Skrubbington and the others were distracted by Monster Kid and forgot their turn!' ]
                : [ '<32>{#p/story}* Skrubbington was distracted by Monster Kid and forgot their turn!' ]
             : opponent === 'shyren'
-            ? [ '<32>{#p/story}* Intrigued by Monster Kid, Shyren forgot her turn!' ]
+            ? [ '<32>{#p/story}* Distracted by Monster Kid, Shyren forgot her turn!' ]
             : multiple
             ? [ '<32>{#p/story}* Entranced by Monster Kid, $(x) and the others forgot their turn!' ]
+            : opponent === 'radtile'
+            ? [ '<32>{#p/story}* Entranced by Monster Kid, Radtile forgot his turn!' ]
             : [ '<32>{#p/story}* Entranced by Monster Kid, $(x) forgot their turn!' ],
       mkTurnActResult4: (opponent: string, multiple: boolean, allowpac: boolean) =>
          opponent === 'woshua'
@@ -596,6 +613,8 @@ export default {
             ? allowpac
                ? [ '<32>{#p/story}* Fearful for her life, Shyren panicked and left the battle!' ]
                : [ '<32>{#p/story}* Encouraged by her own performance, Shyren braved the threat!' ]
+            : opponent === 'radtile'
+            ? [ '<32>{#p/story}* Fearful for his life, Radtile panicked and left the battle!' ]
             : [
                  '<32>{#p/story}* Fearful for its life, $(x) panicked and left the battle!',
                  ...(multiple ? [ '<32>{#p/story}* The other monsters continue to fight you.' ] : [])
@@ -613,8 +632,9 @@ export default {
       mkTurnX: [ choicer.create('* (What should Monster Kid do?)', 8, 7, 'Mercy', 'Act', 'Magic', 'Fight') ]
    },
 
-   c_call: '<32>{#p/event}* Dialing...',
-   c_endcall: '<32>{#p/event}* Click...',
+   c_call1: '<32>{#s/phone}{#p/event}* Dialing...',
+   c_call2: '<32>{#s/equip}{#p/event}* Click...',
+
    c_nobody1: [ '<32>{#p/human}* (No response.)' ],
    c_nobody2: [ '<32>{#p/narrator}* ...but nobody came.' ],
    c_nobody3: [ '<32>{#p/human}* (No connection.)' ],
@@ -638,8 +658,9 @@ export default {
          "<32>* ...\n* (You're filled with hydration.)" // credits to Anisaly
       ]
    },
-   x_credits: [
-      "<32>{#p/spacefluff432}* Ayyo, thanks for playing!\n* Let's get started with the credits, shall we?",
+
+   x_credits: () => [
+      "<32>{#p/_}* Ayyo, thanks for playing!\n* Let's get started with the credits, shall we?",
       '<32>* Balgamlı Kedi - Assistant spriter, Guest writer, Internal review, Project lead',
       '<32>* Brayjamin - Internal review',
       '<32>* Burge233 - Guest spriter, Promo artist',
@@ -666,18 +687,15 @@ export default {
       '<32>* spaceknife234 - Internal review',
       '<32>* SquigglyWiggley - Guest Spriter, Guest writer',
       '<32>* Starkiteckt - Backdrop artist',
+      '<32>* supper12 - Guest Spriter',
       '<32>* Zaxento The Greedy - Assistant writer, Dedicated QA tester, Guest spriter',
-      '<32>* Balgamlı Kedi, delta, Discarded Vessel, Dischnie\n* QA tester',
-      '<33>* EvanGamesGoodman, Firedupmoose, Ghostly, Gon UT, Green Tea\n* QA tester',
-      '<32>* My Cocoa, Nanorasmus, NerNot1, Prezmop, Rise, semi\n* QA tester',
-      '<32>* Shaun Duz Stuffs, Ten, Tired, Wild Pasta, Zaxento The Greedy\n* QA tester',
+      '<33>* Discarded Vessel, Ghostly, Shaun Duz Stuffs\n* QA tester',
       '<32>* ...',
       "<32>* I'd also like to say something.",
       '<32>* I want you to know that, despite your mistakes...',
       '<32>* You are awesome, and you deserve love and attention.\n* Remember that, okay?',
-      '<32>* Take care of yourself, "$(name)."'
-   ],
-   x_unknown: '?'
+      validName() ? '<32>* Take care of yourself, "$(name)."' : '<32>* Take care of yourself, player.'
+   ]
 };
 
 CosmosUtils.status(`LOAD MODULE: COMMON TEXT (${Math.floor(performance.now()) / 1000})`, { color: '#07f' });

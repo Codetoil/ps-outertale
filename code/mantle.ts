@@ -1,6 +1,6 @@
-import { AdvancedBloomFilter } from 'pixi-filters';
-import { BLEND_MODES, Filter, Graphics, isMobile } from 'pixi.js';
-import assets from './assets';
+import { AdvancedBloomFilter, CRTFilter, GlitchFilter, GrayscaleFilter } from 'pixi-filters';
+import { BLEND_MODES, Filter, Graphics, Rectangle, isMobile } from 'pixi.js';
+import assets, { effectSetup } from './assets';
 import {
    OutertaleBox,
    OutertaleBypassAnimation,
@@ -23,11 +23,14 @@ import {
    audio,
    backend,
    events,
+   exit,
    game,
    image,
    items,
    keys,
+   launch,
    maps,
+   param,
    random,
    reload,
    renderer,
@@ -36,47 +39,38 @@ import {
    timer,
    typer
 } from './core';
+import { CosmosAtlas, CosmosNavigator } from './engine/atlas';
+import { CosmosDaemon, CosmosInstance } from './engine/audio';
+import { CosmosAsset, CosmosCache, CosmosInventory, CosmosRegistry, CosmosTimer } from './engine/core';
 import {
-   CosmosAnimation,
-   CosmosAnimationResources,
-   CosmosAsset,
-   CosmosBaseEvents,
-   CosmosBasic,
-   CosmosBitmap,
    CosmosCharacter,
    CosmosCharacterPreset,
    CosmosCharacterProperties,
-   CosmosColor,
-   CosmosDaemon,
-   CosmosDirection,
    CosmosEntity,
-   CosmosHitbox,
+   CosmosPlayer
+} from './engine/entity';
+import {
+   CosmosAnimation,
+   CosmosAnimationResources,
+   CosmosBitmap,
+   CosmosColor,
    CosmosImage,
-   CosmosInstance,
-   CosmosInventory,
-   CosmosKeyed,
-   CosmosMath,
-   CosmosNavigator,
-   CosmosNot,
-   CosmosObject,
-   CosmosPlayer,
-   CosmosPoint,
-   CosmosPointSimple,
-   CosmosProvider,
-   CosmosRectangle,
-   CosmosRegion,
-   CosmosRegistry,
-   CosmosRenderer,
-   CosmosSizedObjectProperties,
    CosmosSprite,
-   CosmosSpriteProperties,
-   CosmosText,
-   CosmosTextProperties,
-   CosmosTimer,
-   CosmosTyper,
-   CosmosUtils,
-   CosmosValue
-} from './engine';
+   CosmosSpriteProperties
+} from './engine/image';
+import { CosmosKeyboardInput } from './engine/input';
+import { CosmosMath, CosmosPoint, CosmosPointSimple, CosmosValue } from './engine/numerics';
+import {
+   CosmosBaseEvents,
+   CosmosHitbox,
+   CosmosObject,
+   CosmosRegion,
+   CosmosRenderer,
+   CosmosSizedObjectProperties
+} from './engine/renderer';
+import { CosmosRectangle } from './engine/shapes';
+import { CosmosText, CosmosTextProperties, CosmosTyper } from './engine/text';
+import { CosmosBasic, CosmosDirection, CosmosKeyed, CosmosNot, CosmosProvider, CosmosUtils } from './engine/utils';
 import save from './save';
 import text from './text';
 
@@ -103,6 +97,7 @@ export const battler = {
             objects: CosmosSprite[];
          },
          dead: false,
+         flirted: false,
          opponent,
          hp: opponent.hp,
          sparable: opponent.sparable || false,
@@ -315,7 +310,9 @@ export const battler = {
       objects: [
          (() => {
             const object = new CosmosObject().on('tick', function () {
-               this.filters ??= battler.clipFilter.value ? [ battler.clipFilter.value ] : null;
+               if (!this.filters && battler.clipFilter.value) {
+                  this.filters = [ battler.clipFilter.value ];
+               }
                if (battler.line.active) {
                   if (this.objects.length > 0) {
                      battler.line.offset = (battler.line.offset + battler.line.loop + 20) % 20;
@@ -341,7 +338,9 @@ export const battler = {
          })(),
          (() => {
             const object = new CosmosObject().on('tick', function () {
-               this.filters ??= battler.clipFilter.value ? [ battler.clipFilter.value ] : null;
+               if (!this.filters && battler.clipFilter.value) {
+                  this.filters = [ battler.clipFilter.value ];
+               }
                this.position.set(battler.box.position.multiply(-1));
             });
             object.container.filterArea = renderer.area!;
@@ -350,13 +349,17 @@ export const battler = {
          new CosmosObject().on('tick', function () {
             this.position.set(battler.box.position.multiply(-1));
             if (battler.line.active && battler.line.sticky) {
-               battler.SOUL.position.x += battler.box.position.x - battler.line.position.x;
-               battler.line.position.x = battler.box.position.x;
+               battler.SOUL.x += battler.box.x - battler.line.pos.x;
+               battler.line.pos.x = battler.box.x;
             }
          })
       ]
    }).on('tick', function () {
-      this.alpha.value = (this.metadata.alpha as number) ?? battler.alpha.value;
+      if (this.metadata.alpha === void 0) {
+         this.alpha.value = battler.alpha.value;
+      } else {
+         this.alpha.value = this.metadata.alpha as number;
+      }
       const truePosition = this.position.multiply(2);
       if (battler.clipFilter.value) {
          battler.clipFilter.value.uniforms.minX = truePosition.x - this.size.x;
@@ -371,20 +374,22 @@ export const battler = {
    btext: {
       async victory () {
          const love = battler.love();
-         await typer.text(text.b_text7);
-         love && (await typer.text(text.b_text8));
+         await typer.text(text.b_victory1);
+         love && (await typer.text(text.b_victory2));
       },
       async death () {
          await battler.deathTyper.text(
-            ...[ text.b_text2, text.b_text3, text.b_text4, text.b_text5, text.b_text6 ][Math.floor(random.next() * 5)]
+            ...[ text.b_death1, text.b_death2, text.b_death3, text.b_death4, text.b_death5 ][
+               Math.floor(random.next() * 5)
+            ]
          );
       },
       escape () {
          game.text =
             battler.exp > 0 || battler.g > 0
-               ? text.b_text13.replace('$(x)', battler.exp.toString()).replace('$(y)', battler.g.toString())
-               : [ text.b_text9, text.b_text9, text.b_text10, text.b_text11 ][Math.round(random.next() * 20)] ||
-                 text.b_text12;
+               ? text.b_flee5.replace('$(x)', battler.exp.toString()).replace('$(y)', battler.g.toString())
+               : [ text.b_flee1, text.b_flee1, text.b_flee2, text.b_flee3 ][Math.round(random.next() * 20)] ||
+                 text.b_flee4;
       }
    },
    bubbles: {
@@ -556,32 +561,24 @@ export const battler = {
          scale: 0.5,
          position: { x: 32 / 2, y: 432 / 2 },
          resources: content.ibuFight
-      }).on('tick', function () {
-         this.alpha.value = battler.alpha.value;
       }),
       new CosmosAnimation({
          scale: 0.5,
          metadata: { button: 'act' },
          position: { x: 185 / 2, y: 432 / 2 },
          resources: content.ibuAct
-      }).on('tick', function () {
-         this.alpha.value = battler.alpha.value;
       }),
       new CosmosAnimation({
          scale: 0.5,
          metadata: { button: 'item' },
          position: { x: 345 / 2, y: 432 / 2 },
          resources: content.ibuItem
-      }).on('tick', function () {
-         this.alpha.value = battler.alpha.value;
       }),
       new CosmosAnimation({
          scale: 0.5,
          metadata: { button: 'mercy' },
          position: { x: 500 / 2, y: 432 / 2 },
          resources: content.ibuMercy
-      }).on('tick', function () {
-         this.alpha.value = battler.alpha.value;
       })
    ],
    calculate (volatile: OutertaleVolatile, power: number, item = save.data.s.weapon) {
@@ -682,7 +679,7 @@ export const battler = {
       battler.deathText = content;
    }),
    // death screen
-   async defeat (respawn = false) {
+   async defeat () {
       const deathAssets = new CosmosInventory(
          content.asShatter,
          content.avAsgore,
@@ -770,7 +767,7 @@ export const battler = {
          this.content = battler.deathText;
       });
       deathRenderer.attach('main', backEnd);
-      battler.deathTyper.variables.name = save.data.s.name;
+      battler.deathTyper.variables.name = validName() ? save.data.s.name : text.g_mystery2;
       keys.interactKey.on('down', () => battler.deathTyper.read());
       keys.specialKey.on('down', () => battler.deathTyper.skip());
       await battler.btext.death();
@@ -783,9 +780,7 @@ export const battler = {
          defeat.alpha.modulate(deathTimer, 1250, 0).then(() => deathAssets.unload())
       ]);
       await deathTimer.pause(1000);
-      if (respawn) {
-         await reload(true);
-      }
+      await reload(true);
    },
    async encounter (
       player: CosmosPlayer,
@@ -937,7 +932,7 @@ export const battler = {
                }
 
                // sprite calculation
-               const vola = battler.target;
+               const vola = battler.target!;
                const container = vola.container;
                const next = vola.opponent.goodbye?.(vola) || container.objects[0];
                const half = new CosmosPoint((next.metadata.size as CosmosPointSimple) || next.compute()).divide(2);
@@ -1221,7 +1216,18 @@ export const battler = {
    // garbage sprites (to be detached upon battle end)
    garbage: [] as [OutertaleLayerKey | CosmosObject, CosmosObject][],
    /** battler grid backdrop */
-   grid: null as null | CosmosImage,
+   get grid () {
+      return battler.gridder.frames[0] ?? null;
+   },
+   set grid (value) {
+      battler.gridder.frames[0] = value;
+   },
+   gridder: new CosmosSprite({
+      position: { x: 15 / 2, y: 9 / 2 },
+      scale: 0.5
+   }).on('tick', function () {
+      this.frames = [ battler.grid ];
+   }),
    async human (...lines: string[]) {
       if (save.data.n.hp > 0) {
          const simple = atlas.target === 'battlerSimple';
@@ -1254,8 +1260,15 @@ export const battler = {
    },
    // only the active indexes
    get indexes () {
-      // return battler.alive.map(value => battler.volatile.indexOf(value));
-      return [ ...battler.volatile.entries() ].filter(entry => entry[1].alive).map(entry => entry[0]);
+      const list = [] as number[];
+      let i = 0;
+      while (i < battler.volatile.length) {
+         if (battler.volatile[i].alive) {
+            list.push(i);
+         }
+         i++;
+      }
+      return list;
    },
    get involna () {
       let base = 1500;
@@ -1272,7 +1285,6 @@ export const battler = {
    // load battler assets
    async load (group: OutertaleGroup) {
       return Promise.all([
-         inventories.battleAssets.load(),
          group.assets?.load(),
          ...[ ...new Set(group.opponents.map(opponent => opponent[0])) ].map(opponent => opponent.assets.load())
       ]);
@@ -1288,7 +1300,7 @@ export const battler = {
       sticky: true,
       swap: 0,
       width: 100,
-      position: { x: 0, y: 0 },
+      pos: { x: 0, y: 0 },
       maxY: null as number | null,
       minY: null as number | null,
       reset () {
@@ -1298,8 +1310,8 @@ export const battler = {
          battler.line.sticky = true;
          battler.line.swap = 0;
          battler.line.width = 100;
-         battler.line.position.x = 0;
-         battler.line.position.y = 0;
+         battler.line.pos.x = 0;
+         battler.line.pos.y = 0;
          battler.line.maxY = null;
          battler.line.minY = null;
       }
@@ -1368,7 +1380,10 @@ export const battler = {
    } = {}): OutertaleOpponent['handler'] {
       return async function handler (choice, target, volatile) {
          const opponent = volatile.opponent;
-         volatile.vars[''] || (volatile.vars = Object.assign({ '': { reward: false, hp: volatile.hp } }, vars));
+         if (volatile.vars[''] === void 0) {
+            volatile.vars[''] = { reward: false, hp: volatile.hp };
+            Object.assign(volatile.vars, vars);
+         }
          const state: OutertaleTurnState<A> = {
             choice,
             target,
@@ -1498,8 +1513,8 @@ export const battler = {
    },
    // resets the battle box
    reset () {
-      battler.box.position.x = 160;
-      battler.box.position.y = 160;
+      battler.box.x = 160;
+      battler.box.y = 160;
       battler.box.size.x = 282.5;
       battler.box.size.y = 65;
    },
@@ -1576,8 +1591,8 @@ export const battler = {
       }
       battler.box.size.x = 77.5;
       battler.box.size.y = 65;
-      battler.box.position.x = 160;
-      battler.box.position.y = 160;
+      battler.box.x = 160;
+      battler.box.y = 160;
       battler.active = true;
       script();
       battler.alpha.value = 1;
@@ -1591,7 +1606,7 @@ export const battler = {
          events.on('defeat').then(async () => {
             if (!done) {
                done = true;
-               await battler.defeat(true);
+               await battler.defeat();
             }
          })
       ]);
@@ -1680,22 +1695,22 @@ export const battler = {
                const position = movetarget.position.value();
                // get box bounds
                const minX =
-                  battler.box.position.x +
+                  battler.box.x +
                   battler.box.objects[0].position.x +
                   ((this.metadata.color === 'purple' ? battler.line.width : battler.box.size.x) / -2 + 4);
                const maxX =
-                  battler.box.position.x +
+                  battler.box.x +
                   battler.box.objects[0].position.x +
                   ((this.metadata.color === 'purple' ? battler.line.width : battler.box.size.x) / 2 - 4);
-               const minY = battler.box.position.y + battler.box.size.y / -2 + 4;
-               const maxY = battler.box.position.y + battler.box.size.y / 2 - 4;
+               const minY = battler.box.y + battler.box.size.y / -2 + 4;
+               const maxY = battler.box.y + battler.box.size.y / 2 - 4;
                // clamp stored position to box bounds
                position.x < minX && (position.x = minX);
                position.x > maxX && (position.x = maxX);
                position.y < minY && (position.y = minY);
                position.y > maxY && (position.y = maxY);
                // apply stored position
-               Object.assign(movetarget.position, position);
+               movetarget.position.set(position);
                // check for movement capabilities
                if (game.input && !this.metadata.cyanLeap) {
                   // get speed state
@@ -1734,9 +1749,9 @@ export const battler = {
                         break;
                      case 'purple':
                         if (battler.line.active) {
-                           const startY = battler.line.position.y;
-                           battler.line.position.y += battler.line.loop + battler.line.swap * (20 / 3);
-                           this.position.y = battler.box.position.y - battler.box.size.y / 2 + battler.line.position.y;
+                           const startY = battler.line.pos.y;
+                           battler.line.pos.y += battler.line.loop + battler.line.swap * (20 / 3);
+                           this.position.y = battler.box.y - battler.box.size.y / 2 + battler.line.pos.y;
                            if (battler.line.loop > 0 && this.position.y > (battler.line.maxY ?? maxY)) {
                               battler.invulnerable && (battler.time = timer.value);
                               battler.damage(sprite, 6);
@@ -1749,10 +1764,10 @@ export const battler = {
                               let index = 0;
                               while (index < battler.line.amount) {
                                  const target = battler.line.offset + index++ * 20;
-                                 const dist = Math.abs(target - battler.line.position.y);
+                                 const dist = Math.abs(target - battler.line.pos.y);
                                  if (dist <= 3.5) {
                                     if (Math.abs(target - startY) > dist) {
-                                       battler.line.position.y = target;
+                                       battler.line.pos.y = target;
                                        battler.line.swap = 0;
                                     }
                                     break;
@@ -1773,7 +1788,7 @@ export const battler = {
                movetarget.position.y < minY && (movetarget.position.y = minY);
                movetarget.position.y > maxY && (movetarget.position.y = maxY);
                // calculate new hitbox
-               renderer.calculate('menu', hitbox => hitbox === this);
+               this.calculate(renderer);
                // get movement state
                const moved =
                   position.x !== this.position.x ||
@@ -1784,7 +1799,6 @@ export const battler = {
                // check for colliding bullets
                if (this.metadata.collision && !this.metadata.cyanLeap) {
                   for (const bullet of renderer.detect(
-                     'menu',
                      this as CosmosHitbox,
                      ...renderer.calculate('menu', hitbox => hitbox.metadata.bullet === true)
                   )) {
@@ -1817,19 +1831,19 @@ export const battler = {
                const navigator = atlas.navigator()!;
                switch (atlas.target) {
                   case 'battlerAdvancedAct': {
-                     battler.SOUL.position.x = 32 + navigator.position.y * 130 + 4;
-                     battler.SOUL.position.y = 139 + navigator.position.x * 16 + 4;
+                     battler.SOUL.x = 32 + navigator.position.y * 130 + 4;
+                     battler.SOUL.y = 139 + navigator.position.x * 16 + 4;
                      break;
                   }
                   case 'battlerAdvancedItem': {
-                     battler.SOUL.position.x = 32 + (navigator.position.y % 2) * 130 + 4;
-                     battler.SOUL.position.y = 139 + 4;
+                     battler.SOUL.x = 32 + (navigator.position.y % 2) * 130 + 4;
+                     battler.SOUL.y = 139 + 4;
                      break;
                   }
                   case 'battlerAdvancedMercy':
                   case 'battlerAdvancedTarget': {
-                     battler.SOUL.position.x = 32 + navigator.position.x * 130 + 4;
-                     battler.SOUL.position.y = 139 + navigator.position.y * 16 + 4;
+                     battler.SOUL.x = 32 + navigator.position.x * 130 + 4;
+                     battler.SOUL.y = 139 + navigator.position.y * 16 + 4;
                      break;
                   }
                }
@@ -1980,7 +1994,7 @@ export const battler = {
          events.on('defeat').then(async () => {
             if (!done) {
                done = true;
-               await battler.defeat(true);
+               await battler.defeat();
             }
          })
       ]);
@@ -2015,13 +2029,12 @@ export const battler = {
    // current status text
    status: [] as string[],
    get target () {
-      return battler.volatile[atlas.navigators.of('battlerAdvancedTarget').selection()];
+      return battler.volatile[atlas.navigators.of('battlerAdvancedTarget').selection()] as OutertaleVolatile | void;
    },
    // invulnerability start time
    time: 0,
    async unload (group: OutertaleGroup) {
       return Promise.all([
-         inventories.battleAssets.unload(),
          group.assets?.unload(),
          ...[ ...new Set(group.opponents.map(opponent => opponent[0])) ].map(opponent => opponent.assets.unload())
       ]);
@@ -2319,8 +2332,7 @@ export const controller = new CosmosObject({
                      key.force = true;
                   }
                }
-               Object.assign(
-                  this.objects[0].position,
+               this.objects[0].position.set(
                   position
                      ? {
                           x: Math.min(Math.max((position.x - this.position.x) * 2, -44), 44),
@@ -2449,11 +2461,22 @@ export const frontEnder = {
    updateOptions () {
       audio.soundToggle.gain.value = (1 - save.flag.n.option_sfx) * (save.flag.b.option_sfx ? 0 : 1);
       audio.musicToggle.gain.value = (1 - save.flag.n.option_music) * (save.flag.b.option_music ? 0 : 1);
-      // document.body.style.backgroundColor = `hsla(0, 0%, 0%, ${1 - save.flag.n.option_trans})`;
    }
 };
 
-export const hashes = {} as CosmosKeyed<number>;
+export const hashes = new CosmosCache((name: string) => {
+   let pos = 0;
+   let hash1 = 0xdeadbeef ^ 432;
+   let hash2 = 0x41c6ce57 ^ 432;
+   while (pos < name.length) {
+      const code = name.charCodeAt(pos++);
+      hash1 = Math.imul(hash1 ^ code, 2654435761);
+      hash2 = Math.imul(hash2 ^ code, 1597334677);
+   }
+   hash1 = Math.imul(hash1 ^ (hash1 >>> 16), 2246822507) ^ Math.imul(hash2 ^ (hash2 >>> 13), 3266489909);
+   hash2 = Math.imul(hash2 ^ (hash2 >>> 16), 2246822507) ^ Math.imul(hash1 ^ (hash1 >>> 13), 3266489909);
+   return 4294967296 * (2097151 & hash2) + (hash1 >>> 0);
+});
 
 export const mobile = {
    /** mobile mode assets */
@@ -2519,9 +2542,9 @@ export const saver = {
       heal();
       const lines = [] as string[];
       if (world.population === 0) {
-         lines.push(world.bullied ? text.n_save8 : text.n_save6);
+         lines.push(world.bullied ? text.m_save7 : text.m_save5);
       } else if (world.genocide || ((world.trueKills > 9 || save.data.n.bully > 9) && world.population < 6)) {
-         lines.push(world.bullied ? text.n_save7 : text.n_save5);
+         lines.push(world.bullied ? text.m_save6 : text.m_save4);
          typer.variables.x = world.population.toString();
       } else {
          lines.push(...CosmosUtils.provide(saver.locations.of(game.room).text));
@@ -2541,21 +2564,15 @@ export const saver = {
       }
    },
    locations: new CosmosRegistry<string, { name: string; text: CosmosProvider<string[]> }>({ name: '', text: [] }),
-   protected: [
-      '',
-      ':b:option_right',
-      ':b:option_music',
-      ':b:option_sfx',
-      ':n:option_music',
-      ':n:option_sfx'
-      // ':n:option_trans'
-   ],
-   reset (trueReset?: boolean, oversave = true) {
+   protected: [ '', ':b:option_right', ':b:option_music', ':b:option_sfx', ':n:option_music', ':n:option_sfx' ],
+   reset (trueReset?: boolean, oversave = true, clearTimelines = false) {
       save.state = {};
       oversave && saver.save();
       if (trueReset) {
          for (const key of CosmosUtils.populate(save.manager.length, index => save.manager.key(index))) {
             if (key?.startsWith(save.namespace) && !saver.protected.includes(key.slice(save.namespace.length))) {
+               save.manager.removeItem(key);
+            } else if (clearTimelines && key?.startsWith('TIMELINES')) {
                save.manager.removeItem(key);
             }
          }
@@ -2648,10 +2665,6 @@ export const spanRange = 138;
 export const teleporter = { hot: false, movement: false, timer: false };
 
 export const world = {
-   /** ... */
-   µ (name: string) {
-      return hash(name.toLowerCase()) === 1186321185959925;
-   },
    /** ambient pitch level for game music */
    get ambiance () {
       return world.rate(game.room);
@@ -2697,8 +2710,13 @@ export const world = {
    },
    /** any active cutscene spanning multiple rooms */
    cutscene () {
-      return [ 16, 16.1, 17, 38, 47.2, ...(save.data.n.bad_lizard < 2 ? [ 64 ] : [ 64.1 ]) ].includes(save.data.n.plot);
+      return (
+         world.cutscene_override ||
+         [ 16, 16.1, 17, 38, 47.2, ...(save.data.n.bad_lizard < 2 ? [ 64 ] : [ 64.1 ]) ].includes(save.data.n.plot)
+      );
    },
+   /** force cutscene mode */
+   cutscene_override: false,
    /** true if all dogs except lesser dog is dead */
    get dead_dog () {
       return (
@@ -2712,7 +2730,7 @@ export const world = {
       return save.data.n.state_starton_papyrus === 1 || world.genocide;
    },
    /** true if monster kid should be spawned */
-   get epicgamer () {
+   get monty () {
       return (
          (save.data.n.plot > 37.2 && save.data.n.plot < 42) ||
          (world.genocide && save.data.n.plot > 42.1 && save.data.n.plot < 48)
@@ -2769,7 +2787,7 @@ export const world = {
    },
    /** current room defualt music gain */
    gain (room: string) {
-      if (world.madfish) {
+      if (world.phish) {
          return 0.45;
       } else {
          const score = rooms.of(room).score;
@@ -2788,7 +2806,7 @@ export const world = {
       return false;
    },
    /** true if goatbro should be spawned */
-   get goatbro () {
+   get azzie () {
       return (
          world.genocide &&
          save.data.n.plot > 16.1 &&
@@ -2821,7 +2839,7 @@ export const world = {
       return world.gain(game.room);
    },
    /** undyne chaser is active */
-   get madfish () {
+   get phish () {
       return save.data.n.plot === 47.2;
    },
    /** local monster population */
@@ -2898,6 +2916,7 @@ export const world = {
    get trueKills () {
       return (
          save.data.n.kills +
+         save.data.n.corekills +
          (save.data.n.state_wastelands_toriel === 2 ? 1 : 0) +
          (world.genocide && save.data.n.plot > 16.1 ? 1 : 0) +
          (save.data.n.state_starton_doggo === 2 ? 1 : 0) +
@@ -2909,19 +2928,20 @@ export const world = {
          (save.data.n.state_foundry_muffet === 1 ? 1 : 0) +
          (save.data.n.state_foundry_maddummy === 1 ? 1 : 0) +
          (save.data.n.state_foundry_undyne > 0 ? 1 : 0) +
-         (save.data.n.state_aerialis_royalguards > 0 ? 1 : 0)
+         (save.data.n.state_aerialis_royalguards > 0 ? 2 : 0) +
+         (save.data.b.killed_glyde ? 1 : 0) +
+         (save.data.b.killed_madjick ? 1 : 0) +
+         (save.data.b.killed_knightknight ? 1 : 0) +
+         (save.data.n.plot > 67 && !save.data.b.spared_mushketeer ? 1 : 0) +
+         (world.genocide && save.data.n.plot > 67.1 ? 1 : 0)
       );
    }
 };
 
 export function activate (source: CosmosHitbox, filter: (hitbox: CosmosHitbox) => boolean, interact = false) {
-   renderer.calculate('main', hitbox => hitbox === source);
+   source.calculate(renderer);
    for (const key of [ 'below', 'main' ]) {
-      for (const { metadata } of renderer.detect(
-         void 0,
-         source,
-         ...renderer.calculate(key as OutertaleLayerKey, filter)
-      )) {
+      for (const { metadata } of renderer.detect(source, ...renderer.calculate(key as OutertaleLayerKey, filter))) {
          if (typeof metadata.name === 'string') {
             interact && random.next();
             events.fire('script', metadata.name, ...(metadata.args as string[]));
@@ -2968,8 +2988,10 @@ export function calcHP () {
 
 export function calcLV () {
    let lv = 0;
-   const exp = save.data.n.exp;
-   while (lv < expLevels.length && expLevels[lv] <= exp) {
+   for (const expLevel of expLevels) {
+      if (expLevel > save.data.n.exp) {
+         break;
+      }
       lv++;
    }
    return lv + (save.data.b.oops ? 1 : 0);
@@ -2992,6 +3014,17 @@ export function character (
    instance.face = face;
    renderer.attach('main', instance);
    return instance;
+}
+
+export function colormix (c1: number, c2: number, v: number) {
+   const [ r1, g1, b1, a1 ] = CosmosBitmap.hex2color(c1);
+   const [ r2, g2, b2, a2 ] = CosmosBitmap.hex2color(c2);
+   return CosmosBitmap.color2hex([
+      CosmosMath.remap(v, r1, r2),
+      CosmosMath.remap(v, g1, g2),
+      CosmosMath.remap(v, b1, b2),
+      CosmosMath.remap(v, a1, a2)
+   ]);
 }
 
 export function displayTime (value: number) {
@@ -3032,7 +3065,7 @@ export async function dialogue (nav: string, ...lines: string[]) {
       atlas.target === trueNavigator || atlas.switch(trueNavigator);
       await typer.text(...lines);
       dialogueSession.active = false;
-      timer.on('tick').then(() => {
+      timer.post().then(() => {
          if (!dialogueSession.active) {
             atlas.switch(null);
             dialogueSession.movement && (game.movement = true);
@@ -3179,24 +3212,6 @@ export function fader (properties: CosmosSizedObjectProperties = {}, layer: Oute
    return object;
 }
 
-export function hash (name: string) {
-   if (name in hashes) {
-      return hashes[name];
-   } else {
-      let pos = 0;
-      let hash1 = 0xdeadbeef ^ 432;
-      let hash2 = 0x41c6ce57 ^ 432;
-      while (pos < name.length) {
-         const code = name.charCodeAt(pos++);
-         hash1 = Math.imul(hash1 ^ code, 2654435761);
-         hash2 = Math.imul(hash2 ^ code, 1597334677);
-      }
-      hash1 = Math.imul(hash1 ^ (hash1 >>> 16), 2246822507) ^ Math.imul(hash2 ^ (hash2 >>> 13), 3266489909);
-      hash2 = Math.imul(hash2 ^ (hash2 >>> 16), 2246822507) ^ Math.imul(hash1 ^ (hash1 >>> 13), 3266489909);
-      return (hashes[name] = 4294967296 * (2097151 & hash2) + (hash1 >>> 0));
-   }
-}
-
 /** listen for specific header */
 export function header (target: string) {
    return new Promise<void>(resolve => {
@@ -3216,7 +3231,7 @@ export function heal (amount = Infinity, sfx = true) {
       save.data.n.hp = Math.max(save.data.n.hp + amount, 0);
       if (save.data.n.hp === 0) {
          battler.active || battler.SOUL.position.set(renderer.projection(player.position.subtract(0, 15)));
-         battler.defeat(true);
+         battler.defeat();
       }
    } else {
       sfx && audio.sounds.of('heal').instance(timer);
@@ -3306,11 +3321,7 @@ export function menuText (
 ) {
    return new CosmosText(
       Object.assign(
-         {
-            fill: white === false ? void 0 : 'white',
-            position: { x: x / 2, y: y / 2 },
-            stroke: 'transparent'
-         },
+         { fill: white === false ? void 0 : 'white', position: { x: x / 2, y: y / 2 }, stroke: 'transparent' },
          properties
       )
    ).on('tick', function () {
@@ -3397,6 +3408,19 @@ export function menuSOUL (
    }).on('tick', function () {
       this.alpha.value = menuFilter(nav, navX, navY) ? 1 : 0;
    });
+}
+
+/** quick notifier */
+export async function notifier (entity: CosmosEntity, time: number, hy = entity.sprite.compute().y) {
+   const anim = new CosmosAnimation({
+      anchor: { x: 0, y: 1 },
+      resources: content.ibuNotify
+   }).on('tick', function () {
+      this.position.set(renderer.projection(entity.position.subtract(0, hy + 3)));
+   });
+   renderer.attach('menu', anim);
+   await timer.pause(time);
+   renderer.detach('menu', anim);
 }
 
 /** oops */
@@ -3496,6 +3520,536 @@ export function quickshadow (
    return e.object;
 }
 
+export async function saveSelector () {
+   const y = 97.5;
+   const baseColor = '#808080';
+   const highlightColor = '#ffffff';
+   const resources = new CosmosInventory(
+      content.ieSplashBackground,
+      content.im_,
+      maps.of('_'),
+      content.amRedacted,
+      content.asMenu,
+      content.asSelect
+   );
+   const audios = {
+      redacted: new CosmosDaemon(content.amRedacted, {
+         context: audio.context,
+         loop: true,
+         gain: 1,
+         rate: 0.1,
+         router: effectSetup(audio.musicReverb, (i, o) => i.connect(o.destination))
+      }),
+      menu: new CosmosDaemon(content.asMenu, { context: audio.context, gain: 0.5 }),
+      select: new CosmosDaemon(content.asSelect, { context: audio.context, gain: 0.5 })
+   };
+   const timelines = {
+      get bisect () {
+         return saveAtlas.navigators.of('timeline').selection() === 'bisect';
+      },
+      name: '',
+      list: CosmosUtils.parse(save.manager.getItem('TIMELINES') || '[]') as [number, string][],
+      get selection () {
+         return saveAtlas.navigators.of('timelines').selection();
+      },
+      delete () {
+         const namespace = timelines.namespace();
+         save.manager.removeItem(namespace);
+         for (const key of CosmosUtils.populate(save.manager.length, index => save.manager.key(index))) {
+            key?.startsWith(namespace) && save.manager.removeItem(key);
+         }
+         timelines.list.splice(timelines.selection, 1);
+         timelines.save();
+      },
+      namespace (index?: number) {
+         return `TIMELINES~${index ?? timelines.list[timelines.selection][0]}`;
+      },
+      rename () {
+         if (timelines.name) {
+            if (timelines.selection === -1 || timelines.bisect) {
+               let index = 0;
+               const indices = timelines.list.map(value => value[0]);
+               while (indices.includes(index)) {
+                  index++;
+               }
+               timelines.list.push([ index, timelines.name ]);
+               if (timelines.bisect) {
+                  const namespace1 = timelines.namespace();
+                  const namespace2 = timelines.namespace(index);
+                  for (const key of CosmosUtils.populate(save.manager.length, index => save.manager.key(index))) {
+                     key?.startsWith(namespace1) &&
+                        save.manager.setItem(
+                           namespace2 + key.slice(namespace1.length),
+                           save.manager.getItem(key) ?? ''
+                        );
+                  }
+               }
+               timelines.save();
+               return 'timeline';
+            } else {
+               timelines.list[timelines.selection][1] = timelines.name;
+               timelines.save();
+               return 'timelines';
+            }
+         }
+      },
+      save () {
+         save.manager.setItem('TIMELINES', CosmosUtils.serialize(timelines.list));
+      }
+   };
+   const crt = new CRTFilter({
+      curvature: 0,
+      lineContrast: 0.15,
+      lineWidth: 5,
+      noise: 0.15,
+      noiseSize: 1.5,
+      vignetting: 0.1,
+      vignettingAlpha: 0.25,
+      vignettingBlur: 0.75
+   });
+   const glitch = new GlitchFilter({ slices: 100, offset: 5 });
+   const saveRenderer = new CosmosRenderer({
+      active: false,
+      area: new Rectangle(0, 0, 640, 480),
+      alpha: 0,
+      wrapper: '#wrapper',
+      layers: { below: [], main: [], menu: [] },
+      size: { x: 640, y: 480 },
+      scale: 2,
+      position: { x: 160, y: 120 },
+      filters: [ crt ]
+   });
+   const room = new CosmosObject({
+      area: saveRenderer.area,
+      metadata: { fx: -Infinity },
+      objects: [ rooms.of('_').layers.below![0] ],
+      filters: [ new GrayscaleFilter() ]
+   }).on('tick', function () {
+      if (this.metadata.fx > saveRenderer.timer.value - 200) {
+         this.filters!.length < 2 && this.filters!.push(glitch);
+         glitch.refresh();
+      } else {
+         this.filters!.length > 1 && this.filters!.pop();
+      }
+   });
+   const next = new CosmosNavigator();
+   const saveAtlas: CosmosAtlas<string> = new CosmosAtlas<string>({
+      next,
+      main: new CosmosNavigator<string>({
+         grid: [ [ 'next', 'timelines' ] ],
+         objects: [
+            new CosmosRectangle({
+               position: { x: 160, y },
+               anchor: 0,
+               size: { x: 280, y: 50 },
+               objects: [
+                  new CosmosText({
+                     font: '16px DeterminationMono',
+                     anchor: 0,
+                     content: text.t_main
+                  })
+               ]
+            }).on('tick', function () {
+               if (saveAtlas.target === 'main' && saveAtlas.navigator()?.selection() === 'next') {
+                  this.stroke = this.objects[0].fill = highlightColor;
+               } else {
+                  this.stroke = this.objects[0].fill = baseColor;
+               }
+            }),
+            new CosmosRectangle({
+               position: { x: 160, y: y + 55 },
+               anchor: 0,
+               size: { x: 200, y: 40 },
+               objects: [
+                  new CosmosText({
+                     font: '16px DeterminationMono',
+                     anchor: 0,
+                     content: text.t_timelines
+                  }).on('tick', function () {
+                     this.alpha.value = saveAtlas.target === 'main' ? 1 : 0;
+                  })
+               ]
+            }).on('tick', function () {
+               if (saveAtlas.target === 'rename') {
+                  this.stroke = highlightColor;
+                  this.objects[0].fill = baseColor;
+               } else if (saveAtlas.target === 'main' && saveAtlas.navigator()?.selection() === 'timelines') {
+                  this.stroke = this.objects[0].fill = highlightColor;
+               } else {
+                  this.stroke = this.objects[0].fill = baseColor;
+               }
+            })
+         ],
+         next (self) {
+            return self.selection();
+         }
+      }).on('change', function () {
+         audios.menu.instance(saveRenderer.timer);
+      }),
+      timelines: new CosmosNavigator<string>({
+         grid () {
+            return [ [ ...timelines.list.keys(), -1 ] ];
+         },
+         flip: true,
+         prev: 'main',
+         next (self) {
+            if (self.selection() === -1) {
+               if (isMobile.any) {
+                  timelines.name = (prompt(text.t_placeholder, '') ?? '').slice(0, 16);
+                  timelines.rename();
+               } else {
+                  return 'rename';
+               }
+            } else {
+               return 'timeline';
+            }
+         },
+         objects: [
+            new CosmosText({
+               position: { x: 160 },
+               anchor: 0,
+               font: '16px DeterminationMono'
+            }).on('tick', function () {
+               if (saveAtlas.target === 'rename') {
+                  this.y = y + 55;
+                  this.content = timelines.name || text.t_placeholder;
+               } else if (saveAtlas.target === 'delete') {
+                  this.y = y + 47.5;
+                  this.content = text.t_confirm;
+               } else if (timelines.selection === -1) {
+                  this.y = y + 55;
+                  this.content = text.t_create;
+               } else {
+                  this.y = y + 47.5;
+                  this.content = timelines.list[timelines.selection][1];
+               }
+               if (saveAtlas.target === 'rename') {
+                  this.fill = timelines.name ? highlightColor : baseColor;
+               } else if (saveAtlas.target === 'delete' || saveAtlas.target === 'timelines') {
+                  this.fill = highlightColor;
+               } else {
+                  this.fill = baseColor;
+               }
+            }),
+            new CosmosText({
+               position: { x: 100, y: y + 62.5 },
+               anchor: 0,
+               font: '9px CryptOfTomorrow',
+               content: text.t_launch
+            }).on('tick', function () {
+               if (
+                  (saveAtlas.target === 'timelines' && saveAtlas.navigator()?.selection() === -1) ||
+                  saveAtlas.target === 'rename' ||
+                  saveAtlas.target === 'delete'
+               ) {
+                  this.alpha.value = 0;
+               } else {
+                  this.alpha.value = 1;
+                  if (saveAtlas.target === 'timeline' && saveAtlas.navigator()?.selection() === 'next') {
+                     this.fill = highlightColor;
+                  } else {
+                     this.fill = baseColor;
+                  }
+               }
+            }),
+            new CosmosText({
+               position: { x: 140, y: y + 62.5 },
+               anchor: 0,
+               font: '9px CryptOfTomorrow',
+               content: text.t_rename
+            }).on('tick', function () {
+               if (
+                  (saveAtlas.target === 'timelines' && saveAtlas.navigator()?.selection() === -1) ||
+                  saveAtlas.target === 'rename' ||
+                  saveAtlas.target === 'delete'
+               ) {
+                  this.alpha.value = 0;
+               } else {
+                  this.alpha.value = 1;
+                  if (saveAtlas.target === 'timeline' && saveAtlas.navigator()?.selection() === 'rename') {
+                     this.fill = highlightColor;
+                  } else {
+                     this.fill = baseColor;
+                  }
+               }
+            }),
+            new CosmosText({
+               position: { x: 180, y: y + 62.5 },
+               anchor: 0,
+               font: '9px CryptOfTomorrow',
+               content: text.t_bisect
+            }).on('tick', function () {
+               if (
+                  (saveAtlas.target === 'timelines' && saveAtlas.navigator()?.selection() === -1) ||
+                  saveAtlas.target === 'rename' ||
+                  saveAtlas.target === 'delete'
+               ) {
+                  this.alpha.value = 0;
+               } else {
+                  this.alpha.value = 1;
+                  if (saveAtlas.target === 'timeline' && saveAtlas.navigator()?.selection() === 'bisect') {
+                     this.fill = highlightColor;
+                  } else {
+                     this.fill = baseColor;
+                  }
+               }
+            }),
+            new CosmosText({
+               position: { x: 220, y: y + 62.5 },
+               anchor: 0,
+               font: '9px CryptOfTomorrow',
+               content: text.t_delete
+            }).on('tick', function () {
+               if (
+                  (saveAtlas.target === 'timelines' && saveAtlas.navigator()?.selection() === -1) ||
+                  saveAtlas.target === 'rename' ||
+                  saveAtlas.target === 'delete'
+               ) {
+                  this.alpha.value = 0;
+               } else {
+                  this.alpha.value = 1;
+                  if (saveAtlas.target === 'timeline' && saveAtlas.navigator()?.selection() === 'delete') {
+                     this.fill = highlightColor;
+                  } else {
+                     this.fill = baseColor;
+                  }
+               }
+            }),
+            new CosmosText({
+               position: { x: 70, y: y + 55 },
+               anchor: 0,
+               font: '16px DeterminationMono',
+               content: '<'
+            }).on('tick', function () {
+               if (saveAtlas.target === 'timelines') {
+                  this.alpha.value = 1;
+                  if (saveAtlas.navigator()?.position.y === 0) {
+                     this.fill = baseColor;
+                  } else {
+                     this.fill = highlightColor;
+                  }
+               } else {
+                  this.alpha.value = 0;
+               }
+            }),
+            new CosmosText({
+               position: { x: 250, y: y + 55 },
+               anchor: 0,
+               font: '16px DeterminationMono',
+               content: '>'
+            }).on('tick', function () {
+               if (saveAtlas.target === 'timelines') {
+                  this.alpha.value = 1;
+                  if (timelines.selection === -1) {
+                     this.fill = baseColor;
+                  } else {
+                     this.fill = highlightColor;
+                  }
+               } else {
+                  this.alpha.value = 0;
+               }
+            })
+         ]
+      })
+         .on('change', function () {
+            audios.menu.instance(saveRenderer.timer);
+         })
+         .on('from', function (target) {
+            select();
+            target === 'main' && saveAtlas.attach(saveRenderer, 'main', 'timelines');
+         })
+         .on('to', function (target) {
+            target === 'main' && saveAtlas.detach(saveRenderer, 'main', 'timelines');
+         }),
+      timeline: new CosmosNavigator<string>({
+         grid: [ [ 'next', 'rename', 'bisect', 'delete' ] ],
+         flip: true,
+         prev: 'timelines',
+         next (self) {
+            const selection = self.selection();
+            const selectionTarget = selection === 'bisect' ? 'rename' : selection;
+            if (selectionTarget === 'rename' && isMobile.any) {
+               timelines.name = (
+                  prompt(text.t_placeholder, selection === 'bisect' ? '' : timelines.list[timelines.selection][1]) ?? ''
+               ).slice(0, 16);
+               timelines.rename();
+            } else {
+               return selectionTarget;
+            }
+         }
+      })
+         .on('change', function () {
+            audios.menu.instance(saveRenderer.timer);
+         })
+         .on('from', function (target) {
+            target === 'timelines' && select();
+            this.position = { x: 0, y: 0 };
+         }),
+      rename: new CosmosNavigator<string>({
+         prev () {
+            return timelines.selection === -1 ? 'timelines' : 'timeline';
+         },
+         next () {
+            return timelines.rename();
+         }
+      })
+         .on('from', function () {
+            select();
+            timelines.name =
+               timelines.selection === -1 || timelines.bisect ? '' : timelines.list[timelines.selection][1];
+            addEventListener('keydown', keydownListener);
+         })
+         .on('to', function () {
+            removeEventListener('keydown', keydownListener);
+         }),
+      delete: new CosmosNavigator<string>({
+         grid: [ [ 'no', 'yes' ] ],
+         flip: true,
+         objects: [
+            new CosmosText({
+               position: { x: 130, y: y + 62.5 },
+               anchor: 0,
+               font: '12px CryptOfTomorrow',
+               content: text.g_no
+            }).on('tick', function () {
+               if (saveAtlas.target === 'delete' && saveAtlas.navigator()?.selection() === 'no') {
+                  this.fill = highlightColor;
+               } else {
+                  this.fill = baseColor;
+               }
+            }),
+            new CosmosText({
+               position: { x: 190, y: y + 62.5 },
+               anchor: 0,
+               font: '12px CryptOfTomorrow',
+               content: text.g_yes
+            }).on('tick', function () {
+               if (saveAtlas.target === 'delete' && saveAtlas.navigator()?.selection() === 'yes') {
+                  this.fill = highlightColor;
+               } else {
+                  this.fill = baseColor;
+               }
+            })
+         ],
+         next (self) {
+            if (self.selection() === 'yes') {
+               timelines.delete();
+               return 'timelines';
+            } else {
+               return 'timeline';
+            }
+         },
+         prev: 'timeline'
+      })
+         .on('change', function () {
+            audios.menu.instance(saveRenderer.timer);
+         })
+         .on('from', function () {
+            select();
+            this.position = { x: 0, y: 0 };
+            saveAtlas.attach(saveRenderer, 'main', 'delete');
+         })
+         .on('to', function () {
+            saveAtlas.detach(saveRenderer, 'main', 'delete');
+         })
+   });
+   function select () {
+      audios.select.instance(saveRenderer.timer);
+      room.metadata.fx = saveRenderer.timer.value;
+   }
+   function keyListener (this: CosmosKeyboardInput) {
+      switch (this) {
+         case keys.downKey:
+            saveAtlas.seek('down');
+            break;
+         case keys.leftKey:
+            saveAtlas.seek('left');
+            break;
+         case keys.rightKey:
+            saveAtlas.seek('right');
+            break;
+         case keys.upKey:
+            saveAtlas.seek('up');
+            break;
+         case keys.interactKey:
+            saveAtlas.target === 'rename' || saveAtlas.next();
+            break;
+         case keys.specialKey:
+            saveAtlas.target === 'rename' || saveAtlas.prev();
+            break;
+      }
+   }
+   function keydownListener (event: KeyboardEvent) {
+      if (saveAtlas.target === 'rename') {
+         if (event.key.length === 1) {
+            timelines.name.length < 21 && (timelines.name += event.key);
+         } else {
+            switch (event.key) {
+               case 'Backspace':
+                  timelines.name.length > 0 && (timelines.name = timelines.name.slice(0, -1));
+                  break;
+               case 'Enter':
+                  saveAtlas.next();
+                  break;
+               case 'Escape':
+                  saveAtlas.prev();
+                  break;
+            }
+         }
+      }
+   }
+   audio.musicReverb.value = 1;
+   saveRenderer.on('tick', function () {
+      crt.time += 0.5;
+      isMobile.any &&
+         (mobile.bounds = (renderer.application.renderer.view as HTMLCanvasElement).getBoundingClientRect());
+   });
+   await Promise.all([ isMobile.any ? mobileLoader : void 0, resources.load() ]);
+   saveRenderer.active = true;
+   saveRenderer.attach(
+      'below',
+      new CosmosSprite({ frames: [ content.ieSplashBackground ], priority: -2 }),
+      new CosmosRectangle({
+         size: { x: 320, y: 240 },
+         border: 20,
+         stroke: '#000000'
+      }),
+      room
+   );
+   isMobile.any && saveRenderer.attach('menu', controller);
+   saveAtlas.switch('main');
+   saveAtlas.attach(saveRenderer, 'main', 'main');
+   saveRenderer.alpha.modulate(saveRenderer.timer, 200, 1);
+   const music = audios.redacted.instance(saveRenderer.timer);
+   music.gain.value /= 10;
+   music.gain.modulate(saveRenderer.timer, 200, music.gain.value * 10);
+   for (const key of Object.values(keys)) {
+      key.on('down', keyListener);
+   }
+   if ((await next.on('from'))[0] === 'timeline') {
+      param('namespace', (save.namespace = timelines.namespace()));
+      save.state = {};
+      saver.load();
+      launch.intro = false;
+      if (hashes.of(timelines.list[timelines.selection][1].toLowerCase()) === 670987361852517) {
+         timelines.delete();
+         saver.transfer(sessionStorage);
+         save.data.s.room = game.room = '_';
+         game.menu = false;
+      }
+   } else {
+      param('namespace', 'OUTERTALE');
+   }
+   for (const key of Object.values(keys)) {
+      key.off('down', keyListener);
+   }
+   music.stop();
+   saveRenderer.canvas.remove();
+   saveRenderer.active = false;
+   resources.unload();
+   audio.musicReverb.value = 0;
+}
+
 /** quick screen-shake */
 export async function shake (value: number, runoff: number, hold = 0, ...points: number[]) {
    await renderer.shake.modulate(timer, 0, value);
@@ -3521,6 +4075,7 @@ export function talkFilter (index = 0) {
    return (top: CosmosObject) =>
       top.objects.filter(object => object instanceof CosmosAnimation)[index] as CosmosAnimation;
 }
+
 /** room teleporter */
 export async function teleport (
    dest: string,
@@ -3630,14 +4185,19 @@ export async function teleport (
    events.fire('teleport', prevkey, dest);
 
    // update camera bounds
-   Object.assign(renderer.region[0], next.region[0]);
-   Object.assign(renderer.region[1], next.region[1]);
+   renderer.region[0].x = next.region[0]?.x ?? renderer.region[0].x;
+   renderer.region[0].y = next.region[0]?.y ?? renderer.region[0].y;
+   renderer.region[1].x = next.region[1]?.x ?? renderer.region[1].x;
+   renderer.region[1].y = next.region[1]?.y ?? renderer.region[1].y;
 
    // resume timer
    game.timer = teleporter.timer;
    game.movement = teleporter.movement;
 
    if (!fast) {
+      // disable menu upon end (avoids sus)
+      game.menu = false;
+
       // begin fade in
       renderer.alpha.modulate(timer, fade ? 300 : 0, 1);
 
@@ -3645,6 +4205,7 @@ export async function teleport (
       renderer.on('tick').then(async () => {
          await renderer.on('render');
          teleporter.hot = false;
+         game.menu = true;
       });
 
       // start new music if applicable
@@ -3713,6 +4274,10 @@ export async function use (key: string, index: number) {
    await Promise.all(events.fire('use', key));
 }
 
+export function validName () {
+   return save.data.s.name !== '' && save.flag.n.hash !== 0 && save.flag.n.hash === hashes.of(save.data.s.name);
+}
+
 atlas.navigators.register({
    battlerSimple: new CosmosNavigator({
       next: () => void typer.read(),
@@ -3720,26 +4285,19 @@ atlas.navigators.register({
       objects: [
          new CosmosRectangle({ fill: 'black', size: { x: 340, y: 260 }, anchor: 0, position: { x: 160, y: 120 } }),
          new CosmosObject({
-            fill: '#fff',
-            stroke: 'transparent',
-            position: { x: 200 / 2, y: 403 / 2 },
             objects: [
                new CosmosText({
-                  position: { y: -0.5 },
+                  position: { x: 200 / 2, y: 403 / 2 - 0.5 },
+                  fill: '#fff',
+                  stroke: 'transparent',
                   font: '12px MarsNeedsCunnilingus'
                }).on('tick', function () {
-                  this.content = `${text.b_text1} ${calcLV()}`;
-               })
-            ]
-         }).on('tick', function () {
-            this.alpha.value = battler.alpha.value;
-         }),
-         new CosmosObject({
-            position: { x: 274 / 2, y: 400 / 2 },
-            objects: [
+                  this.content = `${text.g_lv} ${calcLV()}`;
+               }),
                new CosmosObject({
                   fill: '#fff',
                   stroke: 'transparent',
+                  position: { x: 274 / 2, y: 400 / 2 },
                   objects: [
                      new CosmosSprite({
                         frames: [ content.ibuHP ],
@@ -3763,7 +4321,7 @@ atlas.navigators.register({
                         font: '12px MarsNeedsCunnilingus'
                      }).on('tick', function () {
                         const max = calcHP();
-                        this.content = `${(save.data.n.hp === Infinity ? text.b_text17 : save.data.n.hp)
+                        this.content = `${(save.data.n.hp === Infinity ? text.g_inf : save.data.n.hp)
                            .toString()
                            .padStart(2, '0')} / ${max}`;
                         this.position.x =
@@ -3775,9 +4333,7 @@ atlas.navigators.register({
          }).on('tick', function () {
             this.alpha.value = battler.alpha.value;
          }),
-         new CosmosObject().on('tick', function () {
-            this.objects = [ battler.box ];
-         })
+         battler.box
       ]
    })
       .on('from', from => {
@@ -3803,32 +4359,31 @@ atlas.navigators.register({
       grid: () => [ battler.buttons.map(button => button.metadata.button as string) ],
       objects: [
          new CosmosRectangle({ fill: 'black', size: { x: 340, y: 260 }, anchor: 0, position: { x: 160, y: 120 } }),
-         new CosmosSprite({
-            position: { x: 15 / 2, y: 9 / 2 },
-            scale: 0.5
-         }).on('tick', function () {
-            this.alpha.value = battler.alpha.value;
-            this.frames = [ battler.grid ];
-         }),
          new CosmosObject({
-            fill: '#fff',
-            stroke: 'transparent',
-            position: { x: 30 / 2, y: 403 / 2 },
             objects: [
-               new CosmosText({
-                  position: { y: -0.5 },
-                  font: '12px MarsNeedsCunnilingus'
-               }).on('tick', function () {
-                  this.content = `${save.data.s.name || text.n_unknown}   ${text.b_text1} ${calcLV()}`;
-               })
-            ]
-         }).on('tick', function () {
-            this.alpha.value = battler.alpha.value;
-         }),
-         new CosmosObject({
-            position: { x: 244 / 2, y: 400 / 2 },
-            objects: [
+               battler.gridder,
                new CosmosObject({
+                  fill: '#fff',
+                  stroke: 'transparent',
+                  position: { x: 30 / 2, y: 403 / 2 },
+                  objects: [
+                     new CosmosText({
+                        position: { y: -0.5 },
+                        font: '12px MarsNeedsCunnilingus'
+                     }).on('tick', function () {
+                        this.content = `${validName() ? save.data.s.name : text.g_mystery1}`;
+                     }),
+                     new CosmosText({
+                        position: { x: 117, y: -0.5 },
+                        font: '12px MarsNeedsCunnilingus'
+                     }).on('tick', function () {
+                        this.x = 13.5 + (validName() ? save.data.s.name.length : 6) * 7.5;
+                        this.content = `${text.g_lv} ${calcLV()}`;
+                     })
+                  ]
+               }),
+               new CosmosObject({
+                  position: { x: 244 / 2, y: 400 / 2 },
                   fill: '#fff',
                   stroke: 'transparent',
                   objects: [
@@ -3875,24 +4430,23 @@ atlas.navigators.register({
                         font: '12px MarsNeedsCunnilingus'
                      }).on('tick', function () {
                         const max = calcHP();
-                        this.content = `${(save.data.n.hp === Infinity ? text.b_text17 : save.data.n.hp)
+                        this.content = `${(save.data.n.hp === Infinity ? text.g_inf : save.data.n.hp)
                            .toString()
                            .padStart(2, '0')} / ${max}`;
                         this.position.x =
                            Math.max(max, save.data.n.hp === Infinity ? calcHP() : save.data.n.hp) * 0.6 + 23;
                      })
                   ]
+               }),
+               new CosmosObject().on('tick', function () {
+                  this.objects.length === battler.buttons.length || (this.objects = battler.buttons);
                })
             ]
          }).on('tick', function () {
             this.alpha.value = battler.alpha.value;
          }),
-         new CosmosObject().on('tick', function () {
-            this.objects = battler.buttons;
-         }),
-         new CosmosObject().on('tick', function () {
-            this.objects = [ battler.overlay, battler.box ];
-         })
+         battler.overlay,
+         battler.box
       ]
    })
       .on('from', () => {
@@ -3912,9 +4466,9 @@ atlas.navigators.register({
          const grid = [] as number[][];
          const list = battler.indexes;
          if (list.length > 0) {
-            grid.push([ ...list.slice(0, 3) ]);
+            grid.push(list.slice(0, 3));
             if (list.length > 3) {
-               grid.push([ ...list.slice(3, 6) ]);
+               grid.push(list.slice(3, 6));
             }
          }
          return grid;
@@ -3933,69 +4487,63 @@ atlas.navigators.register({
          new CosmosObject({
             font: '16px DeterminationMono',
             objects: [
-               ...CosmosUtils.populate(
-                  3,
-                  index =>
-                     menuText(
-                        100 + Math.floor(index / 3) * 256,
-                        278 + Math.floor(index % 3) * 32 - 4,
-                        () =>
-                           battler.alive.length > index ? CosmosUtils.provide(battler.alive[index].opponent.name) : '',
-                        {
-                           objects: [
-                              new CosmosRectangle({
-                                 position: { x: 77, y: 3 },
-                                 fill: '#f00',
-                                 size: { x: 101 / 2, y: 17 / 2 },
-                                 objects: [
-                                    new CosmosRectangle({
-                                       fill: '#0f0',
-                                       size: { y: 17 / 2 }
-                                    }).on('tick', function () {
-                                       if (
-                                          atlas.navigators.of('battlerAdvanced').selection() === 'fight' &&
-                                          battler.alive.length > index
-                                       ) {
-                                          const volatile = battler.alive[index];
-                                          this.size.x = Math.ceil((101 / 2) * (volatile.hp / volatile.opponent.hp));
-                                       }
-                                    })
-                                 ]
-                              }).on('tick', function () {
-                                 if (
-                                    atlas.navigators.of('battlerAdvanced').selection() === 'fight' &&
-                                    battler.alive.length > index
-                                 ) {
-                                    this.alpha.value = 1;
-                                    this.position.x = Math.min(
-                                       45 +
-                                          8 *
-                                             Math.max(
-                                                ...battler.alive.map(
-                                                   volatile => CosmosUtils.provide(volatile.opponent.name).length
-                                                )
-                                             ),
-                                       186
-                                    );
-                                 } else {
-                                    this.alpha.value = 0;
-                                 }
-                              })
-                           ]
-                        }
-                     ).on('tick', function () {
-                        this.fill = battler.alive[index]?.sparable
-                           ? '#ffff00'
-                           : battler.bullied.includes(battler.alive[index])
-                           ? '#3f00ff'
-                           : '#ffffff';
-                     })
-                  /*
-
-
-                  bar.position.x = 32 + navigator.position.x * 130 + 99;
-                  bar.position.y = 139 + navigator.position.y * 16 + 5;
-                  */
+               ...CosmosUtils.populate(3, index =>
+                  menuText(
+                     100 + Math.floor(index / 3) * 256,
+                     278 + Math.floor(index % 3) * 32 - 4,
+                     () =>
+                        battler.alive.length > index ? CosmosUtils.provide(battler.alive[index].opponent.name) : '',
+                     {
+                        objects: [
+                           new CosmosRectangle({
+                              position: { x: 77, y: 3 },
+                              fill: '#f00',
+                              size: { x: 101 / 2, y: 17 / 2 },
+                              objects: [
+                                 new CosmosRectangle({
+                                    fill: '#0f0',
+                                    size: { y: 17 / 2 }
+                                 }).on('tick', function () {
+                                    if (
+                                       atlas.navigators.of('battlerAdvanced').selection() === 'fight' &&
+                                       battler.alive.length > index
+                                    ) {
+                                       const volatile = battler.alive[index];
+                                       this.size.x = Math.ceil((101 / 2) * (volatile.hp / volatile.opponent.hp));
+                                    }
+                                 })
+                              ]
+                           }).on('tick', function () {
+                              if (
+                                 atlas.navigators.of('battlerAdvanced').selection() === 'fight' &&
+                                 battler.alive.length > index
+                              ) {
+                                 this.alpha.value = 1;
+                                 this.position.x = Math.min(
+                                    45 +
+                                       8 *
+                                          Math.max(
+                                             ...battler.alive.map(
+                                                volatile => CosmosUtils.provide(volatile.opponent.name).length
+                                             )
+                                          ),
+                                    186
+                                 );
+                              } else {
+                                 this.alpha.value = 0;
+                              }
+                           })
+                        ]
+                     }
+                  ).on('tick', function () {
+                     this.fill = battler.alive[index]?.sparable
+                        ? '#ffff00'
+                        : battler.alive[index]?.flirted
+                        ? '#d4bbff'
+                        : battler.bullied.includes(battler.alive[index])
+                        ? '#3f00ff'
+                        : '#ffffff';
+                  })
                ),
                ...CosmosUtils.populate(
                   6,
@@ -4012,7 +4560,7 @@ atlas.navigators.register({
       flip: true,
       grid: () => {
          const grid = [] as string[][];
-         const acts = CosmosUtils.provide(battler.target.opponent.acts).map(value => value[0]);
+         const acts = CosmosUtils.provide(battler.target!.opponent.acts).map(value => value[0]);
          if (acts.length > 0) {
             grid.push([ ...acts.slice(0, 2) ]);
             if (acts.length > 2) {
@@ -4028,7 +4576,7 @@ atlas.navigators.register({
          battler.SOUL.alpha.value = 0;
          battler.refocus();
          const act = self.selection();
-         const volatile = battler.target;
+         const volatile = battler.target!;
          for (const [ key, text ] of CosmosUtils.provide(volatile.opponent.acts)) {
             if (act === key) {
                events.fire('select', 'act', act);
@@ -4047,10 +4595,10 @@ atlas.navigators.register({
             font: '16px DeterminationMono',
             objects: CosmosUtils.populate(6, index =>
                menuText(100 + Math.floor(index % 2) * 256, 278 + Math.floor(index / 2) * 32 - 4, () => {
-                  const acts = CosmosUtils.provide(battler.target.opponent.acts);
+                  const acts = CosmosUtils.provide(battler.target!.opponent.acts);
                   if (acts.length > index) {
                      const act = acts[index];
-                     const colortext = CosmosUtils.provide(act[2], battler.target);
+                     const colortext = CosmosUtils.provide(act[2], battler.target!);
                      return `${colortext ? `§fill:${colortext}§` : ''}${battler.acts.of(act[0])}`;
                   } else {
                      return '';
@@ -4074,7 +4622,7 @@ atlas.navigators.register({
          typer.text(...CosmosUtils.provide(item.text.use)).then(async () => {
             await use(key, index);
             if (item.type === 'consumable') {
-               await typer.text(save.data.n.hp < calcHP() ? text.b_text16 : text.b_text15);
+               await typer.text(save.data.n.hp < calcHP() ? text.b_heal2 : text.b_heal1);
             }
             atlas.switch(null);
             events.fire('choice', { type: 'item', item: key });
@@ -4142,7 +4690,9 @@ atlas.navigators.register({
       prev: 'battlerAdvanced'
    }),
    battlerAdvancedMercy: new CosmosNavigator({
-      grid: () => [ [ 'spare', ...(battler.flee ? [ 'flee' ] : []), ...(battler.assist ? [ 'assist' ] : []) ] ],
+      grid: () => [
+         [ 'spare', ...(battler.flee ? [ 'flee' ] : []), ...(battler.assist && !save.data.b.oops ? [ 'assist' ] : []) ]
+      ],
       next (self) {
          battler.SOUL.alpha.value = 0;
          battler.refocus();
@@ -4274,9 +4824,19 @@ atlas.navigators.register({
       while (atlas.target === 'frontEnd') {
          panel.alpha.modulate(timer, 500, 1);
          typer.text(
-            ...text[`n_frontEnd${frontEnder.index as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}`].map(
-               text => `{#p/story}{#i/50}${CosmosUtils.format(text, 24, true)}`
-            )
+            ...[
+               text.m_story1,
+               text.m_story2,
+               text.m_story3,
+               text.m_story4,
+               text.m_story5,
+               text.m_story6,
+               text.m_story7,
+               text.m_story8,
+               text.m_story9,
+               text.m_story10,
+               text.m_story11
+            ][frontEnder.index - 1].map(text => `{#p/story}{#i/50}${CosmosUtils.format(text, 24, true)}`)
          );
          await typer.on('idle');
          await timer.pause(2000);
@@ -4302,7 +4862,7 @@ atlas.navigators.register({
          new CosmosSprite({
             frames: [ content.ieSplashForeground ]
          }),
-         menuText(240, 360 - 2, () => text.n_landing1, {
+         menuText(240, 360 - 2, () => text.g_landing1, {
             alpha: 0,
             fill: '#808080',
             font: '8px CryptOfTomorrow'
@@ -4342,9 +4902,8 @@ atlas.navigators.register({
    frontEndLoad: new CosmosNavigator({
       flip: true,
       grid: () => [
-         [ 'continue', 'reset' ],
-         [ 'settings', 'settings' ],
-         ...(save.flag.b.demo_complete ? [ [ 'trueReset', 'trueReset' ] ] : [])
+         [ 'continue', save.flag.b.true_reset ? 'trueReset' : 'reset' ],
+         [ 'settings', 'settings' ]
       ],
       next (self) {
          switch (self.selection()) {
@@ -4366,8 +4925,8 @@ atlas.navigators.register({
          new CosmosObject({
             font: '16px DeterminationSans',
             objects: [
-               menuText(140, 132 - 4, () => save.data.s.name || text.n_unknown),
-               menuText(280, 132 - 4, () => `${text.n_lv} ${calcLV()}`),
+               menuText(140, 132 - 4, () => (validName() ? save.data.s.name : text.g_mystery1)),
+               menuText(280, 132 - 4, () => `${text.g_lv} ${calcLV()}`),
                menuText(498, 132 - 4, () => displayTime(save.data.n.time), {
                   anchor: { x: 1 }
                }),
@@ -4375,24 +4934,24 @@ atlas.navigators.register({
                menuText(
                   170,
                   218 - 4,
-                  () => `§fill:${menuFilter('frontEndLoad', 'continue') ? '#ff0' : '#fff'}§${text.n_frontEndLoad2}`
+                  () => `§fill:${menuFilter('frontEndLoad', 'continue') ? '#ff0' : '#fff'}§${text.m_load1}`
                ),
                menuText(
                   390,
                   218 - 4,
-                  () => `§fill:${menuFilter('frontEndLoad', 'reset') ? '#ff0' : '#fff'}§${text.n_frontEndLoad3}`
+                  () => `§fill:${menuFilter('frontEndLoad', 'reset') ? '#ff0' : '#fff'}§${text.m_load2}`
                ),
                menuText(
                   264,
                   258 - 4,
-                  () => `§fill:${menuFilter('frontEndLoad', 'settings') ? '#ff0' : '#fff'}§${text.n_frontEndLoad5}`
+                  () => `§fill:${menuFilter('frontEndLoad', 'settings') ? '#ff0' : '#fff'}§${text.g_settings}`
                ),
                menuText(
                   212,
                   298 - 4,
-                  () => `§fill:${menuFilter('frontEndLoad', 'trueReset') ? '#ff0' : '#fff'}§${text.n_frontEndLoad4}`
+                  () => `§fill:${menuFilter('frontEndLoad', 'trueReset') ? '#ff0' : '#fff'}§${text.m_load3}`
                ).on('tick', function () {
-                  this.alpha.value = save.flag.b.demo_complete ? 1 : 0;
+                  this.alpha.value = save.flag.b.true_reset ? 1 : 0;
                }),
                menuText(320, 464 - 2, () => text.n_footer, {
                   anchor: { x: 0 },
@@ -4405,7 +4964,7 @@ atlas.navigators.register({
    }),
    frontEndName: new CosmosNavigator({
       flip: true,
-      grid: [ ...text.n_frontEndName5, [ 'quit', 'backspace', 'done' ] ],
+      grid: [ ...text.m_name5, [ 'quit', 'backspace', 'done' ] ],
       next (self) {
          const selection = self.selection() as string;
          switch (selection) {
@@ -4448,12 +5007,10 @@ atlas.navigators.register({
          new CosmosObject({
             font: '16px DeterminationSans',
             objects: [
-               menuText(168, 68 - 4, () =>
-                  world.µ(frontEnder.name.value) ? text.n_frontEndName0 : text.n_frontEndName1
-               ),
+               menuText(168, 68 - 4, () => text.m_name1),
                menuText(280, 118 - 4, () => frontEnder.name.value),
-               ...text.n_frontEndName5.flat().map((letter, index) => {
-                  const { x, y } = text.n_frontEndName6(index);
+               ...text.m_name5.flat().map((letter, index) => {
+                  const { x, y } = text.m_name6(index);
                   return menuText(
                      x,
                      y - 4,
@@ -4466,17 +5023,17 @@ atlas.navigators.register({
                menuText(
                   120,
                   408 - 4,
-                  () => `§fill:${menuFilter('frontEndName', 'quit') ? '#ff0' : '#fff'}§${text.n_frontEndName2}`
+                  () => `§fill:${menuFilter('frontEndName', 'quit') ? '#ff0' : '#fff'}§${text.m_name2}`
                ),
                menuText(
                   240,
                   408 - 4,
-                  () => `§fill:${menuFilter('frontEndName', 'backspace') ? '#ff0' : '#fff'}§${text.n_frontEndName3}`
+                  () => `§fill:${menuFilter('frontEndName', 'backspace') ? '#ff0' : '#fff'}§${text.m_name3}`
                ),
                menuText(
                   440,
                   408 - 4,
-                  () => `§fill:${menuFilter('frontEndName', 'done') ? '#ff0' : '#fff'}§${text.n_frontEndName4}`
+                  () => `§fill:${menuFilter('frontEndName', 'done') ? '#ff0' : '#fff'}§${text.m_name4}`
                )
             ]
          })
@@ -4503,7 +5060,7 @@ atlas.navigators.register({
                if (frontEnder.trueReset) {
                   saver.reset(true, false);
                   save.data.s.name = frontEnder.name.value;
-                  save.flag.n.hash = hash(frontEnder.name.value);
+                  save.flag.n.hash = hashes.of(frontEnder.name.value);
                   frontEnder.name.value = '';
                   events.fire('reset');
                } else if (name) {
@@ -4514,15 +5071,11 @@ atlas.navigators.register({
                   events.fire('reset');
                } else {
                   save.data.s.name = frontEnder.name.value;
-                  save.flag.n.hash = hash(frontEnder.name.value);
+                  save.flag.n.hash = hashes.of(frontEnder.name.value);
                   frontEnder.name.value = '';
                }
-               if (world.µ(save.data.s.name)) {
-                  save.data.s.room = game.room = '_';
-               } else {
-                  save.data.s.room = game.room = 'w_start';
-                  name || saver.save();
-               }
+               save.data.s.room = game.room = 'w_start';
+               name || saver.save();
 
                // do the teleport
                events.fire('spawn');
@@ -4537,33 +5090,23 @@ atlas.navigators.register({
             objects: [
                menuText(180, 68 - 4, () => {
                   if (save.data.s.name && !frontEnder.trueReset) {
-                     return text.n_frontEndNameConfirm2;
+                     return text.m_confirm2;
                   } else {
                      const lower = frontEnder.name.value.toLowerCase();
-                     if (lower in text.n_frontEndNameConfirm6) {
-                        return CosmosUtils.format(
-                           text.n_frontEndNameConfirm6[lower as keyof typeof text.n_frontEndNameConfirm6],
-                           24,
-                           true
-                        );
+                     if (lower in text.m_confirm4) {
+                        return CosmosUtils.format(text.m_confirm4[lower as keyof typeof text.m_confirm4], 24, true);
                      } else if (new Set(lower.split('')).size === 1) {
-                        return text.n_frontEndNameConfirm6.aaaaaa;
+                        return text.m_confirm4.aaaaaa;
                      } else {
-                        return text.n_frontEndNameConfirm1;
+                        return text.m_confirm1;
                      }
                   }
                }),
                new CosmosObject({
                   objects: [
-                     menuText(0, 0, () => {
-                        const name =
-                           save.data.s.name && !frontEnder.trueReset ? save.data.s.name : frontEnder.name.value;
-                        if (world.µ(name)) {
-                           return '';
-                        } else {
-                           return name;
-                        }
-                     }).on('tick', function () {
+                     menuText(0, 0, () =>
+                        save.data.s.name && !frontEnder.trueReset ? save.data.s.name : frontEnder.name.value
+                     ).on('tick', function () {
                         this.position.x = Math.random() / 2;
                         this.position.y = Math.random() / 2;
                         this.rotation.value = (Math.random() - 0.5) * frontEnder.name.shake.value;
@@ -4576,8 +5119,8 @@ atlas.navigators.register({
                   () =>
                      `§fill:${menuFilter('frontEndNameConfirm', 'no') ? '#ff0' : '#fff'}§${
                         frontEnder.name.blacklist.includes(frontEnder.name.value.toLowerCase())
-                           ? text.n_frontEndNameConfirm4
-                           : text.n_frontEndNameConfirm3
+                           ? text.m_confirm3
+                           : text.g_no
                      }`
                ),
                menuText(
@@ -4585,10 +5128,7 @@ atlas.navigators.register({
                   408 - 4,
                   () =>
                      `§fill:${menuFilter('frontEndNameConfirm', 'yes') ? '#ff0' : '#fff'}§${
-                        world.µ(frontEnder.name.value.toLowerCase()) ||
-                        frontEnder.name.blacklist.includes(frontEnder.name.value.toLowerCase())
-                           ? ''
-                           : text.n_frontEndNameConfirm5
+                        frontEnder.name.blacklist.includes(frontEnder.name.value.toLowerCase()) ? '' : text.g_yes
                      }`
                )
             ]
@@ -4612,9 +5152,7 @@ atlas.navigators.register({
       frontEnder.name.shake.modulate(timer, 4000, 2);
    }),
    frontEndSettings: new CosmosNavigator<string>({
-      grid: () => [
-         [ 'exit', 'sfx', 'music', /* ...(backend.available ? [ 'trans' ] : []), */ ...(isMobile.any ? [ 'right' ] : []) ]
-      ],
+      grid: () => [ [ 'exit', 'sfx', 'music', ...(isMobile.any ? [ 'right' ] : []) ] ],
       next (self) {
          const selection = self.selection() as string;
          switch (selection) {
@@ -4650,54 +5188,38 @@ atlas.navigators.register({
             font: '16px DeterminationSans',
             objects: [
                // 60px base indent, +28px for each line (2 lines would have 88 px indent)
-               menuText(208, 36 - 4, () => text.n_frontEndSettings1, {
+               menuText(208, 36 - 4, () => text.m_settings1, {
                   font: '32px DeterminationSans'
                }),
                menuText(
                   40,
                   88 - 4,
-                  () => `§fill:${menuFilter('frontEndSettings', 'exit') ? '#ff0' : '#fff'}§${text.n_frontEndSettings2}`
+                  () => `§fill:${menuFilter('frontEndSettings', 'exit') ? '#ff0' : '#fff'}§${text.m_settings2}`
                ),
                menuText(
                   40,
                   148 - 4,
-                  () => `§fill:${menuFilter('frontEndSettings', 'sfx') ? '#ff0' : '#fff'}§${text.n_frontEndSettings3}`
+                  () => `§fill:${menuFilter('frontEndSettings', 'sfx') ? '#ff0' : '#fff'}§${text.m_settings3}`
                ),
                menuText(184, 148 - 4, () => {
                   return `§fill:${menuFilter('frontEndSettings', 'sfx') ? '#ff0' : '#fff'}§${
-                     save.flag.b.option_sfx ? text.n_frontEndSettings3b : text.n_frontEndSettings3a
+                     save.flag.b.option_sfx ? text.g_disabled : text.g_percent
                   }`.replace('$(x)', Math.round((1 - save.flag.n.option_sfx) * 100).toString());
                }),
                menuText(
                   40,
                   208 - 4,
-                  () => `§fill:${menuFilter('frontEndSettings', 'music') ? '#ff0' : '#fff'}§${text.n_frontEndSettings4}`
+                  () => `§fill:${menuFilter('frontEndSettings', 'music') ? '#ff0' : '#fff'}§${text.m_settings4}`
                ),
                menuText(184, 208 - 4, () => {
                   return `§fill:${menuFilter('frontEndSettings', 'music') ? '#ff0' : '#fff'}§${
-                     save.flag.b.option_music ? text.n_frontEndSettings4b : text.n_frontEndSettings4a
+                     save.flag.b.option_music ? text.g_disabled : text.g_percent
                   }`.replace('$(x)', Math.round((1 - save.flag.n.option_music) * 100).toString());
                }),
-               /*
                menuText(
                   40,
                   268 - 4,
-                  () => `§fill:${menuFilter('frontEndSettings', 'trans') ? '#ff0' : '#fff'}§${text.n_frontEndSettings5}`
-               ).on('tick', function () {
-                  this.alpha.value = backend.available ? 1 : 0;
-               }),
-               menuText(184, 268 - 4, () => {
-                  return `§fill:${menuFilter('frontEndSettings', 'trans') ? '#ff0' : '#fff'}§${
-                     text.n_frontEndSettings5a
-                  }`.replace('$(x)', Math.round((1 - save.flag.n.option_trans) * 100).toString());
-               }).on('tick', function () {
-                  this.alpha.value = backend.available ? 1 : 0;
-               }),
-               */
-               menuText(
-                  40,
-                  268 - 4,
-                  () => `§fill:${menuFilter('frontEndSettings', 'right') ? '#ff0' : '#fff'}§${text.n_frontEndSettings6}`
+                  () => `§fill:${menuFilter('frontEndSettings', 'right') ? '#ff0' : '#fff'}§${text.m_settings5}`
                ).on('tick', function () {
                   this.alpha.value = isMobile.any ? 1 : 0;
                }),
@@ -4706,7 +5228,7 @@ atlas.navigators.register({
                   268 - 4,
                   () =>
                      `§fill:${menuFilter('frontEndSettings', 'right') ? '#ff0' : '#fff'}§${
-                        save.flag.b.option_right ? text.n_frontEndSettings6b : text.n_frontEndSettings6a
+                        save.flag.b.option_right ? text.m_settings5_right : text.m_settings5_left
                      }`
                ).on('tick', function () {
                   this.alpha.value = isMobile.any ? 1 : 0;
@@ -4726,22 +5248,22 @@ atlas.navigators.register({
             fill: '#c0c0c0',
             font: '16px DeterminationSans',
             objects: [
-               menuText(176, 48 - 4, () => text.n_frontEndStart1, {}, false),
-               menuText(170, 108 - 4, () => text.n_frontEndStart2, {}, false),
-               menuText(170, 144 - 4, () => text.n_frontEndStart3, {}, false),
-               menuText(170, 180 - 4, () => text.n_frontEndStart4, {}, false),
-               menuText(170, 216 - 4, () => text.n_frontEndStart5, {}, false),
-               menuText(170, 252 - 4, () => text.n_frontEndStart6, {}, false),
-               menuText(170, 288 - 4, () => text.n_frontEndStart7, {}, false),
+               menuText(176, 48 - 4, () => text.m_start1[0], {}, false),
+               menuText(170, 108 - 4, () => text.m_start1[1], {}, false),
+               menuText(170, 144 - 4, () => text.m_start1[2], {}, false),
+               menuText(170, 180 - 4, () => text.m_start1[3], {}, false),
+               menuText(170, 216 - 4, () => text.m_start1[4], {}, false),
+               menuText(170, 252 - 4, () => text.m_start1[5], {}, false),
+               menuText(170, 288 - 4, () => text.m_start1[6], {}, false),
                menuText(
                   170,
                   352 - 4,
-                  () => `§fill:${menuFilter('frontEndStart', 'begin') ? '#ff0' : '#fff'}§${text.n_frontEndStart8}`
+                  () => `§fill:${menuFilter('frontEndStart', 'begin') ? '#ff0' : '#fff'}§${text.m_start2}`
                ),
                menuText(
                   170,
                   392 - 4,
-                  () => `§fill:${menuFilter('frontEndStart', 'settings') ? '#ff0' : '#fff'}§${text.n_frontEndStart9}`
+                  () => `§fill:${menuFilter('frontEndStart', 'settings') ? '#ff0' : '#fff'}§${text.g_settings}`
                ),
                menuText(320, 464 - 2, () => text.n_footer, {
                   anchor: { x: 0 },
@@ -4774,8 +5296,8 @@ atlas.navigators.register({
             objects: [
                new CosmosObject({
                   objects: [
-                     menuText(26, 24 - 4, () => save.data.s.name || text.n_unknown, {}, false),
-                     menuText(158, 24 - 4, () => `${text.n_lv} ${calcLV()}`, {}, false),
+                     menuText(26, 24 - 4, () => (validName() ? save.data.s.name : text.g_mystery1), {}, false),
+                     menuText(158, 24 - 4, () => `${text.g_lv} ${calcLV()}`, {}, false),
                      menuText(
                         384,
                         24 - 4,
@@ -4785,9 +5307,9 @@ atlas.navigators.register({
                      ),
                      menuText(26, 64 - 4, () => saver.locations.of(save.data.s.room).name || '', {}, false),
                      menuSOUL(28, 124, 'save', 'save'),
-                     menuText(56, 124 - 4, () => (saver.yellow ? text.n_save3 : text.n_save2), {}, false),
+                     menuText(56, 124 - 4, () => (saver.yellow ? text.m_save3 : text.m_save1), {}, false),
                      menuSOUL(208, 124, 'save', 'return'),
-                     menuText(236, 124 - 4, () => (saver.yellow ? '' : text.n_save4), {}, false)
+                     menuText(236, 124 - 4, () => (saver.yellow ? '' : text.m_save2), {}, false)
                   ]
                }).on('tick', function () {
                   this.fill = saver.yellow ? '#ff0' : '#fff';
@@ -4905,7 +5427,7 @@ atlas.navigators.register({
                }).on('tick', function () {
                   this.alpha.value = atlas.target === 'shopList' ? 1 : 0;
                }),
-               menuText(32, 180 - 4, () => `${save.data.n.g === Infinity ? text.n_inf : save.data.n.g}${text.n_g}`),
+               menuText(32, 180 - 4, () => `${save.data.n.g === Infinity ? text.g_inf : save.data.n.g}${text.g_g}`),
                menuText(132, 180 - 4, () => `${save.storage.inventory.size}/8`),
                ...CosmosUtils.populate(10, index => {
                   const row = Math.floor(index / 2);
@@ -4992,9 +5514,9 @@ atlas.navigators.register({
                   { spacing: { y: 2 } }
                ),
                menuSOUL(450, 348, 'shopPurchase', 0, 0),
-               menuText(480, 348 - 4, text.n_shop3),
+               menuText(480, 348 - 4, text.g_yes),
                menuSOUL(450, 378, 'shopPurchase', 0, 1),
-               menuText(480, 378 - 4, text.n_shop4)
+               menuText(480, 378 - 4, text.g_no)
             ]
          })
       ]
@@ -5027,15 +5549,15 @@ atlas.navigators.register({
          menuBox(32, 52, 130, 98, 6, {
             font: '8px CryptOfTomorrow',
             objects: [
-               menuText(8, 10 - 4, () => save.data.s.name || text.n_unknown, {
+               menuText(8, 10 - 4, () => (validName() ? save.data.s.name : text.g_mystery1), {
                   font: '16px DeterminationSans'
                }),
-               menuText(8, 42 - 2, () => text.n_lv),
-               menuText(8, 60 - 2, () => text.n_hp),
-               menuText(8, 78 - 2, () => text.n_g),
+               menuText(8, 42 - 2, () => text.g_lv),
+               menuText(8, 60 - 2, () => text.g_hp),
+               menuText(8, 78 - 2, () => text.g_g),
                menuText(44, 42 - 2, () => calcLV().toString()),
-               menuText(44, 60 - 2, () => `${save.data.n.hp === Infinity ? text.n_inf : save.data.n.hp}/${calcHP()}`),
-               menuText(44, 78 - 2, () => (save.data.n.g === Infinity ? text.n_inf : save.data.n.g).toString())
+               menuText(44, 60 - 2, () => `${save.data.n.hp === Infinity ? text.g_inf : save.data.n.hp}/${calcHP()}`),
+               menuText(44, 78 - 2, () => (save.data.n.g === Infinity ? text.g_inf : save.data.n.g).toString())
             ]
          }),
          menuBox(32, 168, 130, 136, 6, {
@@ -5047,10 +5569,10 @@ atlas.navigators.register({
                menuText(
                   46,
                   22 - 4,
-                  () => `${save.storage.inventory.size > 0 ? '' : '§fill:#808080§'}${text.n_sidebar4}`
+                  () => `${save.storage.inventory.size > 0 ? '' : '§fill:#808080§'}${text.m_sidebar1}`
                ),
-               menuText(46, 58 - 4, () => text.n_sidebar5),
-               menuText(46, 94 - 4, () => (save.data.n.plot < 3 ? text.n_sidebar7 : text.n_sidebar6))
+               menuText(46, 58 - 4, () => text.m_sidebar2),
+               menuText(46, 94 - 4, () => (save.data.n.plot < 3 ? text.m_sidebar4 : text.m_sidebar3))
             ]
          })
       ]
@@ -5109,11 +5631,11 @@ atlas.navigators.register({
                   this.offsets[0].x = sidebarrer.use ? 0 : 7;
                }),
                menuSOUL(224, 310, 'sidebarItemOption', 0, 2),
-               menuText(38, 310 - 4, () => (sidebarrer.use ? text.n_sidebarItem1 : text.n_sidebarItem2)),
-               menuText(134, 310 - 4, () => text.n_sidebarItem3, { offsets: [ {} ] }).on('tick', function () {
+               menuText(38, 310 - 4, () => (sidebarrer.use ? text.m_item1 : text.m_item2)),
+               menuText(134, 310 - 4, () => text.m_item3, { offsets: [ {} ] }).on('tick', function () {
                   this.offsets[0].x = sidebarrer.use ? 0 : 7;
                }),
-               menuText(248, 310 - 4, () => text.n_sidebarItem4)
+               menuText(248, 310 - 4, () => text.m_item4)
             ]
          })
       ]
@@ -5130,10 +5652,10 @@ atlas.navigators.register({
                await use(key, atlas.navigators.of('sidebarItem').position.y);
             } else if (selection === 'drop') {
                save.storage.inventory.remove(atlas.navigators.of('sidebarItem').position.y);
-               events.fire('drop', key);
             }
             atlas.switch(null);
             atlas.detach(renderer, 'menu', 'sidebar');
+            selection === 'drop' && (await Promise.all(events.fire('drop', key)));
             game.movement = true;
          });
          assets.sounds.equip.instance(timer);
@@ -5148,38 +5670,38 @@ atlas.navigators.register({
          menuBox(188, 52, 334, 406, 6, {
             font: '16px DeterminationSans',
             objects: [
-               menuText(22, 34 - 4, () => `"${save.data.s.name || text.n_unknown}"`),
-               menuText(22, 94 - 4, () => `${text.n_lv} \xa0\xa0\xa0${calcLV()}`),
+               menuText(22, 34 - 4, () => `"${validName() ? save.data.s.name : text.g_mystery1}"`),
+               menuText(22, 94 - 4, () => `${text.g_lv} \xa0\xa0\xa0${calcLV()}`),
                menuText(
                   22,
                   126 - 4,
                   () =>
-                     `${text.n_hp} \xa0\xa0\xa0${
-                        save.data.n.hp === Infinity ? text.n_inf : save.data.n.hp
+                     `${text.g_hp} \xa0\xa0\xa0${
+                        save.data.n.hp === Infinity ? text.g_inf : save.data.n.hp
                      } / ${calcHP()}`
                ),
                menuText(
                   22,
                   190 - 4,
-                  () => `${text.n_sidebarStat3} \xa0\xa0\xa0${calcAT() - 10} (${items.of(save.data.s.weapon).value})`
+                  () => `${text.m_stat1} \xa0\xa0\xa0${calcAT() - 10} (${items.of(save.data.s.weapon).value})`
                ),
                menuText(
                   22,
                   222 - 4,
-                  () => `${text.n_sidebarStat4} \xa0\xa0\xa0${calcDF() - 10} (${items.of(save.data.s.armor).value})`
+                  () => `${text.m_stat2} \xa0\xa0\xa0${calcDF() - 10} (${items.of(save.data.s.armor).value})`
                ),
-               menuText(22, 282 - 4, () => `${text.n_sidebarStat5}: ${items.of(save.data.s.weapon).text.name}`),
-               menuText(22, 314 - 4, () => `${text.n_sidebarStat6}: ${items.of(save.data.s.armor).text.name}`),
+               menuText(22, 282 - 4, () => `${text.m_stat3}: ${items.of(save.data.s.weapon).text.name}`),
+               menuText(22, 314 - 4, () => `${text.m_stat4}: ${items.of(save.data.s.armor).text.name}`),
                menuText(
                   22,
                   354 - 4,
-                  () => `${text.n_sidebarStat7}: ${save.data.n.g === Infinity ? text.n_inf : save.data.n.g}`
+                  () => `${text.m_stat5}: ${save.data.n.g === Infinity ? text.g_inf : save.data.n.g}`
                ),
                menuText(190, 354 - 4, () =>
                   world.trueKills > 9 || save.data.n.bully > 9
                      ? save.data.n.bully > world.trueKills / 3
-                        ? `${text.n_sidebarStat14}: ${save.data.n.bully}`
-                        : `${text.n_sidebarStat12}: ${world.trueKills}`
+                        ? `${text.m_stat11}: ${save.data.n.bully}`
+                        : `${text.m_stat9}: ${world.trueKills}`
                      : ''
                ).on('tick', function () {
                   this.fill = save.data.n.bully > world.trueKills / 3 ? '#3f00ff' : '#ff0000';
@@ -5187,10 +5709,10 @@ atlas.navigators.register({
                menuText(
                   190,
                   190 - 4,
-                  () => `${text.n_sidebarStat8}: ${save.data.n.exp === Infinity ? text.n_inf : save.data.n.exp}`
+                  () => `${text.m_stat6}: ${save.data.n.exp === Infinity ? text.g_inf : save.data.n.exp}`
                ),
-               menuText(190, 222 - 4, () => `${text.n_sidebarStat9}: ${calcNX() ?? text.n_sidebarStat13}`),
-               menuText(190, 34 - 4, () => (save.flag.n.hash === hash(save.data.s.name) ? '' : text.n_sidebarStat10), {
+               menuText(190, 222 - 4, () => `${text.m_stat7}: ${calcNX() ?? text.m_stat10}`),
+               menuText(190, 34 - 4, () => (validName() ? '' : text.m_stat8), {
                   spacing: { y: 3 }
                })
             ]
@@ -5241,7 +5763,7 @@ atlas.navigators.register({
                }),
                menuSOUL(14, 30 + 6 * 32, 'sidebarCell', 0, list.length),
                menuText(38, 30 + 6 * 32 - 4, () => {
-                  return text.n_sidebarCell1;
+                  return text.g_settings;
                })
             ];
          })
@@ -5278,9 +5800,9 @@ atlas.navigators.register({
          menuBox(16, 16, 598, 438, 6, {
             font: '16px DeterminationSans',
             objects: [
-               menuText(82 + 5.5, 16 - 4, () => text.n_sidebarCellBox1),
-               menuText(426 + 2.5, 16 - 4, () => text.n_sidebarCellBox2),
-               menuText(178 + 5, 392 - 4, () => text.n_sidebarCellBox3)
+               menuText(82 + 5.5, 16 - 4, () => text.m_box1),
+               menuText(426 + 2.5, 16 - 4, () => text.m_box2),
+               menuText(178 + 5, 392 - 4, () => text.m_box3)
             ]
          }),
          ...CosmosUtils.populate(54, index => {
@@ -5319,7 +5841,10 @@ atlas.navigators.register({
          new CosmosRectangle({ fill: '#fff', position: { x: 322 / 2, y: 92 / 2 }, size: { x: 1 / 2, y: 300 / 2 } })
       ]
    })
-      .on('from', () => assets.sounds.dimbox.instance(timer))
+      .on('from', function () {
+         assets.sounds.dimbox.instance(timer);
+         this.position = { x: 0, y: 0 };
+      })
       .on('to', () => (game.movement = true))
 });
 
@@ -5477,7 +6002,7 @@ keys.downKey.on('down', () => {
       game.movement &&
       battler.SOUL.metadata.color === 'purple' &&
       battler.line.swap === 0 &&
-      battler.line.position.y < battler.line.offset + (battler.line.amount - 1) * 20
+      battler.line.pos.y < battler.line.offset + (battler.line.amount - 1) * 20
    ) {
       battler.line.swap = 1;
    }
@@ -5503,7 +6028,7 @@ keys.interactKey.on('down', () => {
       battler.SOUL.metadata.color === 'cyan' &&
       battler.SOUL.alpha.value > 0 &&
       timer.value > battler.shadow.metadata.cooldown &&
-      (battler.shadow.position.x !== battler.SOUL.position.x || battler.shadow.position.y !== battler.SOUL.position.y)
+      (battler.shadow.position.x !== battler.SOUL.x || battler.shadow.position.y !== battler.SOUL.y)
    ) {
       events.fire('leap');
       const leaper = new CosmosAnimation({
@@ -5562,11 +6087,7 @@ keys.interactKey.on('down', () => {
             if (this.y < 0) {
                renderer.detach('menu', this);
             } else {
-               for (const object of renderer.detect(
-                  'menu',
-                  this,
-                  ...renderer.calculate('menu', o => o.metadata.shootable)
-               )) {
+               for (const object of renderer.detect(this, ...renderer.calculate('menu', o => o.metadata.shootable))) {
                   object.metadata.absorb && assets.sounds.swallow.instance(timer);
                   (object as CosmosHitbox<CosmosBaseEvents & { shot: [number, number] }>).fire('shot', 0, 0);
                   renderer.detach('menu', this);
@@ -5685,7 +6206,7 @@ keys.quitKey.on('down', async () => {
          await timer.pause(300);
       }
       if (active) {
-         backend.available ? window.close() : (location.href = 'about:blank');
+         exit();
          await new Promise(() => {});
       }
    }
@@ -5715,7 +6236,7 @@ keys.upKey.on('down', () => {
       game.movement &&
       battler.SOUL.metadata.color === 'purple' &&
       battler.line.swap === 0 &&
-      battler.line.offset + 20 <= battler.line.position.y
+      battler.line.offset + 20 <= battler.line.pos.y
    ) {
       battler.line.swap = -1;
    }
@@ -5747,13 +6268,15 @@ renderer.on('tick', () => {
          const down = keys.downKey.active();
          const base = player.position.value();
          const mSpeed = (game.developer && keys.specialKey.active() ? 2 : 1) * ((player.metadata.speed as number) ?? 1);
-         const mVector = new CosmosPoint(left ? -3 : right ? 3 : 0, up ? -3 : down ? 3 : 0).multiply(mSpeed);
+         const mVector = new CosmosPoint(
+            left ? -3 : right ? 3 : 0,
+            player.metadata.reverse ? (down ? 3 : up ? -3 : 0) : up ? -3 : down ? 3 : 0
+         ).multiply(mSpeed);
          while (true) {
             const mStep = mVector.clamp(-3, 3);
             player.move(
                mStep,
                renderer,
-               'main',
                [ 'below', 'main' ],
                game.noclip ? false : hitbox => hitbox.metadata.barrier === true
             );
@@ -5762,18 +6285,37 @@ renderer.on('tick', () => {
                break;
             }
          }
+         if (player.metadata.reverse) {
+            if (down) {
+               player.face = 'up';
+               mSpeed === 0 || player.sprite.enable();
+            } else if (up) {
+               player.face = 'down';
+               mSpeed === 0 || player.sprite.enable();
+            } else if (left) {
+               player.face = 'right';
+               mSpeed === 0 || player.sprite.enable();
+            } else if (right) {
+               player.face = 'left';
+               mSpeed === 0 || player.sprite.enable();
+            }
+         }
          if (mSpeed === 0) {
             if (up) {
-               player.face = 'up';
+               player.face = player.metadata.reverse ? 'down' : 'up';
             } else if (down) {
-               player.face = 'down';
+               player.face = player.metadata.reverse ? 'up' : 'down';
             } else if (left) {
-               player.face = 'left';
+               player.face = player.metadata.reverse ? 'right' : 'left';
             } else if (right) {
-               player.face = 'right';
+               player.face = player.metadata.reverse ? 'left' : 'right';
             }
          } else if (up && down && player.y === base.y) {
-            player.y += 1;
+            if (player.metadata.reverse) {
+               player.y -= 1;
+            } else {
+               player.y += 1;
+            }
             player.face = 'down';
          }
          if (!game.noclip) {
@@ -5790,15 +6332,8 @@ renderer.on('tick', () => {
             }
          }
       } else {
-         player.move({ x: 0, y: 0 }, renderer, 'main');
+         player.move({ x: 0, y: 0 }, renderer);
       }
-   }
-});
-
-timer.on('tick', () => {
-   if (save.dirty) {
-      save.dirty = false;
-      backend.file.writeSave(CosmosUtils.serialize(save.internal));
    }
 });
 

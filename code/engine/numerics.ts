@@ -274,14 +274,27 @@ export class CosmosPoint implements CosmosPointSimple, CosmosRaySimple {
          return this.shift(angle, extent, new CosmosPoint(origin));
       }
    }
-   step(timer: CosmosTimer, speed: number, target: Partial<CosmosPointSimple> | number): Promise<void>;
-   step(
+   async step (timer: CosmosTimer, speed: number, ...targets: (Partial<CosmosPointSimple> | number)[]) {
+      for (const target of targets) {
+         if (typeof target === 'number') {
+            await this.modulate(timer, (this.extentOf(target) / speed) * CosmosMath.FRAME, target);
+         } else {
+            await this.modulate(
+               timer,
+               (this.extentOf(target.x ?? this.x, target.y ?? this.y) / speed) * CosmosMath.FRAME,
+               target
+            );
+         }
+      }
+   }
+   step_legacy(timer: CosmosTimer, speed: number, target: Partial<CosmosPointSimple> | number): Promise<void>;
+   step_legacy(
       timer: CosmosTimer,
       interpolator: (value: number, ...points: number[]) => number,
       speed: number,
       target: Partial<CosmosPointSimple> | number
    ): Promise<void>;
-   step (
+   step_legacy (
       timer: CosmosTimer,
       interpolator: number | ((value: number, ...points: number[]) => number),
       speed: number,
@@ -290,7 +303,7 @@ export class CosmosPoint implements CosmosPointSimple, CosmosRaySimple {
       if (typeof interpolator === 'function') {
          return this.modulate(timer, interpolator, (this.extentOf(target!) / (speed * 30)) * 1000, target!);
       } else {
-         return this.step(timer, CosmosMath.linear, interpolator, speed);
+         return this.step_legacy(timer, CosmosMath.linear, interpolator, speed);
       }
    }
    subtract(a: number, b: number): CosmosPoint;
@@ -585,23 +598,9 @@ export class CosmosValue implements CosmosValueSimple {
          return this.set(a.value);
       }
    }
-   step(timer: CosmosTimer, speed: number, target: number): Promise<void>;
-   step(
-      timer: CosmosTimer,
-      interpolator: (value: number, ...points: number[]) => number,
-      speed: number,
-      target: number
-   ): Promise<void>;
-   step (
-      timer: CosmosTimer,
-      interpolator: number | ((value: number, ...points: number[]) => number),
-      speed: number,
-      target?: number
-   ) {
-      if (typeof interpolator === 'function') {
-         return this.modulate(timer, interpolator, (Math.abs(target! - this.value) / (speed * 30)) * 1000, target!);
-      } else {
-         return this.step(timer, CosmosMath.linear, interpolator, speed);
+   async step (timer: CosmosTimer, speed: number, ...targets: number[]) {
+      for (const target of targets) {
+         await this.modulate(timer, (Math.abs(target - this.value) / speed) * CosmosMath.FRAME, target);
       }
    }
 }
@@ -623,7 +622,7 @@ export class CosmosValueRandom extends CosmosValue {
       const prev = this.compute();
       let next = prev;
       while (Math.abs(prev - next) <= Math.min(Math.max(threshold, 0), 0.5)) {
-         this.value = (this.value + 0x9e3779b9) % Number.MAX_SAFE_INTEGER;
+         this.value = (this.value + 0x9e3779b9) | 0;
          next = this.compute();
       }
       return next;
@@ -645,6 +644,7 @@ export class CosmosValueLinked extends CosmosValue {
 }
 
 export const CosmosMath = {
+   FRAME: 100 / 3,
    bezier (value: number, ...points: number[]): number {
       if (points.length === 0) {
          return value;

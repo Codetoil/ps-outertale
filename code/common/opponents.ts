@@ -4,21 +4,11 @@ import commonPatterns from '../common/patterns';
 import commonText from '../common/text';
 import content from '../content';
 import { atlas, events, game, random, renderer, timer, typer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosHitbox,
-   CosmosInventory,
-   CosmosKeyed,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosPointSimple,
-   CosmosProvider,
-   CosmosSprite,
-   CosmosUtils,
-   CosmosValue,
-   CosmosValueRandom
-} from '../engine';
+import { CosmosInventory } from '../engine/core';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPoint, CosmosPointSimple, CosmosValue, CosmosValueRandom } from '../engine/numerics';
+import { CosmosHitbox, CosmosObject } from '../engine/renderer';
+import { CosmosKeyed, CosmosProvider, CosmosUtils } from '../engine/utils';
 import { battler, choicer, dialogue, heal, oops, world } from '../mantle';
 import save from '../save';
 import patterns from './patterns';
@@ -66,7 +56,7 @@ export async function kiddTurn (opkey: string, allowpac = true) {
             [ 2, 3 ],
             [ 3, 1 ]
          ]) as 0 | 1 | 2 | 3;
-         typer.variables.x = CosmosUtils.provide(battler.target.opponent.name).slice(2);
+         typer.variables.x = CosmosUtils.provide(battler.target!.opponent.name).slice(2);
          await battler.human(
             ...[
                text.b_party_kidd.mkTurnActRand1,
@@ -94,7 +84,7 @@ export async function kiddTurn (opkey: string, allowpac = true) {
                case 2:
                   return 'skip';
                case 3:
-                  const active = battler.target;
+                  const active = battler.target!;
                   active.sparable = true;
                   battler.spare(battler.volatile.indexOf(active));
                   return 'pacify';
@@ -131,7 +121,7 @@ export async function kiddTurn (opkey: string, allowpac = true) {
                return void 0;
             }
          }
-         if (battler.bullied.includes(battler.target)) {
+         if (battler.bullied.includes(battler.target!)) {
             await battler.human(
                ...(save.data.n.state_foundry_kiddbully < 2
                   ? [ text.b_party_kidd.mkWeaken1, text.b_party_kidd.mkWeaken2 ][save.data.n.state_foundry_kiddbully++]
@@ -158,7 +148,7 @@ export async function kiddFight (volatile: OutertaleVolatile) {
 }
 
 export async function kiddHandler (state: OutertaleTurnState<any>, opkey: string, allowpac = true) {
-   if (world.epicgamer && battler.alive.length > 0 && state.volatile.alive) {
+   if (world.monty && battler.alive.length > 0 && state.volatile.alive) {
       if (save.data.n.state_foundry_muffet === 1) {
          if (!save.data.b.f_state_kidd_trauma) {
             await battler.human(...text.b_party_kidd.mkNope);
@@ -217,6 +207,7 @@ export async function kiddHandler (state: OutertaleTurnState<any>, opkey: string
 
 export const opponents = {
    maddummy: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_maddummy,
       assets: new CosmosInventory(
          content.ibcDummy,
          content.ibcDummyGlad,
@@ -237,7 +228,7 @@ export const opponents = {
          content.asBell,
          content.asSlidewhistle
       ),
-      exp: 0,
+      exp: 42,
       hp: 200,
       df: 0,
       name: text.b_opponent_maddummy.name,
@@ -329,6 +320,7 @@ export const opponents = {
                   switch (choice.act) {
                      case 'flirt': {
                         save.data.b.flirt_maddummy = true;
+                        volatile.flirted = true;
                         break;
                      }
                      case 'hug':
@@ -365,7 +357,7 @@ export const opponents = {
                            save.data.n.state_foundry_maddummy = 5;
                            assets.sounds.slidewhistle.instance(timer);
                            await volatile.container.position.modulate(timer, 1250, {
-                              x: volatile.container.position.x,
+                              x: volatile.container.x,
                               y: -80
                            });
                            await timer.pause(650);
@@ -408,6 +400,7 @@ export const opponents = {
                volatile.sparable = true;
                battler.spare();
                save.data.n.state_foundry_maddummy = 3;
+               typer.off('header', dialogueListener);
             }
             if (battler.alive.length > 0) {
                if (save.data.b.genocide) {
@@ -481,7 +474,7 @@ export const opponents = {
                         battler.box.size.modulate(timer, 300, { x: 90, y: 92.5 }),
                         battler.box.position.modulate(timer, 300, { y: 192 - 92.5 / 2 })
                      ]);
-                     Object.assign(battler.SOUL.position, { x: 160, y: 160 });
+                     battler.SOUL.position.set(160);
                      battler.SOUL.alpha.value = 1;
                      await patterns.maddummy();
                      if (volatile.vars.phase === 3 && volatile.vars.turns === 4) {
@@ -756,14 +749,13 @@ export const opponents = {
                        let hit = false;
                        const meta = this.metadata as MadDummyMetadata;
                        for (const garbo of renderer.detect(
-                          'menu',
                           this.objects[1] as CosmosHitbox,
                           ...renderer.calculate(
                              'menu',
                              garbo =>
                                 !garbo.metadata.hit &&
                                 garbo.metadata.dummybullet === true &&
-                                garbo.position.y < battler.box.position.y - battler.box.size.y / 2
+                                garbo.position.y < battler.box.y - battler.box.size.y / 2
                           )
                        )) {
                           if (garbo.metadata.finalhit) {
@@ -936,6 +928,7 @@ export const opponents = {
               )
    }),
    moldsmal: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_moldsmal,
       assets: new CosmosInventory(content.ibcMoldsmal, content.ibbOctagon),
       metadata: { arc: true },
       bullyable: true,
@@ -958,17 +951,18 @@ export const opponents = {
             text.b_opponent_moldsmal.idleTalk2,
             text.b_opponent_moldsmal.idleTalk3
          ],
-         defaultStatus: [
-            text.b_opponent_moldsmal.status2,
-            text.b_opponent_moldsmal.status3,
-            text.b_opponent_moldsmal.status4,
-            text.b_opponent_moldsmal.status5
+         defaultStatus: () => [
+            text.b_opponent_moldsmal.status2(),
+            text.b_opponent_moldsmal.status3(),
+            text.b_opponent_moldsmal.status4(),
+            text.b_opponent_moldsmal.status5()
          ],
          bubble: position => [ position.add(28, -54), battler.bubbles.dummy ],
          vars: { mercymod: false },
          act: {
             flirt (state) {
                save.data.b.flirt_moldsmal = true;
+               state.volatile.flirted = true;
                state.talk = text.b_opponent_moldsmal.sexyChat;
             },
             async slap () {
@@ -1007,6 +1001,7 @@ export const opponents = {
       }
    }),
    spacetop: new OutertaleOpponent({
+      flirted: () => save.data.b.flirt_spacetop,
       assets: new CosmosInventory(
          content.ibcSpacetop,
          content.ibcSpacetopHurt,
@@ -1025,8 +1020,8 @@ export const opponents = {
       acts: () => [
          [ 'check', text.b_opponent_spacetop.act_check ],
          [ 'compliment', text.b_opponent_spacetop.act_compliment ],
-         [ 'create', [] ],
-         [ 'steal', [] ],
+         [ 'create', text.b_opponent_spacetop.act_create ],
+         [ 'steal', text.b_opponent_spacetop.act_steal ],
          [ 'flirt', text.b_opponent_spacetop.act_flirt ]
       ],
       sparable: false,
@@ -1103,7 +1098,6 @@ export const opponents = {
                               await timer.pause(70);
                               position.x = base;
                            });
-                           await battler.human(...text.b_opponent_spacetop.stealText2);
                            statustext = text.b_opponent_space.randStatus1;
                            justice = true;
                         } else {
@@ -1111,7 +1105,6 @@ export const opponents = {
                               oops();
                               await timer.pause(1000);
                            }
-                           await battler.human(...text.b_opponent_spacetop.stealText1);
                            await talk(
                               target,
                               ...[ text.b_opponent_spacetop.stealTalk1, text.b_opponent_spacetop.stealTalk2 ][
@@ -1124,7 +1117,6 @@ export const opponents = {
                         idle = false;
                         switch (volatile.vars.create++) {
                            case 0:
-                              await battler.human(...text.b_opponent_spacetop.createText1);
                               await talk(
                                  target,
                                  ...[ text.b_opponent_spacetop.createTalk1, text.b_opponent_spacetop.createTalk2 ][
@@ -1134,7 +1126,6 @@ export const opponents = {
                               statustext = text.b_opponent_spacetop.createStatus1;
                               break;
                            case 1:
-                              await battler.human(...text.b_opponent_spacetop.createText2);
                               await talk(
                                  target,
                                  ...[
@@ -1151,7 +1142,6 @@ export const opponents = {
                               }
                               break;
                            case 2:
-                              await battler.human(...text.b_opponent_spacetop.createText3);
                               volatile.sparable = true;
                               battler.spare(target);
                               return;
@@ -1164,6 +1154,7 @@ export const opponents = {
                            statustext = text.b_opponent_spacetop.flirtStatus1;
                         } else {
                            save.data.b.flirt_spacetop = true;
+                           volatile.flirted = true;
                            await talk(target, ...text.b_opponent_spacetop.flirtTalk2);
                            statustext = text.b_opponent_spacetop.flirtStatus2;
                         }
@@ -1203,7 +1194,7 @@ export const opponents = {
             ),
          { create: 0 },
          () =>
-            world.goatbro
+            world.azzie
                ? text.b_opponent_spacetop.genoStatus
                : [
                     text.b_opponent_spacetop.randStatus1,
@@ -1326,7 +1317,7 @@ export const opponents = {
             ),
          {},
          () =>
-            world.goatbro
+            world.azzie
                ? text.b_opponent_space.genoStatus
                : [ text.b_opponent_space.randStatus1, text.b_opponent_space.randStatus2 ][battler.rand(2)]
       ),

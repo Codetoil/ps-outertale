@@ -1,39 +1,31 @@
 import { AdvancedBloomFilter, OutlineFilter, ZoomBlurFilter } from 'pixi-filters';
 import assets from '../assets';
-import { OutertaleLayerKey, OutertaleTurnState } from '../classes';
+import { OutertaleTurnState } from '../classes';
 import commonPatterns, { boxCheck, bulletSetup, pastBox, screenCheck, starGenerator } from '../common/patterns';
 import content from '../content';
 import { audio, events, game, random, renderer, timer } from '../core';
+import { CosmosDaemon } from '../engine/audio';
+import { CosmosEventHost, CosmosRegistry } from '../engine/core';
+import { CosmosAnimation, CosmosBitmap, CosmosImage, CosmosSprite } from '../engine/image';
 import {
-   CosmosAnimation,
-   CosmosBaseEvents,
-   CosmosBitmap,
-   CosmosDaemon,
-   CosmosEventHost,
-   CosmosHitbox,
-   CosmosImage,
    CosmosMath,
-   CosmosObject,
    CosmosPoint,
    CosmosPointSimple,
    CosmosRay,
-   CosmosRectangle,
-   CosmosRegistry,
-   CosmosSizedObjectProperties,
-   CosmosSprite,
-   CosmosText,
-   CosmosUtils,
    CosmosValue,
    CosmosValueLinked
-} from '../engine';
-import { battler, heal, quickshadow, sawWaver, shadow, shake, sineWaver } from '../mantle';
+} from '../engine/numerics';
+import { CosmosBaseEvents, CosmosHitbox, CosmosObject, CosmosSizedObjectProperties } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosText } from '../engine/text';
+import { CosmosUtils } from '../engine/utils';
+import { battler, colormix, heal, quickshadow, sawWaver, shadow, shake, sineWaver } from '../mantle';
 import save from '../save';
-import text from './text';
-import { colormix } from './bootstrap';
+import text, { trueLizard } from './text';
 
-type ShootableEvents = CosmosBaseEvents & { shot: [number, number] };
+export type ShootableEvents = CosmosBaseEvents & { shot: [number, number] };
 
-async function b (x: number, y: number, sp = true) {
+export async function brez (x: number, y: number, sp = true) {
    await Promise.all([
       battler.box.position.modulate(timer, CosmosMath.linear, 300, { y: 192.5 - y / 2 }),
       battler.box.size.modulate(timer, 300, { x, y })
@@ -46,16 +38,16 @@ async function b (x: number, y: number, sp = true) {
 
 export const box = {
    get x1 () {
-      return battler.box.position.x - battler.box.size.x / 2;
+      return battler.box.x - battler.box.size.x / 2;
    },
    get x2 () {
-      return battler.box.position.x + battler.box.size.x / 2;
+      return battler.box.x + battler.box.size.x / 2;
    },
    get y1 () {
-      return battler.box.position.y - battler.box.size.y / 2;
+      return battler.box.y - battler.box.size.y / 2;
    },
    get y2 () {
-      return battler.box.position.y + battler.box.size.y / 2;
+      return battler.box.y + battler.box.size.y / 2;
    },
    get x () {
       return battler.box.x;
@@ -248,10 +240,9 @@ export const mtb = {
             rotation: side === -1 ? 270 : 90,
             tint: preyellow ? 0xffff00 : 0xffffff,
             objects: [
-               new CosmosSprite({
-                  anchor: { x: arm ? 1 : 0, y: 1 },
-                  frames: [ arm ? content.ibbArmBullet : content.ibbLegBullet ]
-               })
+               arm
+                  ? new CosmosAnimation({ anchor: { x: 1, y: 1 }, resources: content.ibbArmBullet })
+                  : new CosmosSprite({ anchor: { x: 0, y: 1 }, frames: [ content.ibbLegBullet ] })
             ]
          })
             .on('shot', function () {
@@ -260,7 +251,7 @@ export const mtb = {
                      this.metadata.shot = true;
                      assets.sounds.burst.instance(timer);
                      this.velocity.x = side * 10;
-                     this.tint = 0xffff00;
+                     (this.objects[0] as CosmosAnimation).index = 1;
                   }
                } else {
                   assets.sounds.swallow.instance(timer);
@@ -334,7 +325,7 @@ export const mtb = {
                   await timer.when(() => spr.index === 0);
                   await timer.when(() => spr.index === 1);
                   assets.sounds.bomb.instance(timer);
-                  battler.target.vars.ratings?.(text.b_opponent_mettaton2.ratings.bomb, 20);
+                  battler.target!.vars.ratings?.(text.b_opponent_mettaton2.ratings.bomb, 20);
                   shake(2, 500);
                   this.metadata.bullet = false;
                   spr.alpha.value = 0;
@@ -351,7 +342,6 @@ export const mtb = {
                            }).on('render', function () {
                               this.metadata.bullet = false;
                               for (const object of renderer.detect(
-                                 'menu',
                                  this,
                                  ...renderer.calculate('menu', o => o.metadata.shootable === true)
                               )) {
@@ -368,7 +358,6 @@ export const mtb = {
                            }).on('render', function () {
                               this.metadata.bullet = false;
                               for (const object of renderer.detect(
-                                 'menu',
                                  this,
                                  ...renderer.calculate('menu', o => o.metadata.shootable === true)
                               )) {
@@ -444,7 +433,7 @@ export const mtb = {
                   this.metadata.shot = true;
                   this.metadata.shootable = false;
                   assets.sounds.burst.instance(timer);
-                  battler.target.vars.ratings?.(text.b_opponent_mettaton2.ratings.hurt, 5);
+                  battler.target!.vars.ratings?.(text.b_opponent_mettaton2.ratings.hurt, 5);
                   const hs = spr.compute().divide(2);
                   const es = CosmosUtils.populate(4, index => {
                      const os = hs.multiply(index % 2, Math.floor(index / 2));
@@ -1071,7 +1060,7 @@ export const mtb = {
             .on('shot', async function () {
                assets.sounds.noise.instance(timer);
                hopper.value === 0 ||
-                  battler.target.vars.ratings?.(
+                  battler.target!.vars.ratings?.(
                      text.b_opponent_mettaton2.ratings.hopbox,
                      CosmosMath.bezier(Math.min(this.metadata.consecutive++, 20) / 20, 5, 1, 1)
                   );
@@ -1318,7 +1307,7 @@ const patterns = {
                anchor: 0,
                size: 10,
                position: { x: baseX + lane * segmentSize, y: top ? box.y1 - 10 : box.y2 + 10 },
-               metadata: { bullet: true, color: 'yellow', damage: 1 },
+               metadata: { bullet: true, color: 'yellow', damage: 0 },
                velocity: { y: spd * (top ? 1 : -1) }
             }).on('tick', function () {
                if (ftest || (top ? this.y > box.y2 + 10 : this.y < box.y1 - 10)) {
@@ -1353,7 +1342,7 @@ const patterns = {
                spr.alpha.modulate(timer, 600, 0, 0).then(() => {
                   renderer.detach('menu', spr);
                });
-               if (last && fails === 0 && save.data.n.bad_lizard < 1) {
+               if (last && fails === 0 && trueLizard() < 1) {
                   quizzer.metadata.thumbsup = true;
                   await timer.pause(1000);
                }
@@ -1416,7 +1405,7 @@ const patterns = {
       if (ex) {
          switch (turns) {
             case 1: {
-               await b(80, 65);
+               await brez(80, 65);
                q(mtb.sideleg(-1, 160, -60, 2, 60, 0.85, 25));
                await renderer.pause(300);
                q(mtb.sideleg(-1, 160, -60, 2, 60, 0.85, 25));
@@ -1431,7 +1420,7 @@ const patterns = {
                break;
             }
             case 2: {
-               await b(80, 65);
+               await brez(80, 65);
                q(mtb.buzzgate(0.2));
                await renderer.pause(800);
                q(mtb.buzzgate(0.8));
@@ -1456,7 +1445,7 @@ const patterns = {
                break;
             }
             case 3: {
-               await b(80, 65);
+               await brez(80, 65);
                q(mtb.sideleg(-1, 186, 0, 2, 60, 1, 0, true));
                q(mtb.sideleg(1, 194, -60, 2, 60, 1, 15, true));
                await renderer.pause(1200);
@@ -1476,7 +1465,7 @@ const patterns = {
                break;
             }
             case 4: {
-               await b(80, 65);
+               await brez(80, 65);
                q(...r(6, box.x, 15, (i, x) => (i === 2 ? mtb.hopbox(bwsp(x), 3, 1) : mtb.fodder(bwsp(x), true, 3, 1))));
                await renderer.pause(1000);
                q(...r(6, box.x, 15, (i, x) => (i === 1 ? mtb.hopbox(bwsp(x), 3, 1) : mtb.fodder(bwsp(x), true, 3, 1))));
@@ -1507,7 +1496,7 @@ const patterns = {
                break;
             }
             case 5: {
-               await b(282.2, 90);
+               await brez(282.2, 90);
                const qa = text.b_opponent_mettaton2.qa();
                const buttonz = CosmosUtils.populate(4, index => {
                   const vec = new CosmosPoint(index % 2, Math.floor(index / 2)).multiply(2).subtract(1);
@@ -1549,11 +1538,7 @@ const patterns = {
                await Promise.race([
                   renderer.pause(10000),
                   timer.when(() => {
-                     const hit = renderer.detect(
-                        'menu',
-                        battler.SOUL,
-                        ...renderer.calculate('menu', o => o.metadata.buttonz)
-                     );
+                     const hit = renderer.detect(battler.SOUL, ...renderer.calculate('menu', o => o.metadata.buttonz));
                      if (hit.length > 0) {
                         answer = hit[0].metadata.index;
                         return true;
@@ -1570,12 +1555,14 @@ const patterns = {
                   b.objects[1].fill = answer === -1 ? '#ff0000' : answer === b.metadata.index ? '#00ff00' : '#ffff00';
                }
                if (answer === -1) {
-                  assets.sounds.shock.instance(timer);
-                  battler.target.vars.ratings?.(text.b_opponent_mettaton2.ratings.nosmooch, -100);
+                  if (!save.data.b.a_state_hapstablook) {
+                     assets.sounds.shock.instance(timer);
+                     battler.target!.vars.ratings?.(text.b_opponent_mettaton2.ratings.nosmooch, -100);
+                  }
                   await state.dialogue(true, ...text.b_opponent_mettaton2.q0());
                } else {
                   assets.sounds.buhbuhbuhdaadodaa.instance(timer);
-                  battler.target.vars.ratings?.(text.b_opponent_mettaton2.ratings.smooch, 100);
+                  battler.target!.vars.ratings?.(text.b_opponent_mettaton2.ratings.smooch, 100);
                   await state.dialogue(
                      true,
                      ...[
@@ -1592,7 +1579,7 @@ const patterns = {
             case 6:
             case 12:
             case 18: {
-               await b(80, 65);
+               await brez(80, 65);
                const container = state.volatile.container;
                const spr = container.objects[0];
                const [ leftLeg, rightLeg, leftArm, rightArm, body, bodyHeart, head ] = spr.objects as CosmosAnimation[];
@@ -1634,7 +1621,7 @@ const patterns = {
                         assets.sounds.swallow.instance(timer);
                      } else {
                         assets.sounds.hit.instance(timer);
-                        battler.target.vars.ratings?.(text.b_opponent_mettaton2.ratings.hurt, 10);
+                        battler.target!.vars.ratings?.(text.b_opponent_mettaton2.ratings.hurt, 10);
                         if (++this.metadata.hits === 10 + turns / 3) {
                            if (turns > 6) {
                               assets.sounds.noise.instance(timer);
@@ -1661,7 +1648,7 @@ const patterns = {
                            this.metadata.rng.modulate(timer, 0, 2);
                            await this.scale.modulate(timer, 300, 0);
                            assets.sounds.boom.instance(timer);
-                           battler.target.vars.ratings?.(text.b_opponent_mettaton2.ratings.hearthurt, 50);
+                           battler.target!.vars.ratings?.(text.b_opponent_mettaton2.ratings.hearthurt, 50);
                            renderer.attach(
                               'menu',
                               ...CosmosUtils.populate(13, index => {
@@ -1822,7 +1809,7 @@ const patterns = {
             }
             case 7:
             case 8: {
-               await b(80, 65);
+               await brez(80, 65);
                const rotTime = turns === 7 ? 1000 : 750;
                const rotSpread = 45;
                const rotAmount = turns === 7 ? 13 : 26;
@@ -1907,7 +1894,7 @@ const patterns = {
             }
             case 9:
             case 10: {
-               await b(56, 65);
+               await brez(56, 65);
                let index = 0;
                const spede = turns === 9 ? 2.5 : 3;
                const total = turns === 9 ? 5 : 9;
@@ -1928,8 +1915,8 @@ const patterns = {
                break;
             }
             case 11: {
-               if (save.data.n.bad_lizard < 2) {
-                  await b(80, 65);
+               if (trueLizard() < 2) {
+                  await brez(80, 65);
                   const urb = new CosmosSprite({
                      alpha: 0.7,
                      anchor: 0,
@@ -1949,7 +1936,7 @@ const patterns = {
                   renderer.detach('menu', urb);
                   break;
                } else {
-                  await b(80, 65);
+                  await brez(80, 65);
                   let ind = 18;
                   while (ind > 0) {
                      q(mtb.buzzgate(CosmosMath.remap(random.next(), 0.25, 0.75), ind + 5, 2, 2));
@@ -1962,7 +1949,7 @@ const patterns = {
             case 13:
             case 19:
             case 20: {
-               await b(80, 65);
+               await brez(80, 65);
                const cnt = turns === 13 ? 19 : turns === 19 ? 14 : 9;
                const elements = CosmosUtils.populate(cnt, index => index);
                while (elements.length > 0) {
@@ -1980,7 +1967,7 @@ const patterns = {
             }
             case 14:
             case 15: {
-               await b(80, 65);
+               await brez(80, 65);
                const spr = new CosmosAnimation({
                   anchor: 1,
                   scale: 1 / 2,
@@ -2012,7 +1999,7 @@ const patterns = {
             }
             case 16:
             case 17: {
-               await b(80, 65);
+               await brez(80, 65);
                let elements = turns === 17 ? 20 : 14;
                const sp = turns === 17 ? 4 : 2;
                while (elements > 0) {
@@ -2032,7 +2019,7 @@ const patterns = {
       } else {
          switch (Math.floor(random.next() * 3)) {
             case 0: {
-               await b(80, 65);
+               await brez(80, 65);
                let i = 32;
                while (i > 0) {
                   await renderer.pause(150);
@@ -2042,7 +2029,7 @@ const patterns = {
                break;
             }
             case 1: {
-               await b(95, 65);
+               await brez(95, 65);
                let i = 2;
                while (i > 0) {
                   await renderer.pause(1200);
@@ -2052,7 +2039,7 @@ const patterns = {
                break;
             }
             case 2: {
-               await b(65, 65);
+               await brez(65, 65);
                let i = 4;
                while (i > 0) {
                   await renderer.pause(1800);
@@ -2071,23 +2058,21 @@ const patterns = {
       let hits = 0;
       let ended = false;
       let boxed = false;
+      let positionsOverride = false;
+      const positions = [ 1, 2, 3 ];
       const promises = [] as Promise<void>[];
       const shielder = (async () => {
          await timer.when(() => boxed);
          const segments = 5;
          const tintColor = CosmosBitmap.color2hex(CosmosImage.utils.color.of('#faff29'));
-         const positions = [ 1, 2, 3 ];
          const timeIndicator = new CosmosText({
             font: '16px DeterminationSans',
             anchor: { x: 0, y: 1 },
             position: { x: 160 },
-            fill: '#fff',
             filters: [ new OutlineFilter(2, 0, 1, 1, false) ]
          }).on('tick', function () {
             this.content = text.b_opponent_mettaton2.hitIndicator.replace('$(x)', hits.toString());
-            if (hits === 10) {
-               this.fill = '#faff29';
-            }
+            this.fill = hits < 10 ? '#fff' : hits < 15 ? '#faff29' : '#722bff';
          });
          renderer.attach('menu', timeIndicator);
          timeIndicator.position.modulate(
@@ -2096,23 +2081,28 @@ const patterns = {
             timeIndicator.position.add(0, 16),
             timeIndicator.position.add(0, 16)
          );
-         while (!ended && hits < 10) {
+         while (!ended && hits < 15) {
             const segmentSize = battler.box.size.x / segments;
             const baseX = box.x1 + segmentSize / 2;
             let fx = true;
             const top = random.next() < 0.5;
-            let lane = NaN;
-            while (isNaN(lane) || positions.includes(lane)) {
-               lane = Math.floor(random.next() * segments);
+            const boost = save.flag.n.azzy_neo_pickup > 1 && random.next() < 1 / 4;
+            const lanes = CosmosUtils.populate(segments, segment => segment).filter(
+               testLane =>
+                  !positions.includes(testLane) &&
+                  Math.abs(baseX + testLane * segmentSize - battler.SOUL.x) < battler.box.size.x / 3
+            );
+            const lane = lanes[Math.floor(random.next() * lanes.length)];
+            if (!positionsOverride) {
+               positions.push(lane);
+               positions.length > 3 && positions.shift();
             }
-            positions.push(lane);
-            positions.length > 3 && positions.shift();
             const { bullet, detached, detach } = bulletSetup(
                new CosmosHitbox({
                   anchor: 0,
                   size: 10,
                   position: { x: baseX + lane * segmentSize, y: top ? box.y1 - 10 : box.y2 + 10 },
-                  metadata: { bullet: true, color: 'yellow', damage: 1 },
+                  metadata: { bullet: true, color: 'yellow', damage: boost ? 2 : 0 },
                   velocity: { y: top ? 1.5 : -1.5 }
                }).on('tick', function () {
                   if (top ? this.y > box.y2 + 10 : this.y < box.y1 - 10) {
@@ -2123,10 +2113,12 @@ const patterns = {
             );
             let av = true;
             const spr = new CosmosAnimation({
+               area: renderer.area,
                anchor: 0,
                resources: content.ibbShield,
                tint: tintColor,
-               index: Math.floor(random.next() * 4)
+               index: Math.floor(random.next() * 4),
+               filters: boost ? [ new AdvancedBloomFilter({ bloomScale: 3, brightness: 1, threshold: 0 }) ] : null
             }).on('tick', function () {
                this.position.set(bullet);
                if (av) {
@@ -2137,11 +2129,28 @@ const patterns = {
             await detached;
             av = false;
             if (fx) {
-               hits++;
+               hits += boost ? 2 : 1;
                spr.active = true;
                spr.extrapolate = false;
                spr.duration = 2;
-               assets.sounds.upgrade.instance(timer).rate.value = CosmosMath.remap(spr.alpha.value, 1.2, 1.8);
+               const r = CosmosMath.remap(spr.alpha.value, 1.2, 1.8);
+               assets.sounds.upgrade.instance(timer).rate.value = r;
+               if (spr.filters !== null) {
+                  let iterations = 0;
+                  let mix = 8 / 10;
+                  const decay = 2 / 3;
+                  const time = 200;
+                  let doppler = 1;
+                  while (iterations++ < 12) {
+                     timer.pause(time * iterations).then(() => {
+                        const ech = assets.sounds.upgrade.instance(timer);
+                        ech.rate.value = r * doppler;
+                        ech.gain.value *= mix;
+                        mix *= decay;
+                        doppler -= 0.01;
+                     });
+                  }
+               }
                spr.scale.modulate(timer, 600, 7);
                spr.alpha.modulate(timer, 600, 0, 0).then(() => {
                   renderer.detach('menu', spr);
@@ -2184,7 +2193,7 @@ const patterns = {
       recentTurns.length > 5 && void recentTurns.shift();
       switch (trueTurns) {
          case 1: {
-            await b(80, 65);
+            await brez(80, 65);
             boxed = true;
             let ii = 0;
             while (ii++ < 4) {
@@ -2228,7 +2237,7 @@ const patterns = {
             break;
          }
          case 2: {
-            await b(80, 65);
+            await brez(80, 65);
             boxed = true;
             let i = 5;
             let s = random.next() < 0.5 ? -1 : 1;
@@ -2244,7 +2253,7 @@ const patterns = {
          }
          case 3:
          case 9: {
-            await b(80, 65);
+            await brez(80, 65);
             boxed = true;
             q(mtb.blaster(void 0, void 0, 9000));
             let i = 15;
@@ -2256,7 +2265,7 @@ const patterns = {
             break;
          }
          case 4: {
-            await b(80, 65);
+            await brez(80, 65);
             boxed = true;
             let i = 8;
             while (i > 0) {
@@ -2267,7 +2276,7 @@ const patterns = {
             break;
          }
          case 5: {
-            await b(80, 65);
+            await brez(80, 65);
             boxed = true;
             const cnt = 120;
             const elements = CosmosUtils.populate(cnt, index => index);
@@ -2293,7 +2302,7 @@ const patterns = {
          }
          case 6:
          case 12: {
-            await b(80, 65);
+            await brez(80, 65);
             boxed = true;
             const container = battler.volatile[0].container;
             const spr = container.objects[0];
@@ -2339,7 +2348,7 @@ const patterns = {
                                  scale: { x: 1 / 16 },
                                  position: bl,
                                  rotation: br + index * 180,
-                                 velocity: new CosmosRay(br + index * 180, 5),
+                                 velocity: new CosmosRay(br + index * 180, 4),
                                  objects: [ new CosmosSprite({ alpha: 0.8, anchor: 0, frames: [ content.ibbDummyknife ] }) ]
                               })
                                  .on('shot', function (a, b) {
@@ -2397,7 +2406,7 @@ const patterns = {
             break;
          }
          case 7: {
-            await b(80, 65);
+            await brez(80, 65);
             boxed = true;
             let i = 8;
             while (i > 0) {
@@ -2412,7 +2421,9 @@ const patterns = {
             break;
          }
          case 8: {
-            await b(120, 65);
+            positionsOverride = true;
+            positions.splice(0, positions.length);
+            await brez(120, 65);
             boxed = true;
             const cl = 5;
             const sd = box.sx / cl;
@@ -2444,10 +2455,12 @@ const patterns = {
             await renderer.pause(500);
             let i = 9;
             while (i > 0) {
+               positions.splice(0, positions.length);
                const si = Math.floor((battler.SOUL.x - box.x1) / sd);
+               const asi = si + (random.next() < 0.5 ? -1 : 1);
+               positions.push(si, asi);
                q(mtb.meteor(bwsp(box.x1 + sd * (si + 0.5)), void 0, 1000));
                await renderer.pause(200);
-               const asi = si + (random.next() < 0.5 ? -1 : 1);
                if (asi > -1 && asi < cl && !(si === 0 && asi === 1) && !(si === cl - 1 && asi === cl - 2)) {
                   q(mtb.meteor(bwsp(box.x1 + sd * (asi + 0.5)), void 0, 1000));
                }
@@ -2460,7 +2473,7 @@ const patterns = {
             break;
          }
          case 10: {
-            await b(80, 65);
+            await brez(80, 65);
             boxed = true;
             let i = 4;
             while (i > 0) {
@@ -2477,7 +2490,7 @@ const patterns = {
             break;
          }
          case 11: {
-            await b(24, 24);
+            await brez(24, 24);
             boxed = true;
             let i = 10;
             while (i > 0) {
@@ -2623,8 +2636,8 @@ const patterns = {
          // strike sfx
          assets.sounds.strike.instance(timer);
          const striker = assets.sounds.superstrike.instance(timer);
-         striker.gain.value = CosmosMath.bezier(hits / 10, 0, 0, 0, 0, assets.sounds.superstrike.gain);
-         hits === 10 && timer.pause(300).then(() => heal(4));
+         striker.gain.value = CosmosMath.bezier(hits / 15, 0, 0, 0, assets.sounds.superstrike.gain);
+         hits < 10 || timer.pause(300).then(() => heal(4));
          let index = 30;
          const origin = next.position.y;
          const zbf = next.filters![2] as ZoomBlurFilter;
@@ -2643,7 +2656,6 @@ const patterns = {
          // end animations
          renderer.detach('menu', healthbar);
       }
-      return hits;
    },
    async alphys1 (idx: number, ftester = (async () => {})()) {
       switch (idx) {
@@ -2775,8 +2787,8 @@ const patterns = {
          const v = sineWaver(t, p, -1, 1, 1 / 8);
          this.position.set(battler.box.position.add(v * 50, sineWaver(t, p / 2, -1, 1, 1 / 8) * 20));
          this.scale.set(1, CosmosMath.bezier(Math.abs(v), 1, 1, 0.5));
-         const detected =
-            renderer.detect('menu', battler.SOUL, ...renderer.calculate('menu', hitbox => hitbox === this)).length > 0;
+         this.calculate(renderer);
+         const detected = renderer.detect(battler.SOUL, this).length > 0;
          if (detected !== this.metadata.detected) {
             if ((this.metadata.detected = detected)) {
                assets.sounds.bell.instance(timer);
@@ -3207,20 +3219,17 @@ const patterns = {
                              new CosmosAnimation({ anchor: 0, index: 1, resources: content.ibbVertship })
                           ]
                        }).on('tick', function () {
-                          if (
-                             !trig &&
-                             renderer.detect(
-                                'menu',
-                                battler.SOUL,
-                                ...renderer.calculate('menu', hitbox => hitbox === this || hitbox === this.objects[0])
-                             ).length > 0
-                          ) {
-                             trig = true;
-                             this.alpha.value = 0;
-                             assets.sounds.bell.instance(timer);
-                             timer.pause(150).then(() => {
-                                heal(1);
-                             });
+                          if (!trig) {
+                             this.calculate(renderer);
+                             (this.objects[0] as CosmosHitbox).calculate(renderer);
+                             if (renderer.detect(battler.SOUL, this, this.objects[0] as CosmosHitbox).length > 0) {
+                                trig = true;
+                                this.alpha.value = 0;
+                                assets.sounds.bell.instance(timer);
+                                timer.pause(150).then(() => {
+                                   heal(1);
+                                });
+                             }
                           }
                        })
                      : new CosmosObject(),
@@ -3719,9 +3728,9 @@ const patterns = {
                   : battler.SOUL.position.extentOf(this) / box.sy) * cE()
             )
          );
-         if (attacktype === 0 && battler.SOUL.position.y <= box.y1 + battler.SOUL.size.y / 2) {
+         if (attacktype === 0 && battler.SOUL.y <= box.y1 + battler.SOUL.size.y / 2) {
             battler.invulnerable || battler.damage(battler.SOUL.sprite, 4);
-         } else if (attacktype === 1 && box.y2 - battler.SOUL.size.y / 2 <= battler.SOUL.position.y) {
+         } else if (attacktype === 1 && box.y2 - battler.SOUL.size.y / 2 <= battler.SOUL.y) {
             battler.invulnerable || battler.damage(battler.SOUL.sprite, 4);
          }
       });
@@ -3894,7 +3903,7 @@ const patterns = {
          });
          renderer.attach('menu', tiparrow);
          await Promise.all([
-            tiparrow.spin.modulate(timer, 2000, random.next() ? 10 : -10),
+            tiparrow.spin.modulate(timer, 2000, random.next() < 0.5 ? 10 : -10),
             tiparrow.alpha.modulate(timer, 2000, 1)
          ]);
          await timer.pause(5000);

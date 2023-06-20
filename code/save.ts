@@ -1,6 +1,7 @@
+import { CosmosMath } from './api';
 import { OutertaleInventory } from './classes';
 import { backend } from './core';
-import { CosmosKeyed, CosmosUtils } from './engine';
+import { CosmosKeyed, CosmosUtils } from './engine/utils';
 
 // SAVE data booleans
 type OutertaleDataBooleanBase = typeof dataBoolean;
@@ -127,6 +128,9 @@ const dataBoolean = {
 
    /** backtracked to other side of CORE with azzy */
    a_state_asrielTimewaster: info<boolean>(),
+
+   /** badness increased to one */
+   bad_lizard: info<boolean>(),
 
    /** true if "About Yourself" has been used on the CELL */
    cell_about: info<boolean>(),
@@ -270,6 +274,12 @@ const dataBoolean = {
 
    /** unlocked hapstablook's house with the mystery key */
    f_state_hapstadoor: info<boolean>(),
+
+   /** assist used for madjick */
+   assist_madjick: info<boolean>(),
+
+   /** assist used for knightknight */
+   assist_knightknight: info<boolean>(),
 
    // monster flirt states
    flirt_dogamy: info<boolean>(),
@@ -422,14 +432,6 @@ const dataBoolean = {
    /** true if sock drawer was messed with */
    cetadel: info<boolean>(),
 
-   // killstates
-   killed_mouse: info<boolean>(),
-   fled_mouse: info<boolean>(),
-   killed_radtile: info<boolean>(),
-   fled_radtile: info<boolean>(),
-   killed_perigee: info<boolean>(),
-   fled_perigee: info<boolean>(),
-
    /** killed shyren */
    killed_shyren: info<boolean>(),
 
@@ -447,6 +449,9 @@ const dataBoolean = {
 
    /** papyrus phone call */
    kitchencall: info<boolean>(),
+
+   /** experienced long elevator yet */
+   long_elevator: info<boolean>(),
 
    /** whether or not napstablook has been called about performing */
    napsta_performance: info<boolean>(),
@@ -484,11 +489,8 @@ const dataBoolean = {
    /** encountered lesser dog */
    s_state_lesser: info<boolean>(),
 
-   /** fled from lesser dog */
-   s_state_lesserflee: info<boolean>(),
-
-   /** true if the math puzzle was beat by crashing it */
-   s_state_mathcrash: info<boolean>(),
+   /** true if the math puzzle was beat */
+   s_state_mathpass: info<boolean>(),
 
    /** beat sans high score on xtower */
    s_state_million: info<boolean>(),
@@ -507,6 +509,9 @@ const dataBoolean = {
 
    /** made a reservation at the start inn */
    s_state_reservation: info<boolean>(),
+
+   /** used papyrus sink */
+   s_state_papsink: info<boolean>(),
 
    /** toriel offers snail pie instead */
    snail_pie: info<boolean>(),
@@ -646,6 +651,9 @@ const dataNumber = {
    /** kill count */
    kills: info<number>(),
 
+   /** core kill count */
+   corekills: info<number>(),
+
    /** aerialis kill count */
    kills_aerialis: info<number>(),
 
@@ -738,13 +746,8 @@ const dataNumber = {
     * 18.1 - (geno: asriel talked about the sentry station)
     * 19 - crossed doggo
     * 20 - completed papyrus's maze
-    * 20.1 (geno: asriel noticed lack of nice cream)
     * 20.2 - encounter lesser dog
     * 21 - "completed" sans's crossword puzzle
-    * 21.1 - (geno: entered spaghet room)
-    * 21.11 - puzzle intro
-    * 21.2 - math puzzle completion (intermediate step)
-    * 22 - completed math puzzle
     * 23 - dog marriage
     * 24 - beat papyrus puzzle 1
     * 24.1 - met paps in next room
@@ -764,19 +767,17 @@ const dataNumber = {
     *
     * > progress in foundry
     * 33 - completed first date with sans
-    * 34 - saw pap and undyne (geno: saw asgore and alphys)
     * 35 - crossed doge
     * 36 - solved lazor puzzle 1
     * 37 - solved lazor puzzle 2
     * 37.1 - (geno: asgore encounter 2)
+    * 37.11 - saw pap and undyne (geno: just undyne)
     * 37.2 - crossed the bridge
-    * 38 - undyne chase 1 (monster kid joins)
     * 38.01 - chase 1 end
     * 38.1 - (geno: asriel left)
     * 38.2 - (geno: asgore encounter 3)
     * 39 - crossed muffet
     * 40 - shyren
-    * 41 - monster kid said byee
     * 42 - undyne chase 2
     * 42.1 - dummy
     * 43 - (geno: asriel returned with monster kid)
@@ -792,6 +793,7 @@ const dataNumber = {
     * 48 - undyne fight
     *
     * > progress in aerialis
+    * 48.1 - updated bad_lizard
     * 49 - met alphys (and first MTT show)
     * 50 - liftgates were explained
     * 51 - RG 01/02
@@ -886,12 +888,8 @@ const dataNumber = {
       | 18.1
       | 19
       | 20
-      | 20.1
       | 20.2
       | 21
-      | 21.1
-      | 21.2
-      | 22
       | 23
       | 24
       | 24.1
@@ -911,19 +909,17 @@ const dataNumber = {
       | 31
       | 32
       | 33
-      | 34
       | 35
       | 36
       | 37
       | 37.1
+      | 37.11
       | 37.2
-      | 38
       | 38.01
       | 38.1
       | 38.2
       | 39
       | 40
-      | 41
       | 42
       | 42.1
       | 43
@@ -937,6 +933,7 @@ const dataNumber = {
       | 47.1
       | 47.2
       | 48
+      | 48.1
       | 49
       | 50
       | 51
@@ -985,13 +982,11 @@ const dataNumber = {
     *
     * > alphys
     * 7 - entered h_hub5 (saw citadelevator door)
-    * 8 - reached CORE room
-    * 9 - first time seeing warrior's path or puzzler's path
-    * 10 - hit a switch at the end of a path
-    * 11 - reached the MTT fight door
+    * 7.1 - saw CORE room
+    * 8 - CORE exit
     * ```
     */
-   plot_call: info<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11>(),
+   plot_call: info<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 7.1 | 8>(),
 
    /**
     * date count
@@ -1030,6 +1025,9 @@ const dataNumber = {
 
    /** outernet messages (checked) */
    plot_pmcheck: info<number>(),
+
+   /** stalker twinkly */
+   plot_stalker: info<number>(),
 
    /** shop talk - undyne (after geno death) */
    shop_deadfish: info<number>(),
@@ -1120,6 +1118,9 @@ const dataNumber = {
     * ```
     */
    state_aerialis_royalguards: info<0 | 1>(),
+
+   /** mk spear reaction */
+   state_foundry_kiddreaction: info<number>(),
 
    /** astronaut foods taken */
    state_foundry_astrofood: info<number>(),
@@ -1646,6 +1647,12 @@ const dataString = {
    /** laser state in foundry puzzle 2 */
    state_foundry_f_puzzle2: info<string>(),
 
+   /** traps set off in chase */
+   state_foundry_f_chaseTrap: info<string>(),
+
+   /** holes in chase */
+   state_foundry_f_chaseHole: info<string>(),
+
    /** laser state in foundry puzzle 3 */
    state_foundry_f_puzzle3: info<string>(),
 
@@ -1678,11 +1685,11 @@ const flagBoolean = {
    /** true if twinkly hinted at his plan */
    reveal_twinkly: info<boolean>(),
 
-   /** kakurolady talked about word searches */
-   s_state_wordsearch: info<boolean>(),
-
    /** seen core */
    w_state_core: info<boolean>(),
+
+   /** asriel commented on chara landing spot */
+   asriel_trashcom: info<boolean>(),
 
    /** asriel knows you know where the cellphone is. */
    asriel_phone: info<boolean>(),
@@ -1705,8 +1712,8 @@ const flagBoolean = {
    /** true if twinkly post-geno reset end dialogue happened (mad version) */
    enrage_twinkly: info<boolean>(),
 
-   /** (temporary) true if reached the end of any route */
-   demo_complete: info<boolean>()
+   /** completed pacifist ending, unlocked true reset */
+   true_reset: info<boolean>()
 };
 
 const flagNumber = {
@@ -1716,14 +1723,14 @@ const flagNumber = {
    /** times fought mtt neo */
    azzy_neo: info<number>(),
 
+   /** shield pickup thing */
+   azzy_neo_pickup: info<number>(),
+
    /** times died */
    deaths: info<number>(),
 
    /** how many times twinkly has been met */
    encounter_twinkly: info<number>(),
-
-   /** times fled from toriel */
-   exitfails: info<number>(),
 
    // genocide asriel's memory
    ga_asriel0: info<number>(),
@@ -1732,7 +1739,6 @@ const flagNumber = {
    ga_asriel6: info<number>(),
    ga_asriel9: info<number>(),
    ga_asriel10: info<number>(),
-   ga_asriel11: info<number>(),
    ga_asriel17: info<number>(),
    ga_asriel20: info<number>(),
    ga_asriel24: info<number>(),
@@ -1765,6 +1771,7 @@ const flagNumber = {
    ga_asrielEcho3: info<number>(),
    ga_asrielEcho4: info<number>(),
    ga_asrielElite1: info<number>(),
+   ga_asrielEpic: info<number>(),
    ga_asrielFetch: info<number>(),
    ga_asrielKidd1: info<number>(),
    ga_asrielKidd2: info<number>(),
@@ -1772,12 +1779,12 @@ const flagNumber = {
    ga_asrielKiddFinal3a: info<number>(),
    ga_asrielKiddFinal3b: info<number>(),
    ga_asrielKiddWalk: info<number>(),
-   ga_asrielMoon2: info<number>(),
    ga_asrielNapstakill: info<number>(),
    ga_asrielPapyrus1: info<number>(),
    ga_asrielPuzzleStop1: info<number>(),
    ga_asrielRobo1: info<number>(),
    ga_asrielSpanner: info<number>(),
+   ga_asrielStutter: info<number>(),
    ga_asrielUndying: info<number>(),
    ga_asrielUndyneX: info<number>(),
    ga_asrielLab1: info<number>(),
@@ -1818,6 +1825,10 @@ const flagNumber = {
    ga_asrielOnion: info<number>(),
    ga_asrielCoffin: info<number>(),
    ga_asrielTimewaster: info<number>(),
+   ga_asrielDog: info<number>(),
+   ga_asrielWreckage: info<number>(),
+   ga_asrielMadfish: info<number>(),
+   ga_asrielVirt: info<number>(),
 
    /**
     * genocide progression milestones
@@ -1839,9 +1850,6 @@ const flagNumber = {
 
    /** music level */
    option_music: info<number>(),
-
-   /** transparency level */
-   // option_trans: info<number>(),
 
    /** sfx level */
    option_sfx: info<number>(),
@@ -2014,9 +2022,18 @@ const save = {
          return localStorage;
       }
    })(),
-   namespace: 'OUTERTALE',
+   namespace: new URLSearchParams(location.search).get('namespace') ?? 'OUTERTALE',
    state: {} as CosmosKeyed
 };
+
+if (backend.available) {
+   setInterval(() => {
+      if (save.dirty) {
+         save.dirty = false;
+         backend.file.writeSave(CosmosUtils.serialize(save.internal));
+      }
+   }, 50);
+}
 
 export default save;
 

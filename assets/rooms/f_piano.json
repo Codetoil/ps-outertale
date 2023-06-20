@@ -31,8 +31,7 @@
                   "name": "teleport",
                   "args": [ "f_truth", "right", "20", "180" ]
                }
-            ],
-            "interacts": []
+            ]
          }
       ],
       "main": [

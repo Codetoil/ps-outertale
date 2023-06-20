@@ -2,38 +2,27 @@ import './bootstrap';
 
 import { BLEND_MODES } from 'pixi.js';
 import assets from '../assets';
-import { OutertaleGroup, OutertaleShop } from '../classes';
-import { characters, epicgamer, goatbro, runEncounter } from '../common';
+import { OutertaleShop } from '../classes';
+import { azzie, characters, runEncounter } from '../common';
 import commonGroups from '../common/groups';
 import content, { inventories } from '../content';
 import { atlas, events, game, items, keys, random, renderer, rooms, speech, timer, typer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosCharacter,
-   CosmosDirection,
-   CosmosEntity,
-   CosmosHitbox,
-   CosmosInstance,
-   CosmosInventory,
-   CosmosKeyed,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosPointSimple,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosText,
-   CosmosUtils,
-   CosmosValue,
-   CosmosValueRandom
-} from '../engine';
+import { CosmosInstance } from '../engine/audio';
+import { CosmosInventory } from '../engine/core';
+import { CosmosCharacter, CosmosEntity } from '../engine/entity';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPoint, CosmosPointSimple, CosmosValue, CosmosValueRandom } from '../engine/numerics';
+import { CosmosHitbox, CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosText } from '../engine/text';
+import { CosmosDirection, CosmosKeyed, CosmosUtils } from '../engine/utils';
 import {
    battler,
    calcHP,
    character,
    choicer,
+   colormix,
    dialogue,
-   dialoguer,
    header,
    heal,
    instance,
@@ -44,8 +33,10 @@ import {
    resume,
    shake,
    shopper,
+   sineWaver,
    talkFilter,
    teleport,
+   teleporter,
    temporary,
    trivia,
    world
@@ -83,6 +74,17 @@ function sas (position: CosmosPointSimple, plot = 32) {
    }
 }
 
+function unlockPuzzle () {
+   const parent = instance('main', 'lasercheckpoint')!.object;
+   for (const object of parent.objects) {
+      if (object instanceof CosmosAnimation) {
+         object.alpha.value = 0;
+      } else if (object.metadata.barrier === true) {
+         object.metadata.barrier = false;
+      }
+   }
+}
+
 async function depower () {
    assets.sounds.depower.instance(timer);
    const field = instance('main', 'lasercheckpoint')!.object.objects.filter(
@@ -98,6 +100,7 @@ async function depower () {
    field.alpha.value = 1;
    await timer.pause(720 - 650);
    field.alpha.value = 0;
+   unlockPuzzle();
 }
 
 function leap (entity: CosmosEntity, time: number, height: number, destie?: number, inverse?: boolean) {
@@ -107,12 +110,12 @@ function leap (entity: CosmosEntity, time: number, height: number, destie?: numb
       const endPoint = entity.position.add(inverse ? -55 : 55, 0).value();
       entity.position.modulate(timer, time, midPoint, endPoint).then(async () => {
          if (typeof destie === 'number') {
-            await entity.walk(timer, 3, { x: 340 }, { x: 380, y: 100 }, { x: destie });
+            await entity.walk(timer, 3, { x: 340 }, { x: 380, y: 440 }, { x: destie });
          }
          resolve(entity);
       });
       while (inverse ? entity.position.x > endPoint.x : entity.position.x < endPoint.x) {
-         await timer.pause(player.position.y < midPoint.y - 20 ? 133 : player.position.y < midPoint.y - 10 ? 99 : 66);
+         await timer.pause(player.y < midPoint.y - 20 ? 133 : player.y < midPoint.y - 10 ? 99 : 66);
          entity.face = (
             { up: 'left', left: 'down', down: 'right', right: 'up' } as CosmosKeyed<CosmosDirection, CosmosDirection>
          )[entity.face];
@@ -158,96 +161,53 @@ const biorooms = {
    s_start: 100,
    s_sans: 1100,
    s_crossroads: 1720,
-   s_alphys: 2040,
-   s_human: 1720,
-   s_papyrus: 1720,
-   s_doggo: 2040,
-   s_lookout: 2020,
-   s_maze: 2540,
-   s_stand: 2860,
-   s_dogs: 3180,
-   s_lesser: 2940,
-   s_bros: 3160,
-   s_spaghetti: 3180,
-   s_math: 3380,
-   s_puzzle1: 3560,
-   s_puzzle2: 4160,
-   s_jenga: 4660,
-   s_pacing: 4980,
-   s_puzzle3: 5400,
-   s_greater: 5800,
-   s_bridge: 6240,
-   s_town1: 7240,
-   s_taxi: 8240,
-   s_town2: 7240,
-   s_battle: 8240,
-   s_exit: 9040
+   s_human: 2040,
+   s_papyrus: 2360,
+   s_doggo: 2680,
+   s_maze: 3180,
+   s_dogs: 3500,
+   s_lesser: 3820,
+   s_spaghetti: 4140,
+   s_bros: 4460,
+   s_puzzle1: 4920,
+   s_puzzle2: 5600,
+   s_jenga: 6100,
+   s_pacing: 6420,
+   s_puzzle3: 6840,
+   s_greater: 7160,
+   s_math: 7190,
+   s_secret: 7200,
+   s_bridge: 7480,
+   s_town1: 8480,
+   s_taxi: 9480,
+   s_town2: 8480,
+   s_battle: 9480,
+   s_exit: 10480
 } as CosmosKeyed<number, string>;
 
 const biodome = new CosmosSprite({
-   anchor: 0,
-   parallax: { x: 1, y: 0 },
-   frames: [ content.ieBiodome ],
+   anchor: { y: 0 },
+   parallax: 1,
+   frames: [ content.iooSBiodome ],
    metadata: { last: '', init: false, list: void 0 as string | void },
-   priority: -999999
+   priority: -99999
 }).on('tick', function () {
-   if (game.room in biorooms && game.camera) {
+   if (game.room in biorooms) {
       const clampedPos = game.camera.position.clamp(...renderer.region);
-      this.alpha.value = game.room === 'w_bridge' ? 0.245 : game.room === 'w_exit' ? 0.35 : 0.5;
-      this.position.x = 40 + ((biorooms[game.room] - (160 - renderer.region[0].x) + clampedPos.x) / 9200) * -80;
-      this.position.y = clampedPos.y || 120;
-      if (game.room !== this.metadata.list) {
-         this.metadata.list = game.room;
-      }
+      this.alpha.value = (game.room === 'w_bridge' ? 0.245 : game.room === 'w_exit' ? 0.35 : 0.5) / 1.5;
+      this.scale.set(1 / renderer.zoom.value);
+      this.position.set(
+         this.scale.multiply(CosmosMath.remap(biorooms[game.room] + clampedPos.x, 0, -80, 0, 10640) - 160, 0)
+      );
+      this.metadata.list = game.room;
+   } else {
+      renderer.detach('below', this);
    }
 });
 
 const script = async (subscript: string, ...args: string[]): Promise<any> => {
    const roomState = states.rooms[game.room] || (states.rooms[game.room] = {});
    if (subscript === 'tick') {
-      if (game.room.startsWith('s_puzzle')) {
-         if (game.room === 's_puzzle3') {
-            world.genocide && instance('main', 's_spagnote')?.destroy();
-            const p3 = save.data.s.state_starton_s_puzzle3;
-            if (p3 || save.data.n.state_starton_s_puzzle3 > 0) {
-               function p3activate (tag: string, state: number, tag2?: string) {
-                  for (const { object } of instances('main', tag)) {
-                     if (!tag2 || (object.metadata.tags as string[]).includes(tag2)) {
-                        (object.objects[0] as CosmosAnimation).index = state;
-                     }
-                  }
-               }
-               p3 && p3activate(p3, 1);
-               if (save.data.n.state_starton_s_puzzle3 > 0) {
-                  for (const [ a, b ] of (world.genocide
-                     ? [
-                          [ 'r1', 'c1' ],
-                          [ 'r1', 'c4' ],
-                          [ 'r2', 'c3' ],
-                          [ 'r3', 'c2' ],
-                          [ 'r4', 'c1' ],
-                          [ 'r4', 'c4' ]
-                       ]
-                     : [
-                          [ 'r1', 'c3' ],
-                          [ 'r2', 'c4' ],
-                          [ 'r3', 'c3' ],
-                          [ 'r4', 'c2' ],
-                          [ 'r2', 'c1' ],
-                          [ 'r2', 'c2' ]
-                       ]
-                  ).slice(0, save.data.n.state_starton_s_puzzle3 as number)) {
-                     p3activate(a, 2, b);
-                  }
-               }
-            }
-         } else if (roomState.puzzleticker) {
-            const puzzle = instance('main', 'puzzlechip')?.object.objects[0] as CosmosAnimation;
-            if (puzzle) {
-               save.data.n[`state_starton_${game.room as `s_puzzle${1 | 2 | 3}`}`] = puzzle.index;
-            }
-         }
-      }
       switch (game.room) {
          case 's_start':
             if (!roomState.active) {
@@ -259,7 +219,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   jeebs.rate.value = 0.73;
                   jeebs.gain.modulate(timer, 1000, 1, 1);
                   async function shadowyboi () {
-                     const subbie = world.genocide ? goatbro : player;
+                     const subbie = world.genocide ? azzie : player;
                      const shadowsan = character('sans', characters.sans, subbie.position.add(170, 0), 'right', {
                         tint: 0
                      });
@@ -285,7 +245,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      area.modulate(timer, duration, size);
                      while (area.value > size) {
                         renderer.zoom.value = 320 / area.value;
-                        await timer.on('tick');
+                        await renderer.on('tick');
                      }
                      renderer.zoom.value = zoom;
                      assets.sounds.rimshot.instance(timer);
@@ -294,7 +254,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      area.modulate(timer, duration, 320);
                      while (area.value < 320) {
                         renderer.zoom.value = 320 / area.value;
-                        await timer.on('tick');
+                        await renderer.on('tick');
                      }
                      renderer.zoom.value = 1;
                      renderer.region = region;
@@ -303,7 +263,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   const paps = new CosmosCharacter({
                      preset: characters.papyrus,
                      key: 'papyrus',
-                     position: { x: 520, y: 100 }
+                     position: { x: 520, y: 440 }
                   });
                   paps.face = 'right';
                   const papyturn = async () => {
@@ -330,16 +290,14 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   }
                   const stepLoader = content.asStep.load();
                   timer
-                     .when(() => game.room === 'w_exit' || (game.room === 's_start' && player.position.x > 360))
+                     .when(() => game.room === 'w_exit' || (game.room === 's_start' && player.x > 360))
                      .then(async () => {
                         if (cancel()) {
                            return;
                         }
                         shadowyboi();
                         jeebs.rate.modulate(timer, 500, 0.77);
-                        await timer.when(
-                           () => game.room === 'w_exit' || (game.room === 's_start' && player.position.x > 700)
-                        );
+                        await timer.when(() => game.room === 'w_exit' || (game.room === 's_start' && player.x > 700));
                         if (cancel()) {
                            return;
                         }
@@ -351,11 +309,12 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         }
                         jeebs.rate.modulate(timer, 500, 0.85);
                         if (world.genocide) {
-                           await timer.when(() => player.position.x > 190);
+                           await timer.when(() => player.x > 190);
                            await timer.pause(650);
                         } else {
                            await timer.when(
-                              () => game.room === 'w_exit' || (game.room === 's_sans' && player.position.x > 220)
+                              () =>
+                                 (game.room === 'w_exit' || (game.room === 's_sans' && player.x > 220)) && game.movement
                            );
                            if (cancel()) {
                               return;
@@ -368,7 +327,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            preset: characters.sans,
                            tint: 0,
                            key: 'sans',
-                           position: { x: 50, y: player.position.y },
+                           position: { x: 50, y: player.y },
                            anchor: { x: 0, y: 1 },
                            size: { x: 25, y: 5 },
                            metadata: {
@@ -410,7 +369,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                                  assets.sounds.step.instance(timer);
                            };
                            sand.sprites.right.on('tick', animListener);
-                           await sand.walk(timer, 1, { x: player.position.x - 23 });
+                           await sand.walk(timer, 1, { x: player.x - 23 });
                            sand.sprites.right.off('tick', animListener);
                            save.data.n.plot = 17.001;
                            await dialogue('auto', ...text.a_starton.sans1);
@@ -421,7 +380,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            sand.alpha.value = 0;
                            const handshake = new CosmosAnimation({
                               anchor: { y: 1 },
-                              position: { x: sand.position.x - 8.5, y: player.position.y },
+                              position: { x: sand.position.x - 8.5, y: player.y },
                               resources: content.iocSansHandshake
                            });
                            renderer.attach('main', handshake);
@@ -438,23 +397,23 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            await dialogue('auto', ...text.a_starton.sans2);
                            renderer.attach('main', paps);
                            await Promise.all([
-                              leap(sand, 850, 30, 410 - (player.position.x - sand.position.x)),
+                              leap(sand, 850, 30, 410 - (player.x - sand.position.x)),
                               leap(player, 850, 30, 410)
                            ]);
                            content.asWhoopee.unload();
                            await timer.pause(350);
                            await dialogue('auto', ...text.a_starton.sans3);
-                           await player.walk(timer, 3, { x: 415.5, y: 41 });
+                           await player.walk(timer, 3, { x: 415.5, y: 381 });
                            await timer.pause(450);
-                           await player.walk(timer, 1, { y: 29.5 });
+                           await player.walk(timer, 1, { y: 369.5 });
                            await timer.pause(300);
                            sand.face = 'up';
                            await timer.pause(150);
                            assets.sounds.equip.instance(timer).rate.value = 1.25;
-                           player.position.y -= 15;
+                           player.y -= 15;
                            player.anchor.y = 0;
-                           (player.objects[0] as CosmosAnimation).anchor.y = 0;
-                           const destie1 = { x: player.position.x, y: -90 };
+                           player.sprite.anchor.y = 0;
+                           const destie1 = { x: player.x, y: 210.5 };
                            player.position.modulate(
                               timer,
                               1750,
@@ -476,6 +435,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            await timer.pause(1450);
                            sand.face = 'right';
                            await timer.pause(850);
+                           player.sprite.anchor.y = 1;
+                           player.face = 'down';
+                           player.sprite.anchor.y = 0;
                            await dialogue('auto', ...text.a_starton.sans4);
                            const rimshotLoader = content.asRimshot.load();
                            await Promise.all([ papyturn(), papyrusLoader ]);
@@ -496,7 +458,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            sand.face = 'right';
                            await dialogue('auto', ...text.a_starton.sans7);
                            paps.talk = false;
-                           await paps.walk(timer, 4, { x: 540 }, { x: 560, y: 80 }, { x: 590 });
+                           await paps.walk(timer, 4, { x: 540 }, { x: 560, y: 420 }, { x: 590 });
                            await timer.pause(1e3);
                            await paps.walk(timer, 2, { x: 570 });
                            await timer.pause(850);
@@ -517,29 +479,25 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            sand.face = 'up';
                            await timer.pause(150);
                            assets.sounds.equip.instance(timer).rate.value = 1.25;
-                           const destie2 = { x: player.position.x, y: 27 };
-                           timer
-                              .pause(350)
-                              .then(() =>
-                                 player.position.modulate(
-                                    timer,
-                                    1750,
-                                    player.position.value(),
-                                    player.position.value(),
-                                    destie2,
-                                    destie2,
-                                    destie2
-                                 )
-                              );
-                           await player.rotation.modulate(timer, 1100, 180, 180, 180, -5);
-                           await player.rotation.modulate(timer, 250, -5, 2);
-                           await player.rotation.modulate(timer, 100, 2, 0);
-                           await timer.pause(650);
-                           timer.pause(200).then(async () => {
-                              player.position.y += 15;
-                              player.anchor.y = 1;
-                              (player.objects[0] as CosmosAnimation).anchor.y = 1;
-                              player.face = 'down';
+                           player.rotation.modulate(timer, 1100, 180, 180, 180, -5).then(async () => {
+                              await player.rotation.modulate(timer, 250, -5, 2);
+                              await player.rotation.modulate(timer, 100, 2, 0);
+                           });
+                           await timer.pause(350);
+                           const destie2 = { x: player.x, y: 369.5 - 15 };
+                           await player.position.modulate(
+                              timer,
+                              1750,
+                              player.position.value(),
+                              player.position.value(),
+                              destie2,
+                              destie2,
+                              destie2
+                           );
+                           player.y += 15;
+                           player.anchor.y = 1;
+                           player.sprite.anchor.y = 1;
+                           player.walk(timer, 1, { y: 381 }).then(async () => {
                               if (!save.data.b.oops) {
                                  await dialogue('auto', ...text.a_starton.truetext.sans1);
                               }
@@ -550,43 +508,47 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                                  this.preset = game.room === 's_sans' ? characters.sans : characters.none;
                               });
                            });
-                           await sand.walk(timer, 3, { x: 380, y: 40 });
+                           await sand.walk(timer, 3, { x: 380, y: 380 });
                            sand.face = 'down';
                            sand.metadata.barrier = true;
                            sand.metadata.interact = true;
-                           await timer.when(() => game.room === 's_sans' && player.position.x > 580);
+                           await timer.when(() => game.room === 's_sans' && player.x > 580 && game.movement);
                            game.movement = false;
                            await dialogue('auto', ...text.a_starton.sans10);
                            game.movement = true;
                            await Promise.race([
                               sand.walk(timer, 3, {
                                  x: renderer.projection(game.camera.position).x - 172.5,
-                                 y: 60
+                                 y: 400
                               }),
                               events.on('teleport')
                            ]);
                            renderer.detach('main', sand);
+                           for (const spr of Object.values(sand.sprites)) {
+                              spr.reset();
+                           }
                         }
                      });
                   if (world.genocide) {
-                     renderer.attach('main', goatbro);
+                     renderer.attach('main', azzie);
                      const battleLoader = battler.load(groups.shockpapyrus);
+                     game.movement || (await timer.when(() => game.movement));
                      game.movement = false;
-                     goatbro.metadata.override = true;
-                     goatbro.position = new CosmosPoint({ x: 60, y: 60 });
-                     goatbro.face = 'down';
+                     azzie.metadata.override = true;
+                     azzie.position = new CosmosPoint({ x: 60, y: 60 });
+                     azzie.face = 'down';
                      await timer.pause(1150);
                      await dialogue('auto', ...text.a_starton.genotext.asriel1());
                      await player.walk(timer, 3, { y: 90 });
-                     goatbro.walk(timer, 3, { x: 990 }).then(() => {
-                        goatbro.alpha.modulate(timer, 300, 0);
+                     azzie.walk(timer, 3, { x: 990 }).then(() => {
+                        azzie.alpha.modulate(timer, 300, 0);
                      });
                      await player.walk(timer, 3, { y: 60 }, { x: 990 });
-                     await teleport('s_sans', 'right', 20, 60, world);
-                     goatbro.position = player.position.add(21, 0);
-                     goatbro.alpha.value = 1;
-                     await Promise.all([ player.walk(timer, 3, { x: 230 - 21 }), goatbro.walk(timer, 3, { x: 230 }) ]);
-                     goatbro.face = 'left';
+                     await teleport('s_sans', 'right', 20, 400, world);
+                     azzie.position = player.position.add(21, 0);
+                     azzie.alpha.value = 1;
+                     await Promise.all([ player.walk(timer, 3, { x: 230 - 21 }), azzie.walk(timer, 3, { x: 230 }) ]);
+                     azzie.face = 'left';
                      await timer.pause(850);
                      await dialogue('auto', ...text.a_starton.genotext.asriel2);
                      await timer.pause(550);
@@ -595,7 +557,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      await dialogue('auto', ...text.a_starton.genotext.asriel3());
                      const jams = assets.music.shock.instance(timer);
                      renderer.attach('main', paps);
-                     await Promise.all([ leap(player, 550, 10, 490 - 21), leap(goatbro, 550, 10, 490) ]);
+                     await Promise.all([ leap(player, 550, 10, 490 - 21), leap(azzie, 550, 10, 490) ]);
                      await timer.pause(750);
                      await dialogue('auto', ...text.a_starton.genotext.asriel4);
                      assets.sounds.notify.instance(timer);
@@ -618,28 +580,17 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      renderer.detach('main', paps);
                      await timer.pause(1350);
                      await dialogue('auto', ...text.a_starton.genotext.asriel6());
-                     await goatbro.walk(
-                        timer,
-                        3,
-                        { x: player.position.x, y: player.position.y + 21 },
-                        { x: player.position.x - 21, y: player.position.y }
-                     );
-                     goatbro.face = 'right';
+                     await azzie.walk(timer, 3, { x: player.x, y: player.y + 21 }, { x: player.x - 21, y: player.y });
+                     azzie.face = 'right';
                      await timer.pause(650);
                      await dialogue('auto', ...text.a_starton.genotext.asriel7);
-                     goatbro.metadata.override = false;
+                     azzie.metadata.override = false;
                      game.movement = true;
-                     await timer.when(() => game.room === 's_sans' && player.position.x > 600);
-                     game.movement = false;
-                     if (save.data.n.plot < 17.1) {
-                        save.data.n.plot = 17.1;
-                        jams.gain.modulate(timer, 300, 0).then(() => {
-                           jams.stop();
-                        });
-                        await teleport('s_crossroads', 'right', 20, 60, world);
-                        game.movement = true;
-                        game.music!.gain.modulate(timer, 300, world.level);
-                     }
+                     while ((await events.on('teleport-start'))[1] !== 's_crossroads') {}
+                     save.data.n.plot = 17.1;
+                     jams.gain.modulate(timer, 300, 0).then(() => {
+                        jams.stop();
+                     });
                   }
                }
             }
@@ -647,7 +598,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          case 's_sans':
             if (game.movement && player.metadata.s_jumptrap) {
                game.movement = false;
-               const inverse = player.position.x > 260;
+               const inverse = player.x > 260;
                await leap(player, 850, 30, void 0, inverse);
                player.metadata.s_jumptrap = false;
                game.movement = true;
@@ -660,18 +611,18 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   const papyrusLoader = content.amPapyrus.load();
                   if (world.genocide) {
                      const paps = new CosmosCharacter({
-                        preset: characters.papyrus,
+                        preset: characters.papyrusStark,
                         key: 'papyrus',
-                        position: { x: 60, y: 190 }
+                        position: { x: 290, y: 120 }
                      }).on('tick', function () {
                         if (save.data.n.plot < 18) {
-                           this.preset = game.room === 's_human' ? characters.papyrus : characters.none;
+                           this.preset = game.room === 's_human' ? characters.papyrusStark : characters.none;
                         }
                      });
                      isolate(paps);
-                     paps.face = 'down';
+                     paps.face = 'right';
                      renderer.attach('main', paps);
-                     await timer.when(() => game.room === 's_human' && player.position.y > 50);
+                     await timer.when(() => game.room === 's_human' && player.x > 40 && game.movement);
                      game.movement = false;
                      save.data.n.plot = 18;
                      if (save.flag.n.ga_asriel9++ < 1) {
@@ -685,18 +636,18 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         resources: content.ibuNotify
                      });
                      renderer.attach('menu', notifier);
-                     paps.face = 'up';
+                     paps.face = 'left';
                      await Promise.all([ timer.pause(450), papyrusLoader ]);
                      renderer.detach('menu', notifier);
                      const papsMusic = assets.music.papyrus.instance(timer);
                      papsMusic.rate.value = 0.325;
                      await timer.pause(650);
-                     await dialogue('auto', ...text.a_starton.genotext.papyrusSolo1a());
+                     await dialogue('auto', ...text.a_starton.genotext.papyrusSolo1a);
                      papsMusic.gain.modulate(timer, 1500, 0).then(() => {
                         papsMusic.stop();
                         content.amPapyrus.unload();
                      });
-                     paps.walk(timer, 4, { y: 230 }).then(async () => {
+                     paps.walk(timer, 4, { x: 310 }).then(async () => {
                         await paps.alpha.modulate(timer, 300, 0);
                         renderer.detach('main', paps);
                      });
@@ -722,9 +673,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                                  tick = 0;
                                  this.face = (
                                     {
-                                       up: this === sand ? 'right' : 'left',
-                                       left: 'up',
-                                       right: 'up'
+                                       left: this === sand ? 'up' : 'down',
+                                       up: 'left',
+                                       down: 'left'
                                     } as CosmosKeyed<CosmosDirection, CosmosDirection>
                                  )[this.face];
                               }
@@ -734,7 +685,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      const sand = new CosmosCharacter({
                         preset: characters.sans,
                         key: 'sans',
-                        position: { x: 55, y: 190 }
+                        position: { x: 290, y: 130 }
                      })
                         .on('tick', spinnerListener())
                         .on('tick', function () {
@@ -745,7 +696,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      const paps = new CosmosCharacter({
                         preset: characters.papyrus,
                         key: 'papyrus',
-                        position: { x: 85, y: 190 }
+                        position: { x: 290, y: 110 }
                      })
                         .on('tick', spinnerListener())
                         .on('tick', function () {
@@ -755,46 +706,46 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         });
                      isolate(sand);
                      isolate(paps);
-                     sand.face = 'right';
-                     paps.face = 'left';
+                     sand.face = 'up';
+                     paps.face = 'down';
                      renderer.attach('main', sand);
                      renderer.attach('main', paps);
-                     await timer.when(() => game.room === 's_human' && player.position.y > 50);
+                     await timer.when(() => game.room === 's_human' && player.x > 40 && game.movement);
                      game.movement = false;
                      save.data.n.plot = 18;
                      game.music!.gain.modulate(timer, 300, 0);
                      await Promise.all([ dialogue('auto', ...text.a_starton.papyrus1), papyrusLoader ]);
                      const papsMusic = assets.music.papyrus.instance(timer);
-                     sand.face = 'up';
+                     sand.face = 'left';
                      await swapSpeed.modulate(timer, 6e3, 1);
                      spin = true;
                      await timer.pause(2500);
                      spin = false;
                      swapSpeed.value = 0;
-                     sand.face = 'up';
-                     paps.face = 'up';
-                     await timer.pause(650);
+                     sand.face = 'left';
                      paps.face = 'left';
-                     sand.face = 'right';
+                     await timer.pause(650);
+                     paps.face = 'down';
+                     sand.face = 'up';
                      await timer.pause(450);
                      await dialogue('auto', ...text.a_starton.papyrus2);
-                     sand.face = 'up';
-                     paps.face = 'up';
+                     sand.face = 'left';
+                     paps.face = 'left';
                      await timer.pause(950);
                      await dialogue('auto', ...text.a_starton.papyrus3);
                      papsMusic.gain.modulate(timer, 1500, 0).then(() => {
                         papsMusic.stop();
                         content.amPapyrus.unload();
                      });
-                     paps.walk(timer, 4, { y: 230 }).then(async () => {
+                     paps.walk(timer, 4, { x: 310 }).then(async () => {
                         await paps.alpha.modulate(timer, 300, 0);
                         renderer.detach('main', paps);
                      });
                      await dialogue('auto', ...text.a_starton.papyrus4);
-                     await sand.walk(timer, 3, player.position.add(0, 20));
+                     await sand.walk(timer, 3, player.position.add(25, 0));
                      await dialogue('auto', ...text.a_starton.papyrus5);
                      sand
-                        .walk(timer, 4, { x: player.position.x + (player.position.x < 70 ? 25 : -25) }, { y: 5 })
+                        .walk(timer, 3, { y: player.y + (player.y < 120 ? 10 : -10), x: 10 })
                         .then(async () => {
                            await sand.alpha.modulate(timer, 300, 0);
                         })
@@ -807,32 +758,33 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                }
             }
             break;
-         case 's_papyrus':
+         case 's_doggo':
             if (!roomState.active) {
                roomState.active = true;
-               if (world.genocide && save.data.n.plot < 18.1 && save.flag.n.ga_asriel11 < 3) {
-                  await timer.when(() => game.room === 's_papyrus' && player.position.y > 120);
-                  game.movement = false;
-                  save.data.n.plot = 18.1;
-                  await timer.pause(650);
-                  switch (save.flag.n.ga_asriel11++) {
-                     case 0:
-                        await dialogue('auto', ...text.a_starton.genotext.asriel11);
-                        break;
-                     case 1:
-                        await dialogue('auto', ...text.a_starton.genotext.asriel11a);
-                        break;
-                     case 2:
-                        await dialogue('auto', ...text.a_starton.genotext.asriel11b);
-                        break;
-                  }
-                  game.movement = true;
-                  game.music!.gain.value = world.level;
+               const inst = instance('main', 's_npc98')?.object;
+               if (inst) {
+                  inst.on('tick', function () {
+                     const anim = inst.objects[0] as CosmosAnimation;
+                     switch (save.data.n.state_starton_npc98) {
+                        case 0:
+                           anim.index = 0;
+                           break;
+                        case 1:
+                        case 4:
+                           anim.index = 1;
+                           break;
+                        case 2:
+                        case 3:
+                        case 4.1:
+                           anim.index = 2;
+                           break;
+                        case 5:
+                           anim.index = 3;
+                           break;
+                     }
+                  });
                }
             }
-            break;
-         case 's_doggo':
-            sas({ x: 40, y: 40 }, 19);
             break;
          case 's_maze': {
             if (!instance('main', 'papfire')?.object.metadata.active) {
@@ -914,7 +866,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   sand.face = 'right';
                   paps.face = 'right';
                   renderer.attach('main', sand, paps);
-                  await timer.when(() => game.room === 's_maze' && player.position.x > 60);
+                  await timer.when(() => game.room === 's_maze' && player.x > 60 && game.movement);
                   idle = false;
                   game.movement = false;
                   game.music!.gain.modulate(timer, 300, 0);
@@ -955,7 +907,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      area.modulate(timer, duration, size);
                      while (area.value > size) {
                         renderer.zoom.value = 320 / area.value;
-                        await timer.on('tick');
+                        await renderer.on('tick');
                      }
                      renderer.zoom.value = zoom;
                      const rimmer = assets.sounds.rimshot.instance(timer);
@@ -973,7 +925,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   game.movement = true;
                   let targetTime = timer.value + 5e3;
                   const exitStopper = async () => {
-                     if (game.movement && player.position.x < 25) {
+                     if (game.movement && player.x < 25) {
                         targetTime = Infinity;
                         await dialogue('auto', ...text.a_starton.maze6());
                         targetTime = timer.value + 3e3;
@@ -982,7 +934,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            paps.face = 'left';
                            paps.talk = true;
                         }
-                        player.position.x += 3;
+                        player.x += 3;
                         player.face = 'right';
                      }
                   };
@@ -998,10 +950,11 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         }
                      }
                   })();
-                  await timer.when(() => roomState.fail || player.position.x > 240);
+                  await timer.when(() => roomState.fail || player.x > 240);
                   if (roomState.fail) {
                      save.data.b.papyrus_fire = true;
                   }
+                  game.movement || (await timer.when(() => game.movement));
                   game.movement = false;
                   save.data.n.plot = 20;
                   assets.sounds.noise.instance(timer);
@@ -1040,7 +993,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             }
             break;
          }
-         case 's_stand': {
+         case 's_lesser': {
             {
                const inst = instance('main', 's_nicecream');
                // moved to next area
@@ -1061,46 +1014,13 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             }
             if (!roomState.active) {
                roomState.active = true;
-               if (world.genocide && save.data.n.plot < 20.1 && save.flag.n.ga_asriel11 < 1) {
-                  await timer.when(() => game.room === 's_stand' && player.position.x > 80);
-                  game.movement = false;
-                  save.data.n.plot = 20.1;
-                  await dialogue('auto', ...text.a_starton.genotext.asriel14);
-                  goatbro.metadata.override = true;
-                  goatbro.face = 'left';
-                  goatbro.sprite.disable();
-                  await timer.pause(350);
-                  goatbro.face = 'down';
-                  goatbro.sprite.disable();
-                  await timer.pause(650);
-                  goatbro.face = 'up';
-                  goatbro.sprite.disable();
-                  await timer.pause(850);
-                  await dialogue('auto', ...text.a_starton.genotext.asriel15a);
-                  goatbro.face = 'right';
-                  goatbro.sprite.disable();
-                  await timer.pause(650);
-                  await dialogue('auto', ...text.a_starton.genotext.asriel15b);
-                  goatbro.metadata.override = false;
-                  game.movement = true;
-               }
-            }
-            break;
-         }
-         case 's_dogs': {
-            sas({ x: 35, y: 65 }, 20.2);
-            break;
-         }
-         case 's_lesser': {
-            if (!roomState.active) {
-               roomState.active = true;
                if (save.data.n.plot < 20.2) {
                   let enc = null as Promise<void> | null;
                   await timer.when(() => {
                      if (save.data.b.s_state_lesser) {
                         enc = timer.when(() => !battler.active && game.movement);
                         return true;
-                     } else if (game.room === 's_lesser' && player.position.y > 210) {
+                     } else if (game.room === 's_lesser' && player.x > 300) {
                         enc = battler.encounter(player, groups.lesserdog);
                         return true;
                      } else {
@@ -1112,7 +1032,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   if (!save.data.b.oops) {
                      if (save.data.n.state_starton_doggo < 1 || save.data.n.state_starton_lesserdog < 1) {
                         if (save.data.n.state_starton_lesserdog === 0) {
-                           await dialogue('auto', ...text.a_starton.truetext.lesser1());
+                           await dialogue('auto', ...text.a_starton.truetext.lesser1);
                         } else {
                            await dialogue('auto', ...text.a_starton.truetext.fetch());
                         }
@@ -1132,28 +1052,32 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   const muscleLoader = content.amPapyrus.load();
                   if (world.genocide) {
                      const paps = new CosmosCharacter({
-                        preset: characters.papyrus,
+                        preset: characters.papyrusStark,
                         key: 'papyrus',
-                        position: { x: 60, y: 150 }
+                        position: { x: 510, y: 160 }
                      }).on('tick', function () {
                         if (save.data.n.plot < 21) {
-                           this.preset = game.room === 's_bros' ? characters.papyrus : characters.none;
+                           this.preset = game.room === 's_bros' ? characters.papyrusStark : characters.none;
                         }
                      });
                      isolate(paps);
-                     paps.face = 'up';
+                     paps.face = 'left';
                      renderer.attach('main', paps);
-                     await timer.when(() => game.room === 's_bros' && player.position.y > 50);
+                     await timer.when(() => game.room === 's_bros' && player.x > 220 && game.movement);
                      game.movement = false;
                      save.data.n.plot = 21;
-                     game.music && game.music.gain.modulate(timer, 300, 0);
-                     await Promise.all([ timer.pause(650), muscleLoader ]);
+                     game.music && game.music.gain.modulate(timer, 850, 0);
+                     await timer.pause(650);
+                     const cam = new CosmosObject({ position: player });
+                     game.camera = cam;
+                     await Promise.all([ cam.position.modulate(timer, 1000, { x: 360 }), muscleLoader ]);
                      const papsMusic = assets.music.papyrus.instance(timer);
                      papsMusic.rate.value = 0.325;
-                     await timer.pause(450);
+                     await timer.pause(650);
                      await dialogue('dialoguerBottom', ...text.a_starton.genotext.papyrusSolo2a);
                      paps.preset = characters.papyrusMad;
-                     paps.walk(timer, 4, { y: 230 }).then(async () => {
+                     paps.walk(timer, 4, { x: 620, y: 160 }).then(async () => {
+                        await paps.walk(timer, 4, { y: 65 });
                         await paps.alpha.modulate(timer, 300, 0);
                         renderer.detach('main', paps);
                      });
@@ -1161,16 +1085,17 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         papsMusic.stop();
                         content.amPapyrus.unload();
                      });
-                     await timer.pause(1150);
+                     await cam.position.modulate(timer, 1000, { x: player.x });
+                     game.camera = player;
                      await dialogue('dialoguerBottom', ...text.a_starton.genotext.asriel17());
                      game.movement = true;
                      game.music!.gain.value = world.level;
-                     save.data.n.plot = 21.1;
+                     await events.on('teleport');
                   } else {
                      const sand = new CosmosCharacter({
                         preset: characters.sans,
                         key: 'sans',
-                        position: { x: 45, y: 190 },
+                        position: { x: 510, y: 170 },
                         anchor: { x: 0, y: 1 },
                         size: { x: 25, y: 5 },
                         metadata: { interact: true, barrier: true, name: 'starton', args: [ 'sandinter' ] }
@@ -1182,7 +1107,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      const paps = new CosmosCharacter({
                         preset: characters.papyrus,
                         key: 'papyrus',
-                        position: { x: 75, y: 190 }
+                        position: { x: 510, y: 150 }
                      }).on('tick', function () {
                         if (save.data.n.plot < 21) {
                            this.preset = game.room === 's_bros' ? characters.papyrus : characters.none;
@@ -1192,7 +1117,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         anchor: 0,
                         size: { x: 15, y: 20 },
                         metadata: { interact: true, name: 'starton', args: [ 'crossword' ] },
-                        position: { x: 60, y: 120 },
+                        position: { x: 360, y: 160 },
                         priority: -9999,
                         objects: [
                            new CosmosSprite({ anchor: 0, frames: [ content.iooSCrossword ] }).on('tick', function () {
@@ -1205,32 +1130,37 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      isolate(sand);
                      isolate(paps);
                      isolate(crossword);
-                     sand.face = 'up';
-                     paps.face = 'up';
+                     sand.face = 'left';
+                     paps.face = 'left';
                      renderer.attach('main', sand, paps, crossword);
-                     await timer.when(() => game.room === 's_bros' && player.position.y > 50);
+                     await timer.when(() => game.room === 's_bros' && player.x > 220 && game.movement);
                      game.movement = false;
                      save.data.n.plot = 21;
-                     await game.music!.gain.modulate(timer, 850, 0);
+                     game.music!.gain.modulate(timer, 850, 0);
+                     await timer.pause(650);
+                     const cam = new CosmosObject({ position: player });
+                     game.camera = cam;
+                     await cam.position.modulate(timer, 1000, { x: 360 });
+                     await timer.pause(650);
                      await dialogue('auto', ...text.a_starton.crossword0);
                      await Promise.all([ timer.pause(450), muscleLoader ]);
-                     paps.face = 'left';
-                     sand.face = 'right';
+                     paps.face = 'down';
+                     sand.face = 'up';
                      const sansMusic = assets.music.papyrus.instance(timer);
                      await timer.pause(850);
                      await dialogue('auto', ...text.a_starton.crossword1);
-                     sand.face = 'up';
-                     paps.face = 'up';
+                     sand.face = 'left';
+                     paps.face = 'left';
                      const exitStopper = async () => {
-                        if (game.movement && player.position.y < 25) {
+                        if (game.movement && player.x < 205) {
                            await dialogue('auto', ...text.a_starton.crossword4());
-                           player.position.y += 3;
-                           player.face = 'down';
+                           player.x += 3;
+                           player.face = 'right';
                         }
                      };
                      renderer.on('tick', exitStopper);
                      game.movement = true;
-                     await timer.when(() => player.position.y > 165);
+                     await timer.when(() => player.x > 480 && game.movement);
                      renderer.off('tick', exitStopper);
                      game.movement = false;
                      await dialogue('auto', ...text.a_starton.crossword2);
@@ -1242,11 +1172,17 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         sansMusic.stop();
                         content.amMuscle.unload();
                      });
-                     paps.walk(timer, 4, { y: 230 }).then(async () => {
+                     paps.walk(timer, 4, { x: 620, y: 160 }).then(async () => {
+                        await paps.walk(timer, 4, { y: 65 });
                         await paps.alpha.modulate(timer, 300, 0);
                         renderer.detach('main', paps);
                      });
                      await timer.pause(850);
+                     sand.walk(timer, 3, { x: 560 }, { y: 145 }).then(() => {
+                        sand.face = 'down';
+                     });
+                     await cam.position.modulate(timer, 1000, { x: player.x });
+                     game.camera = player;
                      if (!save.data.b.oops) {
                         await dialogue(
                            'auto',
@@ -1254,18 +1190,15 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         );
                         if (!roomState.checked) {
                            timer
-                              .when(() => game.movement && roomState.checked)
+                              .when(() => game.room !== 's_bros' || (game.movement && roomState.checked))
                               .then(() => {
-                                 dialogue('auto', ...text.a_starton.truetext.sans6);
+                                 game.room === 's_bros' && dialogue('auto', ...text.a_starton.truetext.sans6);
                               });
                         }
                      }
                      roomState.choice = choicer.result;
                      game.movement = true;
                      game.music!.gain.value = world.level;
-                     sand.walk(timer, 3, { x: 40, y: 25 }).then(() => {
-                        sand.face = 'down';
-                     });
                      await events.on('teleport');
                      renderer.detach('main', crossword, sand);
                   }
@@ -1318,184 +1251,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                }
             }
             break;
-         case 's_math':
-            if (save.data.n.plot > 21.2 && !roomState.unlocked) {
-               roomState.unlocked = true;
-               const parent = instance('main', 'lasercheckpoint')!.object;
-               for (const object of parent.objects) {
-                  if (object instanceof CosmosAnimation) {
-                     object.alpha.value = 0;
-                  } else if (object.metadata.barrier === true) {
-                     object.metadata.barrier = false;
-                  }
-               }
-               break;
-            }
-            break;
          case 's_puzzle1': {
-            if (!roomState.active) {
-               roomState.active = true;
-               if (save.data.n.plot < 23) {
-                  const bassLoader = world.genocide ? content.amDogbeat.load() : content.amDogbass.load();
-                  const battleLoader = battler.load(groups.dogs);
-                  game.music!.gain.modulate(timer, 300, 0);
-                  game.movement = false;
-                  save.data.n.plot = 23;
-                  player.walk(timer, 3, { x: 80, y: 80 }).then(async () => {
-                     const mandog = new CosmosEntity({
-                        alpha: 0,
-                        sprites: {
-                           down: new CosmosAnimation({
-                              anchor: { x: 0, y: 1 },
-                              resources: content.ionSDogamy,
-                              extrapolate: false
-                           }),
-                           left: new CosmosAnimation({
-                              anchor: { x: 0, y: 1 },
-                              resources: content.ionSDogamy,
-                              extrapolate: false
-                           }),
-                           right: new CosmosAnimation({
-                              anchor: { x: 0, y: 1 },
-                              resources: content.ionSDogamy,
-                              extrapolate: false
-                           }),
-                           up: new CosmosAnimation({
-                              anchor: { x: 0, y: 1 },
-                              resources: content.ionSDogamy,
-                              extrapolate: false
-                           })
-                        },
-                        position: { x: 220, y: 90 }
-                     });
-                     const womandog = new CosmosEntity({
-                        alpha: 0,
-                        sprites: {
-                           down: new CosmosAnimation({
-                              anchor: { x: 0, y: 1 },
-                              resources: content.ionSDogaressa,
-                              extrapolate: false
-                           }),
-                           left: new CosmosAnimation({
-                              anchor: { x: 0, y: 1 },
-                              resources: content.ionSDogaressa,
-                              extrapolate: false
-                           }),
-                           right: new CosmosAnimation({
-                              anchor: { x: 0, y: 1 },
-                              resources: content.ionSDogaressa,
-                              extrapolate: false
-                           }),
-                           up: new CosmosAnimation({
-                              anchor: { x: 0, y: 1 },
-                              resources: content.ionSDogaressa,
-                              extrapolate: false
-                           })
-                        },
-                        position: { x: 220, y: 70 }
-                     });
-                     renderer.attach('main', mandog, womandog);
-                     await Promise.all([
-                        mandog.alpha.modulate(timer, 300, 1).then(async () => {
-                           await mandog.walk(timer, 4, { x: 80 });
-                           await mandog.walk(timer, 2, { x: 60 }, { x: 50, y: 80 });
-                        }),
-                        womandog.alpha.modulate(timer, 300, 1).then(async () => {
-                           await womandog.walk(timer, 4, { x: 80 });
-                           await womandog.walk(timer, 2, { x: 100 }, { x: 110, y: 80 });
-                        })
-                     ]);
-                     await Promise.all([
-                        bassLoader,
-                        dialogue('auto', ...(world.genocide ? text.a_starton.marriage4 : text.a_starton.marriage1))
-                     ]);
-                     world.genocide ? assets.music.dogbeat.instance(timer) : assets.music.dogbass.instance(timer);
-                     await Promise.all([
-                        mandog.walk(
-                           timer,
-                           3,
-                           { y: 60 },
-                           { x: 30 },
-                           { y: 80 },
-                           { x: 50, y: 60 },
-                           { x: 110 },
-                           { y: 110 },
-                           { x: 30 },
-                           { x: 10, y: 80 },
-                           { x: 50, y: 40 },
-                           { y: 80 }
-                        ),
-                        womandog.walk(
-                           timer,
-                           3,
-                           { x: 150 },
-                           { y: 100 },
-                           { x: 110, y: 80 },
-                           { y: 110 },
-                           { x: 70 },
-                           { y: 40 },
-                           { x: 90 },
-                           { y: 20 },
-                           { x: 100 },
-                           { y: 40 },
-                           { x: 120 },
-                           { y: 60 },
-                           { x: 110 },
-                           { y: 80 }
-                        )
-                     ]);
-                     await dialogue('auto', ...(world.genocide ? text.a_starton.marriage5 : text.a_starton.marriage2));
-                     await Promise.all([ battler.battlefall(player), battleLoader ]);
-                     world.genocide ? content.amDogbeat.unload() : content.amDogbass.unload();
-                     await battler.start(groups.dogs);
-                     if (save.data.n.state_starton_dogs < 2) {
-                        if (save.data.n.state_starton_dogs === 0) {
-                           await dialogue('auto', ...text.a_starton.marriage3a);
-                        } else {
-                           await dialogue('auto', ...text.a_starton.marriage3b);
-                        }
-                        isolate(mandog);
-                        isolate(womandog);
-                        (async () => {
-                           if (!save.data.b.oops) {
-                              if (
-                                 save.data.n.state_starton_doggo < 1 ||
-                                 save.data.n.state_starton_lesserdog < 1 ||
-                                 save.data.n.state_starton_dogs < 1
-                              ) {
-                                 if (save.data.n.state_starton_dogs === 0) {
-                                    await dialogue('auto', ...text.a_starton.truetext.dogs1);
-                                 } else {
-                                    await dialogue('auto', ...text.a_starton.truetext.fetch());
-                                 }
-                              } else {
-                                 await dialogue('auto', ...text.a_starton.truetext.dogs2);
-                              }
-                           }
-                           game.movement = true;
-                           await events.on('teleport');
-                           game.music!.gain.modulate(timer, 300, world.level);
-                        })();
-                        await Promise.race([
-                           events.on('teleport'),
-                           Promise.all([
-                              mandog.walk(timer, 4, { x: 62.5, y: 255 }).then(async () => {
-                                 await mandog.alpha.modulate(timer, 300, 0);
-                              }),
-                              womandog.walk(timer, 4, { x: 97.5, y: 255 }).then(async () => {
-                                 await womandog.alpha.modulate(timer, 300, 0);
-                              })
-                           ])
-                        ]);
-                     } else {
-                        game.movement = true;
-                     }
-                     game.music!.gain.modulate(timer, 300, world.level);
-                     renderer.detach('main', mandog);
-                     renderer.detach('main', womandog);
-                  });
-               }
-            }
             if (!world.genocide && !roomState.papyrus && save.data.n.state_papyrus_spaghet < 1) {
                roomState.papyrus = true;
                const paps = new CosmosCharacter({
@@ -1538,98 +1294,95 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                }
                game.movement = true;
             }
+            break;
          }
          case 's_puzzle2': {
-            if (game.room === 's_puzzle2' && !world.genocide) {
-               let paps: CosmosCharacter;
-               if (!roomState.papyrus) {
-                  const sand = new CosmosCharacter({
-                     preset: characters.sans,
-                     key: 'sans',
-                     position: { x: 220, y: 65 },
-                     anchor: { x: 0, y: 1 },
-                     size: { x: 25, y: 5 },
-                     metadata: { interact: true, barrier: true, name: 'starton', args: [ 'sandinter' ] }
-                  }).on('tick', function () {
-                     this.preset = game.room === 's_puzzle2' ? characters.sans : characters.none;
-                  });
-                  roomState.papyrus = true;
-                  if (save.data.n.plot < 25) {
-                     paps = new CosmosCharacter({
-                        preset: characters.papyrus,
-                        key: 'papyrus',
-                        position: save.data.n.plot < 24.1 ? { x: 75, y: 100 } : { x: 230, y: 25 },
-                        anchor: { x: 0, y: 1 },
-                        size: { x: 25, y: 5 },
-                        metadata: { interact: true, barrier: true, name: 'starton', args: [ 'papsinter' ] }
-                     }).on('tick', function () {
-                        this.preset = game.room === 's_puzzle2' ? characters.papyrus : characters.none;
-                     });
-                  } else {
-                     break;
-                  }
-                  paps.face = save.data.n.plot < 24.1 ? 'left' : 'down';
-                  isolate(paps);
-                  renderer.attach('main', paps);
-                  if (save.data.n.plot < 24.1) {
-                     await timer.when(() => game.room === 's_puzzle2' && player.position.x > 75);
-                     game.movement = false;
-                     save.data.n.plot = 24.1;
-                     await paps.walk(timer, 4, { x: 230, y: 25 });
-                     paps.face = 'down';
-                     await dialogue('dialoguerBottom', ...text.a_starton.pappuzzle1);
-                     game.movement = true;
-                  }
-                  let prevplot = save.data.n.plot;
-                  await timer.when(() => {
-                     if (save.data.n.plot < 25) {
-                        prevplot = save.data.n.plot;
-                        return false;
-                     } else {
-                        return true;
-                     }
-                  });
+            if (!world.genocide && !roomState.papyrus && save.data.n.plot < 25) {
+               roomState.papyrus = true;
+               const paps = new CosmosCharacter({
+                  preset: characters.papyrus,
+                  key: 'papyrus',
+                  position: save.data.n.plot < 24.1 ? { x: 50, y: 80 } : { x: 230, y: 25 },
+                  anchor: { x: 0, y: 1 },
+                  size: { x: 25, y: 5 },
+                  metadata: { interact: true, barrier: true, name: 'starton', args: [ 'papsinter' ] }
+               }).on('tick', function () {
+                  this.preset = game.room === 's_puzzle2' ? characters.papyrus : characters.none;
+               });
+               paps.face = 'down';
+               isolate(paps);
+               renderer.attach('main', paps);
+               if (save.data.n.plot < 24.1) {
+                  await timer.when(() => game.room === 's_puzzle2' && player.x > 75 && game.movement);
                   game.movement = false;
-                  await dialogue('auto', ...text.a_starton.pappuzzle2);
-                  if (prevplot > 24.11 && roomState.trickswitch) {
-                     await dialogue('auto', ...text.a_starton.pappuzzle2b);
-                  } else {
-                     await dialogue('auto', ...text.a_starton.pappuzzle2a);
+                  save.data.n.plot = 24.1;
+                  if (player.y <= 90) {
+                     await paps.walk(timer, 4, { y: 100 });
                   }
-                  await dialogue('auto', ...text.a_starton.pappuzzle2c);
-                  paps.walk(timer, 4, { x: 490, y: 100 }).then(async () => {
-                     await paps.alpha.modulate(timer, 300, 0);
-                     renderer.detach('main', paps);
-                  });
+                  await paps.walk(timer, 4, { x: 230 }, { y: 25 });
+                  paps.face = 'down';
+                  await dialogue('dialoguerBottom', ...text.a_starton.pappuzzle1);
                   game.movement = true;
-                  events.on('teleport').then(() => {
-                     renderer.detach('main', sand);
-                  });
                }
+               let prevplot = save.data.n.plot;
+               await timer.when(() => {
+                  if (save.data.n.plot < 25) {
+                     prevplot = save.data.n.plot;
+                     return false;
+                  } else {
+                     return true;
+                  }
+               });
+               game.movement && (await timer.when(() => game.movement));
+               game.movement = false;
+               await dialogue('auto', ...text.a_starton.pappuzzle2);
+               if (prevplot > 24.11 && roomState.trickswitch) {
+                  await dialogue('auto', ...text.a_starton.pappuzzle2b);
+               } else {
+                  await dialogue('auto', ...text.a_starton.pappuzzle2a);
+               }
+               await dialogue('auto', ...text.a_starton.pappuzzle2c);
+               paps.walk(timer, 4, { x: 490, y: 100 }).then(async () => {
+                  await paps.alpha.modulate(timer, 300, 0);
+                  renderer.detach('main', paps);
+               });
+               game.movement = true;
             }
+            break;
          }
          case 's_puzzle3': {
-            if (
-               roomState.unlocked ||
-               save.data.n.plot < (game.room === 's_puzzle1' ? 24 : game.room === 's_puzzle2' ? 25 : 27)
-            ) {
-               return;
-            }
-            roomState.unlocked = true;
-            const parent = instance('main', 'lasercheckpoint')!.object;
-            for (const object of parent.objects) {
-               if (object instanceof CosmosAnimation) {
-                  object.alpha.value = 0;
-               } else if (object.metadata.barrier === true) {
-                  object.metadata.barrier = false;
+            world.genocide && instance('main', 's_spagnote')?.destroy();
+            const p3 = save.data.s.state_starton_s_puzzle3;
+            if (p3 || save.data.n.state_starton_s_puzzle3 > 0) {
+               function p3activate (tag: string, state: number, tag2?: string) {
+                  for (const { object } of instances('main', tag)) {
+                     if (!tag2 || (object.metadata.tags as string[]).includes(tag2)) {
+                        (object.objects[0] as CosmosAnimation).index = state;
+                     }
+                  }
                }
-            }
-            if (!roomState.bypass && game.room !== 's_puzzle3') {
-               const puzzle = instance('main', 'puzzlechip')?.object.objects[0] as CosmosAnimation;
-               if (puzzle) {
-                  roomState.bypass = true;
-                  await puzzle.on('tick');
-                  puzzle.index = puzzle.frames.length - 3;
+               p3 && p3activate(p3, 1);
+               if (save.data.n.state_starton_s_puzzle3 > 0) {
+                  for (const [ a, b ] of (world.genocide
+                     ? [
+                          [ 'r1', 'c1' ],
+                          [ 'r1', 'c4' ],
+                          [ 'r2', 'c3' ],
+                          [ 'r3', 'c2' ],
+                          [ 'r4', 'c1' ],
+                          [ 'r4', 'c4' ]
+                       ]
+                     : [
+                          [ 'r1', 'c3' ],
+                          [ 'r2', 'c4' ],
+                          [ 'r3', 'c3' ],
+                          [ 'r4', 'c2' ],
+                          [ 'r2', 'c1' ],
+                          [ 'r2', 'c2' ]
+                       ]
+                  ).slice(0, save.data.n.state_starton_s_puzzle3 as number)) {
+                     p3activate(a, 2, b);
+                  }
                }
             }
             break;
@@ -1654,6 +1407,8 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   xdiag && (await dialogue('auto', ...text.a_starton.papyrus9));
                   await paps.walk(timer, 4, { x: 160 });
                   paps.face = 'up';
+                  paps.sprites.up.alpha.value = 1;
+                  paps.sprites.up.reset();
                   await Promise.all([ timer.pause(650), compooterLoader ]);
                   assets.sounds.equip.instance(timer).rate.value = 1.25;
                   timer.pause(950).then(async () => {
@@ -1698,18 +1453,18 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                const papyrusLoader = content.amPapyrus.load();
                if (world.genocide) {
                   const paps = new CosmosCharacter({
-                     preset: characters.papyrus,
+                     preset: characters.papyrusStark,
                      key: 'papyrus',
                      position: { x: 220, y: 80 }
                   }).on('tick', function () {
                      if (save.data.n.plot < 26) {
-                        this.preset = game.room === 's_jenga' ? characters.papyrus : characters.none;
+                        this.preset = game.room === 's_jenga' ? characters.papyrusStark : characters.none;
                      }
                   });
                   isolate(paps);
                   paps.face = 'left';
                   renderer.attach('main', paps);
-                  await timer.when(() => game.room === 's_jenga' && player.position.x > 100);
+                  await timer.when(() => game.room === 's_jenga' && player.x > 100 && game.movement);
                   game.movement = false;
                   save.data.n.plot = 26;
                   await Promise.all([ game.music!.gain.modulate(timer, 300, 0), papyrusLoader ]);
@@ -1773,7 +1528,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   paps.face = 'left';
                   renderer.attach('main', sand);
                   renderer.attach('main', paps);
-                  await timer.when(() => game.room === 's_jenga' && player.position.x > 100);
+                  await timer.when(() => game.room === 's_jenga' && player.x > 100 && game.movement);
                   game.movement = false;
                   save.data.n.plot = 26;
                   await Promise.all([ game.music!.gain.modulate(timer, 300, 0), papyrusLoader ]);
@@ -1843,23 +1598,21 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          }
          case 's_greater': {
             (world.population < 6 || world.genocide) && instance('main', 's_faun')?.destroy();
-            let stopgote = false;
             if (!roomState.active) {
                roomState.active = true;
                if (save.data.n.plot < 28) {
-                  const loader = battler.load(groups.greatdog);
                   const lickLoader = content.ionSGreatdogLick.load();
-                  await timer.when(() => game.room === 's_greater' && player.position.x > 300);
+                  await timer.when(() => game.room === 's_greater' && player.x > 180 && game.movement);
                   game.movement = false;
                   const greatdog = new CosmosAnimation({
                      anchor: { x: 0, y: 1 },
-                     position: { x: 480, y: player.position.y },
-                     priority: player.face === 'down' ? player.position.y + 1 : player.position.y - 1,
+                     position: { x: 400, y: player.y },
+                     priority: player.face === 'down' ? player.y + 1 : player.y - 1,
                      resources: content.ionSGreatdog
                   });
                   renderer.attach('main', greatdog);
                   greatdog.enable();
-                  while ((greatdog.position.x -= 2) > 410) {
+                  while ((greatdog.position.x -= 2) > 290) {
                      await renderer.on('tick');
                   }
                   greatdog.disable().reset();
@@ -1874,19 +1627,16 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   await timer.pause(450);
                   renderer.detach('menu', notifier);
                   greatdog.enable();
-                  while (
-                     (greatdog.position.x -= 4) >
-                     player.position.x + 31.5 + (player.face === 'right' ? 8.5 : 0.5)
-                  ) {
+                  const d = player.x + 31.5 + (player.face === 'right' ? 8.5 : 0.5);
+                  while ((greatdog.position.x -= 4) > d) {
                      await renderer.on('tick');
                   }
+                  greatdog.position.x = d;
                   greatdog.disable().reset();
-                  await Promise.all([ loader, timer.pause(950) ]);
-                  await battler.battlefall(player);
-                  await Promise.all([ lickLoader, battler.start(groups.greatdog) ]);
+                  await battler.encounter(player, groups.greatdog, false);
                   save.data.n.plot = 28;
                   if (save.data.n.state_starton_greatdog < 1) {
-                     await timer.pause(450);
+                     await Promise.all([ lickLoader, timer.pause(450) ]);
                      greatdog.resources = content.ionSGreatdogLick;
                      greatdog.enable();
                      await timer.when(() => greatdog.index === 29);
@@ -1901,69 +1651,47 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      greatdog.scale.x = -1;
                      await timer.pause(save.data.n.state_starton_greatdog * 1150);
                      greatdog.enable();
-                     while ((greatdog.position.x += 3) < 480) {
+                     while ((greatdog.position.x += 3) < 400) {
                         await renderer.on('tick');
                      }
                   }
                   renderer.detach('main', greatdog);
                   if (world.genocide) {
+                     azzie.metadata.override = true;
+                     azzie.position.set(player.position.add(42, 0));
+                     azzie.face = 'left';
                      await dialogue('auto', ...text.a_starton.genotext.asriel26());
-                     goatbro.metadata.override = true;
-                     await goatbro.walk(timer, 3, { x: 420, y: 195 });
-                     stopgote = true;
-                  } else if (!save.data.b.oops) {
-                     if (
-                        save.data.n.state_starton_doggo !== 1 ||
-                        save.data.n.state_starton_lesserdog !== 1 ||
-                        save.data.n.state_starton_dogs !== 1 ||
-                        save.data.n.state_starton_greatdog !== 1
-                     ) {
-                        if (save.data.n.state_starton_greatdog === 3) {
-                           await dialogue('auto', ...text.a_starton.truetext.great3);
-                        } else {
-                           if (save.data.n.state_starton_lesserdog === 0) {
-                              await dialogue('auto', ...text.a_starton.truetext.great1);
+                     azzie.walk(timer, 3, { x: 310 }).then(async () => {
+                        await azzie.alpha.modulate(timer, 300, 0);
+                     });
+                     player.walk(timer, 3, { x: 310 }).then(async () => {
+                        await teleport('s_bridge', 'right', 20, 60, world);
+                        script('tick');
+                     });
+                  } else {
+                     if (!save.data.b.oops) {
+                        if (
+                           save.data.n.state_starton_doggo !== 1 ||
+                           save.data.n.state_starton_lesserdog !== 1 ||
+                           save.data.n.state_starton_dogs !== 1 ||
+                           save.data.n.state_starton_greatdog !== 1
+                        ) {
+                           if (save.data.n.state_starton_greatdog === 3) {
+                              await dialogue('auto', ...text.a_starton.truetext.great3);
                            } else {
-                              await dialogue('auto', ...text.a_starton.truetext.fetch());
+                              if (save.data.n.state_starton_lesserdog === 0) {
+                                 await dialogue('auto', ...text.a_starton.truetext.great1);
+                              } else {
+                                 await dialogue('auto', ...text.a_starton.truetext.fetch());
+                              }
                            }
+                        } else {
+                           await dialogue('auto', ...text.a_starton.truetext.great2);
                         }
-                     } else {
-                        await dialogue('auto', ...text.a_starton.truetext.great2);
                      }
+                     game.movement = true;
+                     game.music!.gain.value = world.level;
                   }
-                  game.movement = true;
-                  game.music!.gain.value = world.level;
-               } else if (save.data.n.plot === 28 && world.genocide) {
-                  renderer.attach('main', goatbro);
-                  goatbro.metadata.override = true;
-                  goatbro.position = new CosmosPoint({ x: 420, y: 195 });
-                  stopgote = true;
-               }
-               if (stopgote) {
-                  goatbro.face = 'left';
-                  goatbro.anchor = new CosmosPoint(0);
-                  goatbro.size = new CosmosPoint(20, 100);
-                  goatbro.metadata.barrier = true;
-                  goatbro.metadata.interact = true;
-                  goatbro.metadata.name = 'starton';
-                  goatbro.metadata.args = [ 'proceed' ];
-                  const iso = isolate(goatbro);
-                  await timer.when(() => roomState.lessgo);
-                  iso();
-                  game.movement = false;
-                  goatbro.anchor = new CosmosPoint(-1);
-                  goatbro.size = new CosmosPoint(0);
-                  goatbro.metadata.barrier = void 0;
-                  goatbro.metadata.interact = void 0;
-                  goatbro.metadata.name = void 0;
-                  goatbro.metadata.args = void 0;
-                  goatbro.walk(timer, 3, { x: 430 }).then(async () => {
-                     await goatbro.alpha.modulate(timer, 300, 0);
-                  });
-                  player.walk(timer, 3, { x: 430 }).then(async () => {
-                     await teleport('s_bridge', 'right', 20, 50, world);
-                     script('tick');
-                  });
                }
             }
             break;
@@ -1977,40 +1705,30 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      save.data.n.plot = 29;
                      const impactLoader = content.asImpact.load();
                      renderer.on('tick').then(() => {
-                        goatbro.alpha.modulate(timer, 0, 1);
+                        azzie.alpha.modulate(timer, 0, 1);
                      });
-                     goatbro.position = player.position.add(21, 0);
+                     azzie.position = player.position.add(21, 0);
                      const paps = new CosmosCharacter({
-                        preset: characters.papyrus,
+                        preset: characters.papyrusStark,
                         key: 'papyrus',
-                        position: { x: 925, y: player.position.y }
+                        position: { x: 925, y: player.y }
                      });
                      isolate(paps);
                      paps.face = 'left';
                      renderer.attach('main', paps);
-                     game.movement = false;
                      await Promise.all([
-                        goatbro.walk(timer, 3, { x: 680 }),
+                        azzie.walk(timer, 3, { x: 680 }),
                         player.walk(timer, 3, { x: 660 }),
                         papyrusLoader
                      ]);
-                     game.movement = false;
-                     timer.post().then(() => {
-                        game.movement = false;
-                     });
                      await timer.pause(650);
                      const cam = new CosmosObject({ position: player.position });
                      game.camera = cam;
-                     await cam.position.modulate(timer, 1350, { x: 790, y: player.position.y });
+                     await cam.position.modulate(timer, 1350, { x: 790, y: player.y });
                      const papsMusic = assets.music.papyrus.instance(timer);
                      papsMusic.rate.value = 0.325;
                      await timer.pause(1250);
-                     game.movement = false;
                      await dialogue('auto', ...text.a_starton.genotext.papyrusSolo4a);
-                     game.movement = false;
-                     timer.post().then(() => {
-                        game.movement = false;
-                     });
                      const trueGain = papsMusic.gain.value;
                      await papsMusic.gain.modulate(timer, 1000, 0);
                      await Promise.all([ timer.pause(1000), impactLoader ]);
@@ -2065,8 +1783,8 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         await teleport('s_town1', 'right', 20, 150, world);
                         script('tick');
                      });
-                     goatbro.walk(timer, 3, { x: 990 }).then(async () => {
-                        await goatbro.alpha.modulate(timer, 300, 0);
+                     azzie.walk(timer, 3, { x: 990 }).then(async () => {
+                        await azzie.alpha.modulate(timer, 300, 0);
                      });
                   } else {
                      const sand = new CosmosCharacter({
@@ -2098,7 +1816,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      renderer.attach('main', paps);
                      await Promise.all([
                         timer
-                           .when(() => game.room === 's_bridge' && player.position.x > 670)
+                           .when(() => game.room === 's_bridge' && player.x > 670 && game.movement)
                            .then(() => {
                               game.movement = false;
                            }),
@@ -2108,7 +1826,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      await timer.pause(650);
                      const cam = new CosmosObject({ position: player.position });
                      game.camera = cam;
-                     await cam.position.modulate(timer, 1350, { x: 790, y: player.position.y });
+                     await cam.position.modulate(timer, 1350, { x: 790, y: player.y });
                      const papsMusic = assets.music.papyrus.instance(timer);
                      await timer.pause(1250);
                      await dialogue('auto', ...text.a_starton.papyrus10);
@@ -2378,18 +2096,18 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   if (save.data.n.plot < 30) {
                      save.data.n.plot = 30;
                      if (world.genocide) {
-                        goatbro.alpha.modulate(timer, 0, 1);
-                        goatbro.position = player.position.add(21, 0);
-                        goatbro.face = 'left';
+                        azzie.alpha.modulate(timer, 0, 1);
+                        azzie.position = player.position.add(21, 0);
+                        azzie.face = 'left';
                         await timer.pause(1050);
                         await dialogue('auto', ...text.a_starton.genotext.asriel28());
                         game.movement = true;
-                        await goatbro.walk(timer, 3.5, { x: 660 }, { x: 750, y: 240 }, { y: 370 });
-                        await goatbro.alpha.modulate(timer, 300, 0);
-                        renderer.detach('main', goatbro);
+                        await azzie.walk(timer, 3.5, { x: 660 }, { x: 750, y: 240 }, { y: 370 });
+                        await azzie.alpha.modulate(timer, 300, 0);
+                        renderer.detach('main', azzie);
                      }
                   } else if (save.data.n.plot !== 30 && world.genocide) {
-                     renderer.attach('main', goatbro);
+                     renderer.attach('main', azzie);
                   }
                }
             }
@@ -2410,7 +2128,6 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             }
             break;
          case 's_battle': {
-            // TODO: recode this whole damn thing (especially the staticfx, maybe even resprite that)
             if (!roomState.active) {
                roomState.active = true;
                if (save.data.n.plot < 31) {
@@ -2455,6 +2172,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            this.alpha.value = 0;
                         }
                      }
+                     player.tint = colormix(0xffffff, 0, this.alpha.value);
                   });
                   if (save.data.n.state_papyrus_capture < 1) {
                      renderer.attach('main', noisestorm);
@@ -2462,7 +2180,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   if (!save.data.b.oops && save.data.n.plot < 30.1) {
                      if (save.data.n.plot < 30.01) {
                         timer
-                           .when(() => game.room === 's_battle' && player.position.x > 100)
+                           .when(() => game.room === 's_battle' && player.x > 100 && game.movement)
                            .then(() => {
                               dialogue('auto', ...text.a_starton.truetext.papyrus3);
                               save.data.n.plot = 30.01;
@@ -2470,20 +2188,20 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      }
                      if (save.data.n.plot < 30.02) {
                         timer
-                           .when(() => game.room === 's_battle' && player.position.x > 200)
+                           .when(() => game.room === 's_battle' && player.x > 185 && game.movement)
                            .then(() => {
                               dialogue('auto', ...text.a_starton.truetext.papyrus4);
                               save.data.n.plot = 30.02;
                            });
                      }
                      timer
-                        .when(() => game.room === 's_battle' && player.position.x > 300)
+                        .when(() => game.room === 's_battle' && player.x > 270 && game.movement)
                         .then(() => {
                            dialogue('auto', ...text.a_starton.truetext.papyrus5);
                            save.data.n.plot = 30.1;
                         });
                   }
-                  await timer.when(() => game.room === 's_battle' && player.position.x > 310);
+                  await timer.when(() => game.room === 's_battle' && player.x > 310 && game.movement);
                   game.movement = false;
                   if (save.data.n.state_papyrus_capture < 1) {
                      noisestorm.metadata.lock = true;
@@ -2491,7 +2209,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   const paps = new CosmosCharacter({
                      alpha: save.data.n.state_papyrus_capture < 1 ? 0 : 1,
                      priority: 1000,
-                     position: { x: 490, y: player.position.y },
+                     position: { x: 490, y: player.y },
                      tint: save.data.n.state_papyrus_capture < 1 ? 0 : void 0,
                      preset: characters.papyrus,
                      key: save.data.n.state_papyrus_capture < 1 ? 'papyrusDark' : 'papyrus'
@@ -2524,6 +2242,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      await overlay.alpha.modulate(timer, 300, 1);
                      renderer.detach('main', noisestorm);
                      paps.tint = void 0;
+                     player.tint = void 0;
                      paps.key = 'papyrus';
                      await overlay.alpha.modulate(timer, 300, 0);
                      renderer.detach('menu', overlay);
@@ -2618,21 +2337,21 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            ],
                            ...text.a_starton.papyrusFinal4g
                         );
-                        if (player.position.y < 50) {
+                        if (player.y < 50) {
                            paps.priority.value = 100000;
                         } else {
                            paps.priority.value = -100000;
                         }
                         await paps.walk(timer, 4, {
-                           x: player.position.x - 80,
-                           y: player.position.y < 50 ? player.position.y + 20 : player.position.y - 20
+                           x: player.x - 80,
+                           y: player.y < 50 ? player.y + 20 : player.y - 20
                         });
                         renderer.detach('main', paps);
                         muzic!.gain.modulate(timer, 1250, 0).then(() => {
                            muzic.stop();
                            content.amPapyrus.unload();
                         });
-                        while (cam.position.x > player.position.x + 3) {
+                        while (cam.position.x > player.x + 3) {
                            cam.position.x -= 3;
                            await renderer.on('tick');
                         }
@@ -2643,40 +2362,36 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         await timer.pause(650);
                         if (world.genocide) {
                            const battleQueue = battler.load(groups.shockasgore);
-                           goatbro.metadata.override = true;
-                           goatbro.position = new CosmosPoint(paps.position.x + 60, player.position.y);
-                           renderer.attach('main', goatbro);
+                           azzie.metadata.override = true;
+                           azzie.position = new CosmosPoint(paps.position.x + 60, player.y);
+                           renderer.attach('main', azzie);
                            const alphaticker = () => {
-                              goatbro.alpha.modulate(timer, 0, 1);
+                              azzie.alpha.modulate(timer, 0, 1);
                            };
-                           goatbro.on('tick', alphaticker);
-                           await Promise.all([ goatbro.walk(timer, 3, { x: player.position.x + 21 }) ]);
+                           azzie.on('tick', alphaticker);
+                           azzie.face = 'left';
+                           await azzie.walk(timer, 3, { x: player.x + 21 });
                            await timer.pause(650);
-                           await dialogue(
-                              'auto',
-                              ...(save.data.b.papyrus_secret
-                                 ? text.a_starton.genotext.asriel29b
-                                 : text.a_starton.genotext.asriel29)()
-                           );
+                           await dialogue('auto', ...text.a_starton.genotext.asriel29());
                            await Promise.all([
                               asgoreLoader,
                               player.walk(timer, 3, { x: cam.position.x }),
-                              goatbro.walk(timer, 3, { x: cam.position.x + 21 })
+                              azzie.walk(timer, 3, { x: cam.position.x + 21 })
                            ]);
                            const gorey = new CosmosCharacter({
-                              position: { x: 960, y: player.position.y },
+                              position: { x: 960, y: player.y },
                               preset: characters.asgore,
                               key: 'asgore1'
                            });
                            gorey.face = 'right';
                            renderer.attach('main', gorey);
                            game.camera = player;
-                           await Promise.all([ player.walk(timer, 3, { x: 720 }), goatbro.walk(timer, 3, { x: 741 }) ]);
+                           await Promise.all([ player.walk(timer, 3, { x: 720 }), azzie.walk(timer, 3, { x: 741 }) ]);
                            if (save.flag.n.ga_asriel30++ < 1) {
                               assets.sounds.notify.instance(timer);
                               const notifier = new CosmosAnimation({
                                  anchor: { x: 0, y: 1 },
-                                 position: renderer.projection(goatbro.position.subtract(0, 31)),
+                                 position: renderer.projection(azzie.position.subtract(0, 31)),
                                  resources: content.ibuNotify
                               });
                               renderer.attach('menu', notifier);
@@ -2688,7 +2403,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            game.camera = cam;
                            await cam.position.modulate(timer, 1350, {
                               x: 840,
-                              y: player.position.y
+                              y: player.y
                            });
                            const jeebs = assets.music.prebattle.instance(timer);
                            jeebs.rate.value = 0.25;
@@ -2721,24 +2436,24 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                               await teleport('s_exit', 'right', 20, 170, world);
                               game.movement = false;
                               game.camera = player;
-                              goatbro.position = player.position.add(21, 0);
+                              azzie.position = player.position.add(21, 0);
                               renderer.detach('main', gorey);
                               await Promise.all([
                                  player.walk(timer, 3, { x: 200 }, { y: 120 }),
-                                 goatbro.walk(timer, 3, { x: 200 }, { y: 110 }, { x: 220 }).then(() => {
-                                    goatbro.face = 'left';
+                                 azzie.walk(timer, 3, { x: 200 }, { y: 110 }, { x: 220 }).then(() => {
+                                    azzie.face = 'left';
                                  })
                               ]);
                               await timer.pause(1150);
                               await dialogue('auto', ...text.a_starton.genotext.asriel30d());
                               await player.walk(timer, 1.5, { y: 100 });
                               await teleport('f_start', 'up', 160, 490, world);
-                              goatbro.metadata.override = false;
-                              goatbro.metadata.reposition = true;
+                              azzie.metadata.override = false;
+                              azzie.metadata.reposition = true;
                               game.movement = true;
                            });
-                           goatbro.walk(timer, 3, { x: 1000 });
-                           await timer.when(() => goatbro.position.x > gorey.position.x - 25);
+                           azzie.walk(timer, 3, { x: 1000 });
+                           await timer.when(() => azzie.x > gorey.position.x - 25);
                            atlas.switch(null);
                            typer.text('');
                            assets.sounds.phase.instance(timer);
@@ -2753,7 +2468,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                            save.data.n.plot = 32;
                            save.flag.n.genocide_milestone = Math.max(1, save.flag.n.genocide_milestone) as 1;
                         } else {
-                           while (cam.position.x > player.position.x + 3) {
+                           while (cam.position.x > player.x + 3) {
                               cam.position.x -= 3;
                               await renderer.on('tick');
                            }
@@ -2767,33 +2482,6 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             }
             break;
          }
-         case 's_lookout':
-            if (!roomState.active) {
-               roomState.active = true;
-               instance('main', 's_npc98')?.object.on_legacy('tick', self => {
-                  const anim = self.objects.filter(object => object instanceof CosmosAnimation)[0] as CosmosAnimation;
-                  return () => {
-                     switch (save.data.n.state_starton_npc98) {
-                        case 0:
-                           anim.index = 0;
-                           break;
-                        case 1:
-                        case 4:
-                           anim.index = 1;
-                           break;
-                        case 2:
-                        case 3:
-                        case 4.1:
-                           anim.index = 2;
-                           break;
-                        case 5:
-                           anim.index = 3;
-                           break;
-                     }
-                  };
-               });
-            }
-            break;
          case 's_capture':
             (world.genocide || save.data.n.state_papyrus_capture > 3) && instance('main', 's_trapnote')?.destroy();
             break;
@@ -2903,7 +2591,6 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   roomState.dateAssets = new CosmosInventory(
                      content.ibcPapyrusBattle,
                      content.amDatingstart,
-                     inventories.battleAssets,
                      inventories.idcPapyrusBattle
                   );
                   roomState.dateLoader = roomState.dateAssets.load();
@@ -2937,7 +2624,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
       const scriptState = states.scripts[subscript] || (states.scripts[subscript] = {});
       switch (subscript) {
          case 'townswap': {
-            const xtarget = player.position.x < 500 ? 250 : 750;
+            const xtarget = player.x < 500 ? 250 : 750;
             switch (game.room) {
                case 's_town1':
                   await teleport('s_town2', 'down', xtarget, 10, world);
@@ -2968,9 +2655,8 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      await dialogue('auto', ...text.a_starton.sansinter.a3);
                   }
                   break;
-               case 's_doggo':
+               case 's_papyrus':
                case 's_dogs':
-               case 's_puzzle2':
                case 's_jenga':
                case 's_bridge':
                   await dialogue('auto', ...text.a_starton.sansinter[game.room]());
@@ -2987,7 +2673,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          case 'sentry':
             switch (game.room) {
                case 's_sans':
-                  if (player.face === 'down' && player.position.y > 30) {
+                  if (player.face === 'down' && player.y > 30) {
                      await dialogue('auto', ...text.a_starton.sentrySans2());
                   } else {
                      await dialogue('auto', ...text.a_starton.sentrySans1());
@@ -3004,31 +2690,20 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          case 'doggo':
             if (save.data.n.plot < 19) {
-               save.data.n.plot = 19;
-               if (world.genocide) {
-                  game.movement = false;
-                  goatbro.metadata.override = true;
-                  await goatbro.walk(timer, 3, { x: 422.5, y: 135 });
-                  goatbro.face = 'up';
-                  await timer.pause(650);
-                  await dialogue('auto', ...text.a_starton.genotext.asriel12);
-                  timer
-                     .when(() => scriptState.resumeGeno)
-                     .then(async () => {
-                        await goatbro.walk(timer, 3, {
-                           x: player.position.x - 21,
-                           y: player.position.y
-                        });
-                        goatbro.face = 'right';
-                        goatbro.metadata.override = false;
-                        game.movement = true;
-                        game.music!.gain.value = world.level;
-                     });
+               if (!game.movement) {
+                  return;
                }
+               save.data.n.plot = 19;
             } else {
                break;
             }
          case 'dogbell':
+            if (!game.movement) {
+               return;
+            }
+            if (subscript === 'dogbell' && player.face !== 'up') {
+               return;
+            }
             if (save.data.n.state_starton_doggo === 2) {
                await dialogue('auto', ...text.a_starton.gonezo());
                break;
@@ -3040,13 +2715,20 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                assets.sounds.bell.instance(timer);
                await timer.pause(600);
                assets.sounds.bell.instance(timer);
+               if (save.data.n.plot > 27) {
+                  await timer.pause(1000);
+                  await dialogue('auto', ...text.a_starton.doggonopoggo);
+                  game.movement = true;
+                  game.music!.gain.value = world.level;
+                  break;
+               }
             }
             {
                const battleLoader = subscript === 'doggo' ? battler.load(groups.doggo) : void 0;
                const doggopoggo = (scriptState.dog ||= new CosmosAnimation({
                   active: true,
                   anchor: { x: 0, y: 1 },
-                  position: { x: 422.5, y: 108 },
+                  position: { x: 362.5, y: 88 },
                   subcrop: { bottom: -1 },
                   resources: content.ionSDoggo
                }) as CosmosAnimation);
@@ -3075,23 +2757,19 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                } else {
                   await dialogue('auto', ...text.a_starton.doggo3());
                }
-               if (world.genocide) {
-                  scriptState.resumeGeno = true;
-               } else {
-                  if (narrachara) {
-                     dialogue(
-                        'auto',
-                        ...[ text.a_starton.truetext.doggo1, text.a_starton.truetext.doggo2 ][
-                           save.data.n.state_starton_doggo
-                        ]
-                     ).then(() => {
-                        game.movement = true;
-                        game.music!.gain.value = world.level;
-                     });
-                  } else {
+               if (narrachara) {
+                  dialogue(
+                     'auto',
+                     ...[ text.a_starton.truetext.doggo1, text.a_starton.truetext.doggo2 ][
+                        save.data.n.state_starton_doggo
+                     ]
+                  ).then(() => {
                      game.movement = true;
                      game.music!.gain.value = world.level;
-                  }
+                  });
+               } else {
+                  game.movement = true;
+                  game.music!.gain.value = world.level;
                }
                if (save.data.n.state_starton_doggo < 2) {
                   scriptState.riser = false;
@@ -3143,10 +2821,16 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'joey': {
+            if (!game.movement) {
+               return;
+            }
             instance('main', 's_joey')?.talk('a', talkFilter(), 'auto', ...text.a_starton.joey1());
             break;
          }
          case 'nicecream': {
+            if (!game.movement) {
+               return;
+            }
             const inst = instance('main', 's_nicecream');
             if (inst) {
                const guyanim = inst.object.objects[0] as CosmosAnimation;
@@ -3164,7 +2848,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                } else if (args[0] !== 'geno') {
                   game.movement = false;
                   switch (game.room) {
-                     case 's_stand': {
+                     case 's_lesser': {
                         if (save.data.n.state_starton_nicecream > 0) {
                            guyanim.index = 2;
                            await dialogue('auto', ...text.a_starton.nicecream3);
@@ -3244,7 +2928,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                                  await dialogue('auto', ...text.a_starton.nicecream5);
                                  guyanim.index = 0;
                                  await dialogue('auto', ...text.a_starton.nicecream7);
-                                 if (!save.data.b.f_state_kidd_cream && world.epicgamer) {
+                                 if (!save.data.b.f_state_kidd_cream && world.monty) {
                                     save.data.b.f_state_kidd_cream = true;
                                     await dialogue('auto', ...text.a_starton.nicecreamK1);
                                     guyanim.index < 1 && (guyanim.index = 1);
@@ -3294,7 +2978,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                               await dialogue('auto', ...text.a_starton.nicecream9);
                            }
                         }
-                        if (!save.data.b.f_state_kidd_cream && world.epicgamer) {
+                        if (!save.data.b.f_state_kidd_cream && world.monty) {
                            save.data.b.f_state_kidd_cream = true;
                            await dialogue('auto', ...text.a_starton.nicecreamK1);
                            guyanim.index = 1;
@@ -3317,11 +3001,14 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'crossword': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             const sprite = new CosmosSprite({
                position: { x: 160, y: 120 },
                anchor: 0,
-               frames: [ content.ieCrossword ]
+               frames: [ content.iooSCrosswordScreen ]
             });
             const overlay = new CosmosObject({
                objects: [
@@ -3381,9 +3068,13 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          }
          case 'ctower': {
             if (player.face === 'up') {
-               if (save.data.n.plot < 21.2) {
+               if (!game.movement) {
+                  return;
+               }
+               if (save.data.b.s_state_mathpass) {
+                  await dialogue('auto', ...text.a_starton.objinter.ctower1);
+               } else {
                   game.movement = false;
-                  let inputs = 0;
                   let number = 500 + Math.floor(random.next() * 9500);
                   const operations = [] as { type: '-' | '+'; value: number }[];
                   const random3 = new CosmosValueRandom(number);
@@ -3392,13 +3083,13 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      while (index < 4) {
                         const power = 10 ** (3 - index);
                         while (true) {
-                           const type = random3.next() < 0.8 ? (number > 0 ? '-' : '+') : number > 0 ? '+' : '-';
+                           const type = random3.next() < 0.4 ? (number > 0 ? '-' : '+') : number > 0 ? '+' : '-';
                            const value = Math.floor(random3.next() * 9) + 1;
                            const result = number + (type === '-' ? -value : value) * power;
                            if (
                               result > -1000 &&
                               result < 10000 &&
-                              (Math.abs(number) > 9 || result === 0 || random3.next() < 0.2)
+                              (Math.abs(number) > 9 || index < 3 || result === 0)
                            ) {
                               operations[index++] = { type, value };
                               break;
@@ -3410,7 +3101,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   await dialogue('auto', ...text.a_starton.objinter.ctower0);
                   assets.sounds.menu.instance(timer).rate.value = 1.5;
                   navscript.enable(
-                     input => {
+                     async input => {
                         switch (input) {
                            case 'left':
                            case 'right':
@@ -3422,25 +3113,17 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                               number +=
                                  (operation.type === '-' ? -operation.value : operation.value) *
                                  10 ** (3 - navscript.position.x);
-                              if (number === 0 || inputs++ === 20) {
-                                 if (number !== 0) {
-                                    save.data.b.s_state_mathcrash = true;
-                                 }
+                              if (number === 0) {
                                  atlas.switch(null);
                                  navscript.disable();
                                  assets.sounds.noise.instance(timer);
-                                 save.data.n.plot = 21.2;
-                                 player.face = 'down';
-                                 timer.pause(250).then(async () => {
-                                    await depower();
-                                    save.data.n.plot = 22;
-                                    if (world.genocide) {
-                                       await dialogue('auto', ...text.a_starton.genotext.asriel20());
-                                    } else if (!save.data.b.oops && number === 0) {
-                                       await dialogue('auto', ...text.a_starton.truetext.puzzle1);
-                                    }
-                                    game.movement = true;
-                                 });
+                                 save.data.b.s_state_mathpass = true;
+                                 await timer.pause(250);
+                                 await depower();
+                                 if (!save.data.b.oops && number === 0) {
+                                    await dialogue('auto', ...text.a_starton.truetext.puzzle1);
+                                 }
+                                 game.movement = true;
                               } else {
                                  generate();
                               }
@@ -3469,11 +3152,11 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                                        anchor: 0,
                                        position: { y: -2.25 },
                                        font: '32px Papyrus'
-                                    }).on_legacy('tick', self => () => {
+                                    }).on('tick', function () {
                                        if (number < 0) {
-                                          self.content = `-${(-number).toString().padStart(3, '0')}`[index];
+                                          this.content = `-${(-number).toString().padStart(3, '0')}`[index];
                                        } else {
-                                          self.content = number.toString().padStart(4, '0')[index];
+                                          this.content = number.toString().padStart(4, '0')[index];
                                        }
                                     })
                                  ]
@@ -3492,27 +3175,28 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                                  anchor: 0,
                                  position: { y: -2.25 },
                                  font: '32px Papyrus'
-                              }).on_legacy('tick', self => () => {
+                              }).on('tick', function () {
                                  const operation = operations[navscript.position.x];
-                                 self.content = operation.type + operation.value.toString();
+                                 this.content = operation.type + operation.value.toString();
                               })
                            ]
-                        }).on_legacy('tick', self => () => {
-                           self.position.x = 60 + navscript.position.x * 60;
+                        }).on('tick', function () {
+                           this.position.x = 60 + navscript.position.x * 60;
                         })
                      ]
                   );
                   await renderer.on('tick');
                   await timer.pause();
                   atlas.switch('navscript');
-               } else {
-                  await dialogue('auto', ...text.a_starton.objinter.ctower1());
                }
             }
             break;
          }
          case 'xtower': {
-            if (player.face === 'up') {
+            if (player.face === 'down') {
+               if (!game.movement) {
+                  return;
+               }
                game.movement = false;
                await dialogue('auto', ...text.a_starton.objinter.xtower1);
                let score = 0;
@@ -3841,7 +3525,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'puzzlechip': {
-            if (!roomState.activating) {
+            if (game.movement && !roomState.activating) {
                roomState.activating = true;
                const target = game.room === 's_puzzle1' ? 24 : 25;
                if (save.data.n.plot < target) {
@@ -3851,8 +3535,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   if (id === puzzle.index + 1) {
                      puzzle.index = id;
                      if (id === puzzle.frames.length - 7) {
-                        const move = game.movement;
-                        move && (game.movement = false);
+                        game.movement = false;
                         puzzle.enable();
                         await timer.when(() => puzzle.index === puzzle.frames.length - 3);
                         puzzle.disable();
@@ -3868,15 +3551,14 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         await timer.pause(266);
                         puzzle.index = puzzle.frames.length - 3;
                         assets.sounds.menu.instance(timer).rate.value = 1;
-                        if (world.genocide || target !== 25) {
-                           move && (game.movement = true);
-                        }
                         await depower();
                         save.data.n.plot = target;
+                        if (world.genocide || game.room === 's_puzzle1') {
+                           game.movement = true;
+                        }
                      }
                   } else {
-                     const move = game.movement;
-                     move && (game.movement = false);
+                     game.movement = false;
                      puzzle.index = puzzle.frames.length - 2;
                      await timer.pause(166);
                      puzzle.index = puzzle.frames.length - 1;
@@ -3890,8 +3572,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      await timer.pause(266);
                      assets.sounds.menu.instance(timer).rate.value = 0.5;
                      puzzle.index = 0;
-                     move && (game.movement = true);
+                     game.movement = true;
                   }
+                  save.data.n[`state_starton_${game.room as 's_puzzle1'}`] = puzzle.index;
                } else {
                   await dialogue('auto', ...text.a_starton.objinter.puzzlechip);
                }
@@ -3900,6 +3583,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'puzzle3': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             const sets = world.genocide
                ? [
@@ -4059,7 +3745,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'kitchen': {
-            if (!roomState.kitchen && (player.position.y < 140 || roomState.forcedY)) {
+            if (!roomState.kitchen && (player.y < 140 || roomState.forcedY)) {
                roomState.forcedY = false;
                roomState.kitchen = true;
                const trashie = instance('main', 'paptrashie')!.object;
@@ -4076,7 +3762,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                top.priority.value = 2000;
                wallie.metadata.barrier = false;
                top.alpha.modulate(timer, top.alpha.value * 300, 0);
-               await timer.when(() => player.position.y > 140 || roomState.forcedY);
+               await timer.when(() => player.y > 140 || roomState.forcedY);
                trashie.priority.value = 0;
                roomState.kitchen = false;
                top.priority.value = 0;
@@ -4095,7 +3781,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
          case 'bonehouse': {
             if (save.data.n.plot_date < 0.1 && !save.data.b.papyrus_secret) {
                await dialogue('auto', ...text.a_starton.papdate0());
-               player.position.y += 3;
+               player.y += 3;
                player.face = 'down';
             } else {
                await teleport('s_bonehouse', 'up', 240, 230, world);
@@ -4103,6 +3789,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'balcony': {
+            if (!game.movement) {
+               return;
+            }
             await teleport('s_town2', 'right', 720, 114, world);
             function pticker (this: CosmosObject) {
                this.priority.value = this.y + 175;
@@ -4123,10 +3812,10 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                }
             }
             player.on('tick', pticker);
-            goatbro.on('tick', pticker);
-            await timer.when(() => player.position.x < 715);
+            azzie.on('tick', pticker);
+            await timer.when(() => player.x < 715 && game.movement);
             player.off('tick', pticker);
-            goatbro.off('tick', pticker);
+            azzie.off('tick', pticker);
             renderer.detach('main', barriers);
             for (const object of bloc.objects) {
                if (object.metadata.bloc) {
@@ -4145,7 +3834,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                await renderer.on('render');
             }
             player.priority.value = 0;
-            goatbro.priority.value = 0;
+            azzie.priority.value = 0;
             game.movement = true;
             break;
          }
@@ -4204,7 +3893,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             } else {
                await dialogue('auto', ...text.a_starton.beddoor2);
             }
-            player.position.y += 3;
+            player.y += 3;
             player.face = 'down';
             break;
          }
@@ -4228,6 +3917,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'innkeep': {
+            if (!game.movement) {
+               return;
+            }
             if (args[0] === 'geno') {
                if (world.population === 0) {
                   await dialogue('auto', ...text.a_starton.gonezo());
@@ -4246,7 +3938,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      frames: [ content.iooSBedcover ]
                   });
                   renderer.attach('main', bedcover);
-                  await player.position.modulate(timer, 1450, { x: 132, y: player.position.y });
+                  await player.position.modulate(timer, 1450, { x: 132, y: player.y });
                   await renderer.alpha.modulate(timer, 1850, 0);
                   renderer.detach('main', bedcover);
                   await timer.pause(1850);
@@ -4467,24 +4159,10 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             }
             break;
          }
-         case 'proceed': {
-            game.movement = false;
-            if (save.data.n.state_starton_azzybridge < 2) {
-               await dialogue('auto', ...text.a_starton.genotext.asrielX1);
-               save.data.n.state_starton_azzybridge = 2;
-            } else {
-               await dialogue('auto', ...text.a_starton.genotext.asrielX2);
-            }
-            if (choicer.result === 0) {
-               await dialogue('auto', ...text.a_starton.genotext.asrielX5);
-               game.movement = true;
-            } else {
-               await dialogue('auto', ...text.a_starton.genotext.asrielX6);
-               roomState.lessgo = true;
-            }
-            break;
-         }
          case 'paptv': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             const tv = instance('main', 'paptv')!.object;
             const tvsprite = tv.objects[0] as CosmosSprite;
@@ -4528,16 +4206,20 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'papsink': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             await dialogue('auto', ...text.a_starton.papsink0);
             if (!roomState.sink && save.data.n.plot_date < 0.2 && save.data.n.state_starton_papyrus === 0) {
                roomState.sink = true;
+               save.data.b.s_state_papsink = true;
                const mus1 = content.amDogsigh.load();
                const mus2 = content.amDogdance.load();
                const grab = content.asGrab.load();
-               const sprite1 = content.iooSToby3.load();
-               const sprite2 = content.iooSToby2.load();
-               const sprite3 = content.iooSToby1.load();
+               const sprite1 = content.iooToby3.load();
+               const sprite2 = content.iooToby2.load();
+               const sprite3 = content.iooToby1.load();
                const specatk = content.ibbSpecatkBone.load();
                const present = content.iocPapyrusPresent.load();
                const sallow = content.asSwallow.load();
@@ -4550,7 +4232,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   priority: -6666,
                   anchor: { x: 0, y: 1 },
                   position: { x: 226, y: 72 },
-                  resources: content.iooSToby3
+                  resources: content.iooToby3
                });
                renderer.attach('main', toby);
                const sink = instance('main', 'papsink')!.object.objects[0] as CosmosAnimation;
@@ -4613,12 +4295,12 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                assets.sounds.swallow.instance(timer);
                renderer.detach('main', gift);
                content.ibbSpecatkBone.unload();
-               toby.use(content.iooSToby2);
-               content.iooSToby3.unload();
+               toby.use(content.iooToby2);
+               content.iooToby3.unload();
                await Promise.all([ mus2, sprite3, timer.pause(1150) ]);
                const dance = assets.music.dogdance.instance(timer);
-               toby.use(content.iooSToby1);
-               content.iooSToby2.unload();
+               toby.use(content.iooToby1);
+               content.iooToby2.unload();
                await timer.pause(650);
                await Promise.all([ sprite2, trombone, dialogue('auto', ...text.a_starton.papsink4) ]);
                const top = instance('main', 'bonetop')!.object;
@@ -4652,7 +4334,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                const dumbvictory = assets.sounds.trombone.instance(timer);
                sink.index = 0;
                renderer.detach('main', toby);
-               content.iooSToby1.unload();
+               content.iooToby1.unload();
                paps.preset = characters.papyrusMad;
                const noterate = (6 / 11 / 4) * 1000;
                CosmosUtils.populate(
@@ -4698,11 +4380,12 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      text.a_starton.sansbook5,
                      text.a_starton.sansbook6,
                      text.a_starton.sansbook7,
-                     text.a_starton.sansbook8
+                     text.a_starton.sansbook8,
+                     text.a_starton.sansbook8x
                   ][looks++],
                   ...text.a_starton.sansbook2
                );
-               looks === 5 && (looks = 3);
+               looks === 6 && (looks = 4);
             }
             await dialogue('auto', ...text.a_starton.sansbook9);
             break;
@@ -4745,6 +4428,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      active: true,
                      position: { x: 130, y: 14 },
                      resources: content.ibcPapyrusBattle,
+                     priority: 1,
                      objects: [
                         new CosmosObject({ position: { x: 19, y: 3 } }).on('tick', function () {
                            if (override) {
@@ -5246,7 +4930,6 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   datePower.position.modulate(timer, 2000, { x: -75, y: 27.5 }, { x: -75, y: 27.5 });
                   await timer.pause(250);
                   atlas.navigators.of('battlerSimple').objects[1].priority.value = 1;
-                  atlas.navigators.of('battlerSimple').objects[2].priority.value = 1;
                   battler.box.size.modulate(timer, 1000, { x: 325, y: 245 });
                   battler.box.position.modulate(timer, 1000, { x: 160, y: 120 });
                   game.movement = true;
@@ -5281,10 +4964,10 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         const [ key, position, size ] = subject;
                         if (
                            !checked.includes(key) &&
-                           battler.SOUL.position.x > position.x &&
-                           battler.SOUL.position.y > position.y &&
-                           battler.SOUL.position.x < position.x + size.x &&
-                           battler.SOUL.position.y < position.y + size.y
+                           battler.SOUL.x > position.x &&
+                           battler.SOUL.y > position.y &&
+                           battler.SOUL.x < position.x + size.x &&
+                           battler.SOUL.y < position.y + size.y
                         ) {
                            checked.push(key);
                            assets.sounds.bell.instance(timer);
@@ -5340,7 +5023,6 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                      battler.box.position.modulate(timer, 1000, { x: 160, y: 160 })
                   ]);
                   atlas.navigators.of('battlerSimple').objects[1].priority.value = 0;
-                  atlas.navigators.of('battlerSimple').objects[2].priority.value = 0;
                   await papchat(...text.a_starton.papdate26());
                   await battler.human(...text.a_starton.papdate27);
                   if (choicer.result === 1) {
@@ -5471,7 +5153,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             }
             await Promise.all([
                timer
-                  .when(() => player.position.x - paps.position.x > 30)
+                  .when(() => player.x - paps.position.x > 30)
                   .then(async () => {
                      await player.walk(timer, 4, { x: 250, y: 230 }, { y: 10 });
                   }),
@@ -5510,6 +5192,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'paproom': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             const paps = roomState.paps as CosmosCharacter;
             if (save.data.n.plot_date < 0.2 && save.data.n.state_starton_papyrus === 0) {
@@ -5529,7 +5214,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                   });
                } else {
                   await dialogue('auto', ...text.a_starton.papdate4b);
-                  player.position.y += 3;
+                  player.y += 3;
                   player.face = 'down';
                }
             } else {
@@ -5553,6 +5238,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'papcomputer': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             for (const object of instance('main', 'papcomputer')!.object.objects) {
                if (object instanceof CosmosAnimation) {
@@ -5565,7 +5253,7 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
                         stroke: 'transparent',
                         font: '8px CryptOfTomorrow',
                         objects: [
-                           new CosmosSprite({ scale: 0.5, frames: [ content.ieOuternet ] }),
+                           new CosmosSprite({ scale: 0.5, frames: [ content.iooSOuternet ] }),
                            new CosmosAnimation({
                               position: new CosmosPoint({ x: 44, y: 37 }).divide(2),
                               resources: content.idcPapyrusAyoo
@@ -5661,6 +5349,9 @@ const script = async (subscript: string, ...args: string[]): Promise<any> => {
             break;
          }
          case 'greatdog': {
+            if (!game.movement) {
+               return;
+            }
             game.movement = false;
             const doggie = instance('main', 'g_greatdog')?.object.objects[0] as CosmosAnimation;
             doggie.index += 1;
@@ -6052,8 +5743,7 @@ const shops = {
 };
 
 events.on('drop', async key => {
-   await renderer.on('tick');
-   if (game.room === 's_lookout' && key === 'chip') {
+   if (game.room === 's_doggo' && key === 'chip' && player.y > 160) {
       if (save.data.n.state_starton_npc98 === 1) {
          world.genocide || (save.data.n.state_starton_npc98 = 4);
       } else if (save.data.n.state_starton_npc98 === 2) {
@@ -6063,7 +5753,7 @@ events.on('drop', async key => {
          await dialogue('auto', ...text.a_starton.drop_chip);
          oops();
       }
-   } else if (game.room === 's_stand' && key === 'nice_cream' && world.population > 9) {
+   } else if (game.room === 's_lesser' && key === 'nice_cream' && world.population > 9) {
       await dialogue('auto', ...text.a_starton.drop_cream);
       if (!save.data.b.oops) {
          await dialogue('auto', ...text.a_starton.drop_fail);
@@ -6097,26 +5787,21 @@ events.on('script', (name, ...args) => {
 });
 
 events.on('step', () => {
-   if (game.movement) {
+   if (game.movement && save.data.n.plot < 31) {
       const populationfactor = (save.data.n.kills_starton + save.data.n.bully_starton) / 12;
       switch (game.room) {
          case 's_lesser':
             if (!save.data.b.s_state_lesser) {
-               return runEncounter(populationfactor, 1, [ [ groups.lesserdog, 1 ] ]);
+               return !!runEncounter(populationfactor, 2, [ [ groups.lesserdog, 1 ] ]);
             }
-            break;
          case 's_crossroads':
-         case 's_alphys':
          case 's_papyrus':
-         case 's_lookout':
-         case 's_stand':
          case 's_dogs':
-         case 's_math':
          case 's_puzzle1':
          case 's_puzzle2':
          case 's_pacing':
          case 's_puzzle3':
-            return runEncounter(
+            return !!runEncounter(
                populationfactor,
                (() => {
                   if (game.room === 's_puzzle1') {
@@ -6136,9 +5821,7 @@ events.on('step', () => {
                   [ groups.stardrakeSpacetopJerry, 5 ],
                   [ groups.stardrakeSpacetop, 5 ],
                   [ groups.spacetopJerry, 5 ],
-                  ...(!save.data.b.spared_mouse && !save.data.b.killed_mouse && !save.data.b.fled_mouse
-                     ? [ [ groups.mouse, 5 ] as [OutertaleGroup, number] ]
-                     : [])
+                  [ groups.mouse, 5 ]
                ]
             );
             break;
@@ -6174,276 +5857,498 @@ events.on('teleport', (from, to) => {
          'f_napstablook',
          'f_hapstablook',
          'a_sleeping2',
-         'a_sleeping3'
+         'a_sleeping3',
+         'c_asgore_asriel',
+         'c_asgore_asgore'
       ]
          .map(x => both.includes(x))
          .includes(true)
    ) {
       both.includes('_void') || (assets.sounds.doorClose.instance(timer).gain.value *= 0.5);
    }
-   if (to === 's_puzzle1' || to === 's_puzzle2') {
-      const puzzle = instance('main', 'puzzlechip')?.object.objects[0] as CosmosAnimation;
-      const roomState = (states.rooms[to] ||= {});
-      if (!roomState.puzzleticker) {
-         roomState.puzzleticker = true;
-         puzzle.index = save.data.n[`state_starton_${game.room as `s_puzzle${1 | 2 | 3}`}`];
-      }
-   } else {
-      switch (to) {
-         case 's_grillbys': {
-            const roomState = (states.rooms.s_grillbys ??= {});
-            if (save.data.n.state_starton_doggo === 2 || world.population < 2) {
-               instance('main', 'g_doggo')?.destroy();
-            }
-            if (
-               save.data.n.state_starton_greatdog === 2 ||
-               save.data.n.state_starton_greatdog === 4 ||
-               world.population < 2
-            ) {
-               instance('main', 'g_greatdog')?.destroy();
-            } else if (save.data.n.state_starton_greatdog === 3 && !roomState.dogger) {
-               roomState.dogger = true;
-               (instance('main', 'g_greatdog')?.object.objects[0] as CosmosAnimation).index = 3;
-            }
-            if (save.data.n.state_starton_dogs === 2 || world.population < 2) {
-               instance('main', 'g_dogamy')?.destroy();
-               instance('main', 'g_dogaressa')?.destroy();
-            }
-            if (world.population < 10) {
-               instance('main', 'g_beautifulfish')?.destroy();
-            }
-            if (world.population < 8) {
-               instance('main', 'g_bunbun')?.destroy();
-            }
-            if (world.population < 6) {
-               instance('main', 'g_bigmouth')?.destroy();
-            }
-            if (world.population < 4) {
-               instance('main', 'g_punkhamster')?.destroy();
-            }
-            if (world.genocide || (world.population === 0 && !world.bullied)) {
-               instance('main', 'g_grillby')?.destroy();
-               instance('main', 'g_redbird')?.destroy();
-            }
-            break;
-         }
-         case 's_town1':
-         case 's_town2': {
-            const roomState = (states.rooms.s_town1 ||= {});
-            if (
-               !roomState.spawnedThaKid &&
-               save.data.n.plot < 31 &&
-               !world.genocide &&
-               (world.population > 0 || world.bullied)
-            ) {
-               roomState.spawnedThaKid = true;
-               const kiddState = (CosmosUtils.parse(save.data.s.state_starton_s_town1 || 'null') ?? {
-                  anim: { active: true, index: 0, step: 0 },
-                  face: 'right',
-                  room: 's_town1',
-                  state: 'walk',
-                  trip: 0,
-                  volatile: true,
-                  wait: 0,
-                  x: 420,
-                  y: 150
-               }) as {
-                  anim: { active: boolean; index: number; step: number };
-                  face: CosmosDirection;
-                  volatile: boolean;
-                  room: 's_town1' | 's_town2';
-                  state: 'wait' | 'walk' | 'trip';
-                  trip: number;
-                  wait: number;
-                  x: number;
-                  y: number;
-               };
-               const anim = new CosmosAnimation({
-                  active: kiddState.anim.active,
-                  anchor: { x: 0, y: 1 },
-                  index: kiddState.anim.index,
-                  resources:
-                     kiddState.state === 'wait'
-                        ? content.iocKiddDownTalk
-                        : kiddState.state === 'walk'
-                        ? {
-                             down: content.iocKiddDown,
-                             left: content.iocKiddLeft,
-                             right: content.iocKiddRight,
-                             up: content.iocKiddUp
-                          }[kiddState.face]
-                        : kiddState.face === 'left'
-                        ? content.iocKiddLeftTrip
-                        : content.iocKiddRightTrip,
-                  step: kiddState.anim.step
-               }).on('tick', function () {
-                  this.alpha.value = game.room === kiddState.room ? 1 : 0;
-                  if (kiddState.state === 'trip' && this.index === 19) {
-                     if (kiddState.trip++ === 0) {
-                        this.active = false;
-                     } else if (kiddState.trip === 15) {
-                        kiddState.state = 'walk';
-                        kiddState.trip = 0;
-                        this.reset().use(kiddState.face === 'left' ? content.iocKiddLeft : content.iocKiddRight);
-                        this.y = 0;
-                     }
-                  }
-                  kiddState.anim.active = this.active;
-                  kiddState.anim.index = this.index;
-                  kiddState.anim.step = this.step;
-                  save.data.s.state_starton_s_town1 = CosmosUtils.serialize(kiddState);
-               });
-               anim.frames = CosmosUtils.populate(20, null);
-               function move (direction: CosmosDirection, limit: number, speed = 4) {
-                  switch (direction) {
-                     case 'down':
-                        kiddState.y += speed;
-                        kiddState.y > limit && (kiddState.y = limit);
-                        break;
-                     case 'left':
-                        kiddState.x -= speed;
-                        kiddState.x < limit && (kiddState.x = limit);
-                        break;
-                     case 'right':
-                        kiddState.x += speed;
-                        kiddState.x > limit && (kiddState.x = limit);
-                        break;
-                     case 'up':
-                        kiddState.y -= speed;
-                        kiddState.y < limit && (kiddState.y = limit);
-                        break;
-                  }
-                  const rez = {
-                     down: content.iocKiddDown,
-                     left: content.iocKiddLeft,
-                     right: content.iocKiddRight,
-                     up: content.iocKiddUp
-                  }[direction];
-                  if (anim.resources !== rez) {
-                     kiddState.face = direction;
-                     anim.use(rez);
-                  }
-                  anim.active = true;
-               }
-               function trip () {
-                  kiddState.state = 'trip';
-                  if (kiddState.face === 'left') {
-                     kiddState.x -= 18;
-                     anim.use(content.iocKiddLeftTrip);
-                  } else {
-                     kiddState.x += 18;
-                     anim.use(content.iocKiddRightTrip);
-                  }
-                  anim.active = true;
-                  anim.y = -1;
-               }
-               function wait () {
-                  kiddState.face = 'down';
-                  kiddState.state = 'wait';
-                  kiddState.wait = 20 * 30;
-                  anim.reset().use(content.iocKiddDownTalk);
-               }
-               function fade (kidd: CosmosHitbox) {
-                  kidd.metadata.fade = true;
-                  anim.reset();
-                  kidd.alpha.modulate(timer, 300, 0).then(() => {
-                     kidd.metadata.fade = false;
-                     if (kiddState.room === 's_town1') {
-                        kiddState.room = 's_town2';
-                        kiddState.y = 10;
-                     } else {
-                        kiddState.room = 's_town1';
-                        kiddState.y = 370;
-                     }
-                     timer.post().then(() => (kidd.alpha.value = 1));
-                  });
-               }
-               renderer.attach(
-                  'main',
-                  new CosmosHitbox({
-                     anchor: { x: 0 },
-                     metadata: {
-                        args: [ 'kiddTalk' ],
-                        barrier: false,
-                        fade: false,
-                        interact: false,
-                        locked: true,
-                        name: 'starton',
-                        pause: false,
-                        tags: [ 's_pacikid' ],
-                        paused: false,
-                        trigger: false,
-                        wait: false
+   switch (to) {
+      case 's_dogs':
+         sas({ x: 290, y: 145 }, 20.2);
+         break;
+      case 's_papyrus':
+         sas({ x: 140, y: 125 }, 19);
+         break;
+      case 's_puzzle1':
+         const roomState = (states.rooms[to] ??= {});
+         if (!roomState.active) {
+            roomState.active = true;
+            if (save.data.n.plot < 23) {
+               teleporter.movement = false;
+               const bassLoader = world.genocide ? content.amDogbeat.load() : content.amDogbass.load();
+               const battleLoader = battler.load(groups.dogs);
+               game.music!.gain.modulate(timer, 300, 0);
+               save.data.n.plot = 23;
+               player.walk(timer, 3, { x: 80, y: 80 }).then(async () => {
+                  const mandog = new CosmosEntity({
+                     alpha: 0,
+                     sprites: {
+                        down: new CosmosAnimation({
+                           anchor: { x: 0, y: 1 },
+                           resources: content.ionSDogamy,
+                           extrapolate: false
+                        }),
+                        left: new CosmosAnimation({
+                           anchor: { x: 0, y: 1 },
+                           resources: content.ionSDogamy,
+                           extrapolate: false
+                        }),
+                        right: new CosmosAnimation({
+                           anchor: { x: 0, y: 1 },
+                           resources: content.ionSDogamy,
+                           extrapolate: false
+                        }),
+                        up: new CosmosAnimation({
+                           anchor: { x: 0, y: 1 },
+                           resources: content.ionSDogamy,
+                           extrapolate: false
+                        })
                      },
-                     size: { x: 20 },
-                     objects: [ anim ]
-                  }).on('tick', function () {
-                     if (save.data.n.plot > 30.1 || ![ 's_town1', 's_town2' ].includes(game.room)) {
-                        renderer.detach('main', this);
-                        roomState.spawnedThaKid = false;
-                     } else if (this.metadata.pause) {
-                        if (!this.metadata.paused) {
-                           this.metadata.paused = true;
-                           speech.targets.add(
-                              anim.reset().use(
-                                 {
-                                    down: content.iocKiddDownTalk,
-                                    left: content.iocKiddLeftTalk,
-                                    right: content.iocKiddRightTalk,
-                                    up: content.iocKiddUpTalk
-                                 }[CosmosMath.cardinal(this.position.angleTo(player))]
-                              )
-                           );
+                     position: { x: 220, y: 90 }
+                  });
+                  const womandog = new CosmosEntity({
+                     alpha: 0,
+                     sprites: {
+                        down: new CosmosAnimation({
+                           anchor: { x: 0, y: 1 },
+                           resources: content.ionSDogaressa,
+                           extrapolate: false
+                        }),
+                        left: new CosmosAnimation({
+                           anchor: { x: 0, y: 1 },
+                           resources: content.ionSDogaressa,
+                           extrapolate: false
+                        }),
+                        right: new CosmosAnimation({
+                           anchor: { x: 0, y: 1 },
+                           resources: content.ionSDogaressa,
+                           extrapolate: false
+                        }),
+                        up: new CosmosAnimation({
+                           anchor: { x: 0, y: 1 },
+                           resources: content.ionSDogaressa,
+                           extrapolate: false
+                        })
+                     },
+                     position: { x: 220, y: 70 }
+                  });
+                  renderer.attach('main', mandog, womandog);
+                  await Promise.all([
+                     mandog.alpha.modulate(timer, 300, 1).then(async () => {
+                        await mandog.walk(timer, 4, { x: 80 });
+                        await mandog.walk(timer, 2, { x: 60 }, { x: 50, y: 80 });
+                     }),
+                     womandog.alpha.modulate(timer, 300, 1).then(async () => {
+                        await womandog.walk(timer, 4, { x: 80 });
+                        await womandog.walk(timer, 2, { x: 100 }, { x: 110, y: 80 });
+                     })
+                  ]);
+                  await Promise.all([
+                     bassLoader,
+                     dialogue('auto', ...(world.genocide ? text.a_starton.marriage4 : text.a_starton.marriage1))
+                  ]);
+                  world.genocide ? assets.music.dogbeat.instance(timer) : assets.music.dogbass.instance(timer);
+                  await Promise.all([
+                     mandog.walk(
+                        timer,
+                        3,
+                        { y: 60 },
+                        { x: 30 },
+                        { y: 80 },
+                        { x: 50, y: 60 },
+                        { x: 110 },
+                        { y: 110 },
+                        { x: 30 },
+                        { x: 10, y: 80 },
+                        { x: 50, y: 40 },
+                        { y: 80 }
+                     ),
+                     womandog.walk(
+                        timer,
+                        3,
+                        { x: 150 },
+                        { y: 100 },
+                        { x: 110, y: 80 },
+                        { y: 110 },
+                        { x: 70 },
+                        { y: 40 },
+                        { x: 90 },
+                        { y: 20 },
+                        { x: 100 },
+                        { y: 40 },
+                        { x: 120 },
+                        { y: 60 },
+                        { x: 110 },
+                        { y: 80 }
+                     )
+                  ]);
+                  await dialogue('auto', ...(world.genocide ? text.a_starton.marriage5 : text.a_starton.marriage2));
+                  await Promise.all([ battler.battlefall(player), battleLoader ]);
+                  world.genocide ? content.amDogbeat.unload() : content.amDogbass.unload();
+                  await battler.start(groups.dogs);
+                  if (save.data.n.state_starton_dogs < 2) {
+                     if (save.data.n.state_starton_dogs === 0) {
+                        await dialogue('auto', ...text.a_starton.marriage3a);
+                     } else {
+                        await dialogue('auto', ...text.a_starton.marriage3b);
+                     }
+                     isolate(mandog);
+                     isolate(womandog);
+                     (async () => {
+                        if (!save.data.b.oops) {
+                           if (
+                              save.data.n.state_starton_doggo < 1 ||
+                              save.data.n.state_starton_lesserdog < 1 ||
+                              save.data.n.state_starton_dogs < 1
+                           ) {
+                              if (save.data.n.state_starton_dogs === 0) {
+                                 await dialogue('auto', ...text.a_starton.truetext.dogs1);
+                              } else {
+                                 await dialogue('auto', ...text.a_starton.truetext.fetch());
+                              }
+                           } else {
+                              await dialogue('auto', ...text.a_starton.truetext.dogs2);
+                           }
+                        }
+                        game.movement = true;
+                        await events.on('teleport');
+                        game.music!.gain.modulate(timer, 300, world.level);
+                     })();
+                     await Promise.race([
+                        events.on('teleport'),
+                        Promise.all([
+                           mandog.walk(timer, 4, { x: 62.5, y: 255 }).then(async () => {
+                              await mandog.alpha.modulate(timer, 300, 0);
+                           }),
+                           womandog.walk(timer, 4, { x: 97.5, y: 255 }).then(async () => {
+                              await womandog.alpha.modulate(timer, 300, 0);
+                           })
+                        ])
+                     ]);
+                  } else {
+                     game.movement = true;
+                  }
+                  game.music!.gain.modulate(timer, 300, world.level);
+                  renderer.detach('main', mandog);
+                  renderer.detach('main', womandog);
+               });
+            }
+         }
+      case 's_puzzle2':
+         (instance('main', 'puzzlechip')!.object.objects[0] as CosmosAnimation).index =
+            save.data.n[`state_starton_${to}`];
+      case 's_puzzle3':
+         (to === 's_puzzle1' ? 24 : to === 's_puzzle2' ? 25 : 27) <= save.data.n.plot && unlockPuzzle();
+         break;
+      case 's_jenga': {
+         save.data.n.plot < 26 ||
+            temporary(
+               new CosmosSprite({
+                  priority: 9999,
+                  position: { x: 141, y: -29 },
+                  frames: [ content.iooSSmallscreen ],
+                  objects: [
+                     new CosmosText({
+                        fill: 'white',
+                        alpha: 0.8,
+                        charset: '0123456789',
+                        anchor: 0,
+                        spacing: { x: -2 },
+                        font: '20px Papyrus',
+                        content: '0',
+                        position: { x: 21, y: 6.25 }
+                     })
+                  ]
+               }),
+               'main'
+            );
+         break;
+      }
+      case 's_math': {
+         save.data.b.s_state_mathpass && unlockPuzzle();
+         break;
+      }
+      case 's_secret': {
+         const toby = instance('main', 'tobycage')!.object;
+         if (!toby.metadata.active) {
+            toby.metadata.active = true;
+            const t = timer.value;
+            toby.on('tick', function () {
+               this.y = sineWaver(t, 8000, 0, 10);
+               if (save.data.b.s_state_papsink && !this.metadata.sinker) {
+                  this.metadata.sinker = true;
+                  (this?.objects[0] as CosmosAnimation).use(content.iooToby5);
+               }
+            });
+         }
+         if (save.data.b.s_state_papsink) {
+            rooms.of('s_secret').score.music = 'dogdance';
+         }
+         break;
+      }
+      case 's_bridge': {
+         if (world.genocide && save.data.n.plot < 29) {
+            teleporter.movement = false;
+         }
+         break;
+      }
+      case 's_grillbys': {
+         const roomState = (states.rooms.s_grillbys ??= {});
+         if (save.data.n.state_starton_doggo === 2 || world.population < 2) {
+            instance('main', 'g_doggo')?.destroy();
+         }
+         if (
+            save.data.n.state_starton_greatdog === 2 ||
+            save.data.n.state_starton_greatdog === 4 ||
+            world.population < 2
+         ) {
+            instance('main', 'g_greatdog')?.destroy();
+         } else if (save.data.n.state_starton_greatdog === 3 && !roomState.dogger) {
+            roomState.dogger = true;
+            (instance('main', 'g_greatdog')?.object.objects[0] as CosmosAnimation).index = 3;
+         }
+         if (save.data.n.state_starton_dogs === 2 || world.population < 2) {
+            instance('main', 'g_dogamy')?.destroy();
+            instance('main', 'g_dogaressa')?.destroy();
+         }
+         if (world.population < 10) {
+            instance('main', 'g_beautifulfish')?.destroy();
+         }
+         if (world.population < 8) {
+            instance('main', 'g_bunbun')?.destroy();
+         }
+         if (world.population < 6) {
+            instance('main', 'g_bigmouth')?.destroy();
+         }
+         if (world.population < 4) {
+            instance('main', 'g_punkhamster')?.destroy();
+         }
+         if (world.genocide || (world.population === 0 && !world.bullied)) {
+            instance('main', 'g_grillby')?.destroy();
+            instance('main', 'g_redbird')?.destroy();
+         }
+         break;
+      }
+      case 's_town1':
+      case 's_town2': {
+         const roomState = (states.rooms.s_town1 ||= {});
+         if (
+            !roomState.spawnedThaKid &&
+            save.data.n.plot < 31 &&
+            !world.genocide &&
+            (world.population > 0 || world.bullied)
+         ) {
+            roomState.spawnedThaKid = true;
+            const kiddState = (CosmosUtils.parse(save.data.s.state_starton_s_town1 || 'null') ?? {
+               anim: { active: true, index: 0, step: 0 },
+               face: 'right',
+               room: 's_town1',
+               state: 'walk',
+               trip: 0,
+               volatile: true,
+               wait: 0,
+               x: 420,
+               y: 150
+            }) as {
+               anim: { active: boolean; index: number; step: number };
+               face: CosmosDirection;
+               volatile: boolean;
+               room: 's_town1' | 's_town2';
+               state: 'wait' | 'walk' | 'trip';
+               trip: number;
+               wait: number;
+               x: number;
+               y: number;
+            };
+            const anim = new CosmosAnimation({
+               active: kiddState.anim.active,
+               anchor: { x: 0, y: 1 },
+               index: kiddState.anim.index,
+               resources:
+                  kiddState.state === 'wait'
+                     ? content.iocKiddDownTalk
+                     : kiddState.state === 'walk'
+                     ? {
+                          down: content.iocKiddDown,
+                          left: content.iocKiddLeft,
+                          right: content.iocKiddRight,
+                          up: content.iocKiddUp
+                       }[kiddState.face]
+                     : kiddState.face === 'left'
+                     ? content.iocKiddLeftTrip
+                     : content.iocKiddRightTrip,
+               step: kiddState.anim.step
+            }).on('tick', function () {
+               this.alpha.value = game.room === kiddState.room ? 1 : 0;
+               if (kiddState.state === 'trip' && this.index === 19) {
+                  if (kiddState.trip++ === 0) {
+                     this.active = false;
+                  } else if (kiddState.trip === 15) {
+                     kiddState.state = 'walk';
+                     kiddState.trip = 0;
+                     this.reset().use(kiddState.face === 'left' ? content.iocKiddLeft : content.iocKiddRight);
+                     this.y = 0;
+                  }
+               }
+               kiddState.anim.active = this.active;
+               kiddState.anim.index = this.index;
+               kiddState.anim.step = this.step;
+               save.data.s.state_starton_s_town1 = CosmosUtils.serialize(kiddState);
+            });
+            anim.frames = CosmosUtils.populate(20, null);
+            function move (direction: CosmosDirection, limit: number, speed = 4) {
+               switch (direction) {
+                  case 'down':
+                     kiddState.y += speed;
+                     kiddState.y > limit && (kiddState.y = limit);
+                     break;
+                  case 'left':
+                     kiddState.x -= speed;
+                     kiddState.x < limit && (kiddState.x = limit);
+                     break;
+                  case 'right':
+                     kiddState.x += speed;
+                     kiddState.x > limit && (kiddState.x = limit);
+                     break;
+                  case 'up':
+                     kiddState.y -= speed;
+                     kiddState.y < limit && (kiddState.y = limit);
+                     break;
+               }
+               const rez = {
+                  down: content.iocKiddDown,
+                  left: content.iocKiddLeft,
+                  right: content.iocKiddRight,
+                  up: content.iocKiddUp
+               }[direction];
+               if (anim.resources !== rez) {
+                  kiddState.face = direction;
+                  anim.use(rez);
+               }
+               anim.active = true;
+            }
+            function trip () {
+               kiddState.state = 'trip';
+               if (kiddState.face === 'left') {
+                  kiddState.x -= 18;
+                  anim.use(content.iocKiddLeftTrip);
+               } else {
+                  kiddState.x += 18;
+                  anim.use(content.iocKiddRightTrip);
+               }
+               anim.active = true;
+               anim.y = -1;
+            }
+            function wait () {
+               kiddState.face = 'down';
+               kiddState.state = 'wait';
+               kiddState.wait = 20 * 30;
+               anim.reset().use(content.iocKiddDownTalk);
+            }
+            function fade (kidd: CosmosHitbox) {
+               kidd.metadata.fade = true;
+               anim.reset();
+               kidd.alpha.modulate(timer, 300, 0).then(() => {
+                  kidd.metadata.fade = false;
+                  if (kiddState.room === 's_town1') {
+                     kiddState.room = 's_town2';
+                     kiddState.y = 10;
+                  } else {
+                     kiddState.room = 's_town1';
+                     kiddState.y = 370;
+                  }
+                  timer.post().then(() => (kidd.alpha.value = 1));
+               });
+            }
+            renderer.attach(
+               'main',
+               new CosmosHitbox({
+                  anchor: { x: 0 },
+                  metadata: {
+                     args: [ 'kiddTalk' ],
+                     barrier: false,
+                     fade: false,
+                     interact: false,
+                     locked: true,
+                     name: 'starton',
+                     pause: false,
+                     tags: [ 's_pacikid' ],
+                     paused: false,
+                     trigger: false,
+                     wait: false
+                  },
+                  size: { x: 20 },
+                  objects: [ anim ]
+               }).on('tick', function () {
+                  if (save.data.n.plot > 30.1 || ![ 's_town1', 's_town2' ].includes(game.room)) {
+                     renderer.detach('main', this);
+                     roomState.spawnedThaKid = false;
+                  } else if (this.metadata.pause) {
+                     if (!this.metadata.paused) {
+                        this.metadata.paused = true;
+                        speech.targets.add(
+                           anim.reset().use(
+                              {
+                                 down: content.iocKiddDownTalk,
+                                 left: content.iocKiddLeftTalk,
+                                 right: content.iocKiddRightTalk,
+                                 up: content.iocKiddUpTalk
+                              }[CosmosMath.cardinal(this.position.angleTo(player))]
+                           )
+                        );
+                     }
+                  } else {
+                     this.metadata.paused = false;
+                     speech.targets.delete(anim);
+                     if (kiddState.state !== 'walk') {
+                        kiddState.state === 'wait' && kiddState.wait-- === 0 && (kiddState.state = 'walk');
+                     } else if (kiddState.room === 's_town1') {
+                        if (kiddState.x < 580) {
+                           kiddState.y > 150 ? move('up', 150) : move('right', kiddState.x < 500 ? 500 : 580);
+                           kiddState.x === 500 && trip();
+                        } else if (kiddState.x === 580 && !(kiddState.y === 150 && kiddState.face === 'down')) {
+                           kiddState.volatile = false;
+                           kiddState.face === 'down' ? move('down', 150) : move('up', 115);
+                           kiddState.y === 115 && wait();
+                        } else if (kiddState.y < 370) {
+                           kiddState.volatile = true;
+                           kiddState.x < 750 ? move('right', 750) : move('down', 370);
+                        } else {
+                           this.metadata.fade || fade(this);
                         }
                      } else {
-                        this.metadata.paused = false;
-                        speech.targets.delete(anim);
-                        if (kiddState.state !== 'walk') {
-                           kiddState.state === 'wait' && kiddState.wait-- === 0 && (kiddState.state = 'walk');
-                        } else if (kiddState.room === 's_town1') {
-                           if (kiddState.x < 580) {
-                              kiddState.y > 150 ? move('up', 150) : move('right', kiddState.x < 500 ? 500 : 580);
-                              kiddState.x === 500 && trip();
-                           } else if (kiddState.x === 580 && !(kiddState.y === 150 && kiddState.face === 'down')) {
-                              kiddState.volatile = false;
-                              kiddState.face === 'down' ? move('down', 150) : move('up', 115);
-                              kiddState.y === 115 && wait();
-                           } else if (kiddState.y < 370) {
-                              kiddState.volatile = true;
-                              kiddState.x < 750 ? move('right', 750) : move('down', 370);
-                           } else {
-                              this.metadata.fade || fade(this);
-                           }
+                        if (kiddState.x > 450) {
+                           kiddState.y < 230 ? move('down', 230) : move('left', kiddState.x > 500 ? 500 : 450);
+                           kiddState.x === 500 && trip();
+                        } else if (kiddState.x === 450 && !(kiddState.y === 230 && kiddState.face === 'down')) {
+                           kiddState.volatile = false;
+                           kiddState.face === 'down' ? move('down', 230) : move('up', 195);
+                           kiddState.y === 195 && wait();
+                        } else if (10 < kiddState.y) {
+                           kiddState.volatile = true;
+                           kiddState.x > 250 ? move('left', 250) : move('up', 10);
                         } else {
-                           if (kiddState.x > 450) {
-                              kiddState.y < 230 ? move('down', 230) : move('left', kiddState.x > 500 ? 500 : 450);
-                              kiddState.x === 500 && trip();
-                           } else if (kiddState.x === 450 && !(kiddState.y === 230 && kiddState.face === 'down')) {
-                              kiddState.volatile = false;
-                              kiddState.face === 'down' ? move('down', 230) : move('up', 195);
-                              kiddState.y === 195 && wait();
-                           } else if (10 < kiddState.y) {
-                              kiddState.volatile = true;
-                              kiddState.x > 250 ? move('left', 250) : move('up', 10);
-                           } else {
-                              this.metadata.fade || fade(this);
-                           }
+                           this.metadata.fade || fade(this);
                         }
                      }
-                     this.anchor.y = kiddState.state === 'wait' ? 1 : 0;
-                     this.size.y = kiddState.state === 'wait' ? 5 : 40;
-                     this.metadata.barrier = game.room === kiddState.room && kiddState.state === 'wait';
-                     this.metadata.interact = game.room === kiddState.room && kiddState.state === 'wait';
-                     this.metadata.trigger =
-                        game.room === kiddState.room &&
-                        (kiddState.state === 'wait' || (kiddState.state !== 'trip' && kiddState.volatile));
-                     this.metadata.wait = kiddState.state === 'wait';
-                     this.position.set(kiddState);
-                  })
-               );
-            }
-            break;
+                  }
+                  this.anchor.y = kiddState.state === 'wait' ? 1 : 0;
+                  this.size.y = kiddState.state === 'wait' ? 5 : 40;
+                  this.metadata.barrier = game.room === kiddState.room && kiddState.state === 'wait';
+                  this.metadata.interact = game.room === kiddState.room && kiddState.state === 'wait';
+                  this.metadata.trigger =
+                     game.room === kiddState.room &&
+                     (kiddState.state === 'wait' || (kiddState.state !== 'trip' && kiddState.volatile));
+                  this.metadata.wait = kiddState.state === 'wait';
+                  this.position.set(kiddState);
+               })
+            );
          }
+         break;
       }
    }
 });
@@ -6453,7 +6358,10 @@ events.on('tick', () => {
 });
 
 events.on('use', async key => {
-   if (game.room === 's_lookout' && key === 'chip') {
+   if (battler.active) {
+      return;
+   }
+   if (game.room === 's_doggo' && key === 'chip' && player.y > 160) {
       if (save.data.n.state_starton_npc98 === 1) {
          world.genocide || (save.data.n.state_starton_npc98 = 4);
       } else if (save.data.n.state_starton_npc98 === 2) {
@@ -6463,7 +6371,7 @@ events.on('use', async key => {
          await dialogue('auto', ...text.a_starton.eat_chip);
          oops();
       }
-   } else if (game.room === 's_stand' && key === 'nice_cream' && world.population > 9) {
+   } else if (game.room === 's_lesser' && key === 'nice_cream' && world.population > 9) {
       await dialogue('auto', ...text.a_starton.eat_cream);
    }
 });
@@ -6474,12 +6382,9 @@ events.on('use', {
       switch (key) {
          case 'voidy':
             if (!battler.active) {
-               save.storage.inventory.remove(save.storage.inventory.contents.indexOf('voidy'));
-               player.metadata.voidkey = {
-                  room: (rooms.of('_void').neighbors = [ game.room ])[0],
-                  face: player.face,
-                  position: player.position.value()
-               };
+               save.storage.inventory.remove('voidy');
+               player.metadata.voidkey = { room: game.room, face: player.face, position: player.position.value() };
+               rooms.of('_void').neighbors = [ game.room, ...rooms.of(game.room).neighbors ];
                await teleport('_void', 'up', 140, 230, world);
             }
             break;

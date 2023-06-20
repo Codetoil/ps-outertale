@@ -5,15 +5,12 @@ import commonOpponents from '../common/opponents';
 import commonPatterns from '../common/patterns';
 import content from '../content';
 import { atlas, events, random, renderer, speech, timer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosInventory,
-   CosmosObject,
-   CosmosPoint,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosUtils
-} from '../engine';
+import { CosmosInventory } from '../engine/core';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosPoint } from '../engine/numerics';
+import { CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosUtils } from '../engine/utils';
 import { battler, shake, world } from '../mantle';
 import save from '../save';
 import { faces } from './bootstrap';
@@ -21,7 +18,7 @@ import opponents from './opponents';
 import patterns from './patterns';
 import text from './text';
 
-function saveJerry () {
+export function saveJerry () {
    if (save.data.b.spared_jerry) {
       timer
          .when(() => battler.alive.length === 1)
@@ -35,7 +32,7 @@ function saveJerry () {
    }
 }
 
-function active0 () {
+export function active0 () {
    switch (battler.alive[0].opponent) {
       case opponents.stardrake:
          return 'stardrake';
@@ -53,7 +50,7 @@ const groups = {
       assets: new CosmosInventory(content.amBattle1),
       init () {
          battler.grid = content.ibuGrid1;
-         battler.status = world.goatbro ? text.b_opponent_stardrake.genoStatus() : text.b_opponent_stardrake.status1();
+         battler.status = world.azzie ? text.b_opponent_stardrake.genoStatus() : text.b_opponent_stardrake.status1();
          standardMusic();
          return true;
       },
@@ -65,7 +62,7 @@ const groups = {
       assets: new CosmosInventory(content.amBattle1),
       init () {
          battler.grid = content.ibuGrid1;
-         battler.status = world.goatbro ? text.b_opponent_mouse.genoStatus : text.b_opponent_mouse.status1;
+         battler.status = world.azzie ? text.b_opponent_mouse.genoStatus : text.b_opponent_mouse.status1;
          standardMusic();
          return true;
       },
@@ -77,7 +74,7 @@ const groups = {
       assets: new CosmosInventory(content.amBattle1),
       init () {
          battler.grid = content.ibuGrid1;
-         battler.status = world.goatbro ? text.b_opponent_jerry.genoStatus : text.b_opponent_jerry.status1;
+         battler.status = world.azzie ? text.b_opponent_jerry.genoStatus : text.b_opponent_jerry.status1;
          standardMusic();
          saveJerry();
          return true;
@@ -285,15 +282,16 @@ const groups = {
    }),
 
    lesserdog: new OutertaleGroup({
-      assets: new CosmosInventory(content.amBattle1),
+      assets: new CosmosInventory(content.amDogsong),
       init () {
+         battler.flee = false;
          save.data.b.s_state_lesser = true;
          battler.grid = content.ibuGrid1;
          battler.status = text.b_opponent_lesserdog.status0();
          battler.volatile[0].vars.hurt1 = false;
          battler.volatile[0].vars.hurt2 = false;
          battler.volatile[0].vars.statustext = [ text.b_opponent_lesserdog.status0 ];
-         const music = world.genocide ? assets.music.shock.instance(timer) : assets.music.battle1.instance(timer);
+         const music = world.genocide ? assets.music.shock.instance(timer) : assets.music.dogsong.instance(timer);
          battler.music = music;
          return true;
       },
@@ -360,18 +358,24 @@ const groups = {
                for (const oppo of battler.alive) {
                   oppo.container.objects[0].reset();
                }
+               const isDogamy = volatile.opponent === opponents.dogamy;
                if (
                   await battler.attack(
                      volatile,
                      volatile.sparable ? { power: 0, operation: 'multiply' } : { power: choice.score },
-                     volatile.opponent === opponents.dogamy
+                     isDogamy,
+                     isDogamy
                   )
                ) {
-                  volatile.opponent === opponents.dogamy &&
-                     (await Promise.all([
+                  if (isDogamy) {
+                     await Promise.all([
                         battler.vaporize(volatile.container.objects[0]),
                         battler.vaporize(volatile.vars.dogamyaxe)
-                     ]));
+                     ]);
+                     if (battler.alive.length === 0) {
+                        events.fire('victory');
+                     }
+                  }
                   GV.dogamy = false;
                   GV.dogaressa = false;
                   GV.fetch = false;
@@ -386,6 +390,10 @@ const groups = {
                   } else {
                      statustext = [ text.b_opponent_dogaressa.loneStatus() ];
                      monstertext1 = [ text.b_opponent_dogamy.loneTalk1, text.b_opponent_dogamy.loneTalk2 ];
+                  }
+                  if (battler.alive.length < 1) {
+                     battler.music?.stop();
+                     return;
                   }
                } else {
                   if (battler.alive.length > 1) {
@@ -410,6 +418,7 @@ const groups = {
                      } else {
                         await battler.human(...text.b_opponent_dogaressa.fetchTextLone());
                      }
+                     save.storage.inventory.remove('spanner');
                   } else {
                      await battler.human(...text.b_opponent_dogamy.fetchText());
                      statustext = [ text.b_opponent_dogamy.fetchStatus() ];
@@ -434,6 +443,7 @@ const groups = {
                         }
                      } else if (volatile.opponent === opponents.dogamy) {
                         save.data.b.flirt_dogamy = true;
+                        volatile.flirted = true;
                         if (GV.sequence < 2) {
                            monstertext1 = [ text.b_opponent_dogamy.flirtTalk1 ];
                            monstertext2 = [ text.b_opponent_dogaressa.flirtTalk1 ];
@@ -444,6 +454,7 @@ const groups = {
                         await battler.human(...text.b_opponent_dogamy.flirtText());
                      } else {
                         save.data.b.flirt_dogaressa = true;
+                        volatile.flirted = true;
                         if (GV.sequence < 2) {
                            monstertext1 = [ text.b_opponent_dogamy.flirtTalk3 ];
                            monstertext2 = [ text.b_opponent_dogaressa.flirtTalk3 ];
@@ -587,8 +598,7 @@ const groups = {
                   ][index]
                );
                const modifier = battler.alive.length < 2 ? active0() : void 0;
-               Object.assign(
-                  battler.SOUL.position,
+               battler.SOUL.position.set(
                   [ modifier === 'dogaressa' ? { x: 140, y: 180 } : { x: 160, y: 180 }, { x: 160, y: 160 } ][index]
                );
                battler.SOUL.alpha.value = 1;
@@ -703,7 +713,7 @@ const groups = {
                   assets.sounds.noise.instance(timer);
                   renderer.alpha.value = 0;
                   renderer.detach('menu', fader);
-                  volatile.container.position.x = 55;
+                  volatile.container.x = 55;
                   const sand = new CosmosAnimation({
                      position: { x: 160, y: 120 },
                      anchor: { x: 0, y: 1 },
@@ -740,6 +750,7 @@ const groups = {
                      alive: false,
                      container: new CosmosObject({ objects: [ sand ] }) as OutertaleVolatile['container'],
                      dead: false,
+                     flirted: false,
                      opponent: opponents.shocksans,
                      hp: 1,
                      sparable: false,
@@ -812,6 +823,7 @@ const groups = {
                      volatile.vars.faceoverride = faces.papyrusBattleClosed;
                   });
                   await battler.vaporize(sand);
+                  save.data.n.exp += 100;
                   await timer.pause(350);
                   await battler.monster(
                      false,
@@ -821,12 +833,12 @@ const groups = {
                   );
                   await volatile.container.position.modulate(timer, 1350, {
                      x: 100,
-                     y: volatile.container.position.y
+                     y: volatile.container.y
                   });
                   await timer.pause(650);
                   await volatile.container.position.modulate(timer, 1e3, {
                      x: 420,
-                     y: volatile.container.position.y
+                     y: volatile.container.y
                   });
                   await timer.pause(1000);
                   events.fire('exit');

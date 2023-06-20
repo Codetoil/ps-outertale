@@ -1,30 +1,3 @@
-import { Filter, Rectangle } from 'pixi.js';
-import { OutertaleChoice, OutertaleLayerKey, OutertaleMap, OutertaleRoom, OutertaleSpeechPreset } from './classes';
-import {
-   CosmosAtlas,
-   CosmosAudio,
-   CosmosDaemon,
-   CosmosDirection,
-   CosmosEffect,
-   CosmosEventHost,
-   CosmosFont,
-   CosmosHitbox,
-   CosmosImage,
-   CosmosInstance,
-   CosmosKeyboardInput,
-   CosmosKeyed,
-   CosmosMixer,
-   CosmosObject,
-   CosmosPointSimple,
-   CosmosProvider,
-   CosmosRegistry,
-   CosmosRenderer,
-   CosmosSprite,
-   CosmosTyper,
-   CosmosUtils,
-   CosmosValueRandom
-} from './engine';
-
 import fonts$info from '../assets/fonts.json';
 import ComicSans from '../assets/fonts/ComicSans.png?url';
 import CryptOfTomorrow from '../assets/fonts/CryptOfTomorrow.png?url';
@@ -34,6 +7,18 @@ import DiaryOfAn8BitMage from '../assets/fonts/DiaryOfAn8BitMage.png?url';
 import DotumChe from '../assets/fonts/DotumChe.png?url';
 import MarsNeedsCunnilingus from '../assets/fonts/MarsNeedsCunnilingus.png?url';
 import Papyrus from '../assets/fonts/Papyrus.png?url';
+
+import { Filter, Rectangle } from 'pixi.js';
+import { OutertaleChoice, OutertaleLayerKey, OutertaleMap, OutertaleRoom, OutertaleSpeechPreset } from './classes';
+import { CosmosAtlas } from './engine/atlas';
+import { CosmosAudio, CosmosDaemon, CosmosEffect, CosmosInstance, CosmosMixer } from './engine/audio';
+import { CosmosEventHost, CosmosRegistry } from './engine/core';
+import { CosmosImage, CosmosSprite } from './engine/image';
+import { CosmosKeyboardInput } from './engine/input';
+import { CosmosPointSimple, CosmosValueRandom } from './engine/numerics';
+import { CosmosHitbox, CosmosObject, CosmosRenderer } from './engine/renderer';
+import { CosmosFont, CosmosTyper } from './engine/text';
+import { CosmosDirection, CosmosKeyed, CosmosProvider, CosmosUtils } from './engine/utils';
 
 declare const ___spacetime___: {
    data: () => string | null;
@@ -100,7 +85,7 @@ export const backend = (() => {
          }
       },
       get mods () {
-         return spacetime?.mods()?.map(name => `mods:${name}/index.js?${performance.now()}`) ?? [];
+         return spacetime?.mods() ?? [];
       },
       reload (respawn = false) {
          spacetime?.exec('reload', respawn);
@@ -113,7 +98,11 @@ export const backend = (() => {
    };
 })();
 
-export const launch = { intro: true, overworld: true };
+export function exit () {
+   backend.available ? close() : (location.href = 'about:blank');
+}
+
+export const launch = { intro: true, overworld: true, timeline: true };
 
 export const events = new CosmosEventHost<{
    // when battle is initiated, before screen unfade
@@ -144,7 +133,11 @@ export const events = new CosmosEventHost<{
    'init-overworld': [];
    // when the cyan soul leaps
    leap: [];
-   // when the mods are load
+   // when the game is loaded fully
+   loaded: [];
+   // when a mod is loaded fully
+   'loaded-mod': [string];
+   // when the mods are loaded
    modded: [];
    // ready or not, here he comes!!!
    ready: [];
@@ -315,9 +308,9 @@ export const keys = {
 
 export const maps = new CosmosRegistry<string, OutertaleMap>(new OutertaleMap('', new CosmosImage('')));
 
-export function param (key: string, value = false) {
+export function param (key: string, value: string | null = null) {
    const params = new URLSearchParams(location.search);
-   value ? params.set(key, '') : params.delete(key);
+   value === null ? params.delete(key) : params.set(key, value);
    history.replaceState(null, '', `${location.origin + location.pathname}?${params.toString()}${location.hash}`);
 }
 
@@ -325,7 +318,7 @@ export const random = new CosmosValueRandom();
 
 /** reload the game */
 export async function reload (respawn = false) {
-   param('respawn', respawn);
+   param('respawn', respawn ? '' : null);
    backend.available ? backend.reload(respawn) : location.reload();
    await new Promise(() => {});
 }

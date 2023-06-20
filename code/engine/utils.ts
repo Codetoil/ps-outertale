@@ -127,7 +127,7 @@ export const CosmosUtils = {
    },
    provide<A extends CosmosProvider<unknown, unknown[]>> (
       provider: A,
-      ...args: A extends CosmosProvider<any, infer B> ? B : never
+      ...args: A extends CosmosProvider<infer _, infer C> ? C : never
    ): A extends CosmosProvider<infer B, any[]> ? B : never {
       return typeof provider === 'function' ? provider(...args) : provider;
    },

@@ -50,8 +50,7 @@
          {
             "position": { "x": 300, "y": 120 },
             "tags": [ "pathtile1" ],
-            "attachments": [ { "type": "sprite", "frames": [ "iooAPathtile" ] } ],
-            "interacts": []
+            "attachments": [ { "type": "sprite", "frames": [ "iooAPathtile" ] } ]
          },
          {
             "position": { "x": 700, "y": 120 },

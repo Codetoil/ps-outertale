@@ -9,7 +9,7 @@ import {
    CosmosSizedObjectProperties,
    CosmosStyle
 } from './renderer';
-import { CosmosDirection, CosmosNot, CosmosProvider } from './utils';
+import { CosmosDirection, CosmosNot, CosmosProvider, CosmosUtils } from './utils';
 
 export type CosmosCharacterPreset = { [x in 'walk' | 'talk']: { [y in CosmosDirection]: CosmosSprite } };
 
@@ -24,6 +24,7 @@ export class CosmosEntity<
    A extends CosmosBaseEvents = CosmosBaseEvents,
    B extends CosmosMetadata = CosmosMetadata
 > extends CosmosHitbox<A, B> {
+   private $entity = { walk: null as (() => void) | null };
    face: CosmosDirection;
    sprites: { [x in CosmosDirection]: CosmosSprite };
    step: number;
@@ -50,7 +51,6 @@ export class CosmosEntity<
    move<B extends string> (
       offset: CosmosPointSimple,
       renderer?: CosmosRenderer<B>,
-      key?: B,
       keys: B[] = [],
       filter?: CosmosProvider<boolean, [CosmosHitbox]>
    ) {
@@ -60,10 +60,10 @@ export class CosmosEntity<
          const distance = offset[axis];
          if (distance !== 0) {
             this.position[axis] += distance;
-            const hits = renderer ? renderer.detect(key, this, ...hitboxes) : [];
+            const hits = renderer ? renderer.detect(this, ...hitboxes) : [];
             if (hits.length > 0) {
                const single = (distance / Math.abs(distance)) * this.step;
-               while (this.position[axis] !== source[axis] && renderer!.detect(key, this, ...hits).length > 0) {
+               while (this.position[axis] !== source[axis] && renderer!.detect(this, ...hits).length > 0) {
                   this.position[axis] -= single;
                }
             }
@@ -98,27 +98,34 @@ export class CosmosEntity<
       }
    }
    tick (camera: CosmosPointSimple, scale: CosmosPointSimple, style: CosmosStyle) {
-      this.objects[0] = this.sprite;
+      this.objects[0] === this.sprite || (this.objects[0] = this.sprite);
       super.tick(camera, scale, style);
    }
    async walk (timer: CosmosTimer, speed: number, ...points: Partial<CosmosPointSimple>[]) {
+      this.$entity.walk?.();
       const duration = Math.round(15 / speed);
+      const { promise, resolve } = CosmosUtils.hyperpromise();
+      this.$entity.walk = resolve;
+      promise.then(() => {
+         walk = false;
+      });
+      let walk = true;
       for (const { x = this.position.x, y = this.position.y } of points) {
-         await new Promise<void>(resolve => {
-            const ticker = () => {
-               const dx = Math.min(Math.max(x - this.x, -speed), speed);
-               const dy = Math.min(Math.max(y - this.y, -speed), speed);
-               this.move({ x: dx, y: dy });
-               this.sprite.duration = duration;
-               if (Math.abs(x - this.x) < 0.000001 && Math.abs(y - this.y) < 0.000001) {
-                  this.off('tick', ticker);
-                  this.move({ x: 0, y: 0 });
-                  this.position.set(x, y);
-                  resolve();
-               }
-            };
-            this.on('tick', ticker);
-         });
+         while (walk) {
+            const dx = Math.min(Math.max(x - this.x, -speed), speed);
+            const dy = Math.min(Math.max(y - this.y, -speed), speed);
+            this.sprite.duration = duration;
+            this.move({ x: dx, y: dy });
+            if (Math.abs(x - this.x) < 0.000001 && Math.abs(y - this.y) < 0.000001) {
+               this.move({ x: 0, y: 0 });
+               this.position.set(x, y);
+               break;
+            }
+            await this.on('tick');
+         }
+         if (!walk) {
+            break;
+         }
       }
    }
 }

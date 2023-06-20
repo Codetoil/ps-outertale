@@ -1,7 +1,7 @@
 const { homedir } = require('os');
 const { join } = require('path');
 
-const spacetime = join(
+const root = join(
    homedir(),
    (() => {
       switch (process.platform) {
@@ -15,4 +15,4 @@ const spacetime = join(
    })()
 );
 
-module.exports = { mods: join(spacetime, 'mods'), universe: join(spacetime, 'universe.json') };
+module.exports = { mods: join(root, 'mods'), root, universe: join(root, 'universe.json') };

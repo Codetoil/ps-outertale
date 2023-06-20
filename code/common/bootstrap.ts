@@ -1,17 +1,20 @@
-import { standardSound } from '../assets';
-import { OutertaleMap, OutertaleSpeechPreset } from '../classes';
-import content from '../content';
-import { audio, maps, speech } from '../core';
-import { CosmosAnimation, CosmosDaemon, CosmosUtils } from '../engine';
-import { battler, easyRoom, portraits } from '../mantle';
-import text from './text';
-
 import im_$info from '../../assets/images/maps/_.json?url';
 import _ from '../../assets/rooms/_.json';
 import _taxi from '../../assets/rooms/_taxi.json';
 import _void from '../../assets/rooms/_void.json';
 
-const _map = new OutertaleMap(im_$info, content.im_);
+import { standardSound } from '../assets';
+import { OutertaleMap, OutertaleSpeechPreset } from '../classes';
+import content from '../content';
+import { audio, maps, speech } from '../core';
+import { CosmosDaemon } from '../engine/audio';
+import { CosmosAnimation } from '../engine/image';
+import { CosmosMath } from '../engine/numerics';
+import { CosmosUtils } from '../engine/utils';
+import { battler, easyRoom, portraits } from '../mantle';
+import text from './text';
+
+export const _map = new OutertaleMap(im_$info, content.im_);
 
 export const faces = {
    asrielPlain: new CosmosAnimation({ anchor: 0, resources: content.idcAsrielPlain })
@@ -38,6 +41,11 @@ battler.weapons.register({
 portraits.register(faces);
 
 speech.presets.register({
+   _: new OutertaleSpeechPreset({
+      faces: [ null ],
+      interval: CosmosMath.FRAME,
+      voices: [ [ new CosmosDaemon(content.avAsgore, { context: audio.context, router: audio.soundRouter, rate: 5 / 3 }) ] ]
+   }),
    event: new OutertaleSpeechPreset({ faces: [ null ], interval: 30, voices: [ null ] }),
    human: new OutertaleSpeechPreset({
       faces: [ null ],

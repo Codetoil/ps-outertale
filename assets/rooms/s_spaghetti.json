@@ -1,29 +1,31 @@
 {
    "$schema": "./room.schema.json",
    "background": "below",
-   "preload": [ "amStarton", "amStartonEmpty", "asLanding", "ieBiodome" ],
+   "preload": [ "amStarton", "amStartonEmpty", "asLanding", "iooSBiodome" ],
    "layers": {
       "below": [
          {
             "triggers": [
                {
-                  "position": { "x": 0, "y": 5 },
-                  "size": { "x": 80, "y": -20 },
+                  "position": { "x": 5, "y": 35 },
+                  "size": { "x": -20, "y": 90 },
                   "name": "teleport",
-                  "args": [ "s_bros", "up", "60", "230" ]
+                  "args": [ "s_lesser", "left", "300", "120" ]
                },
                {
-                  "position": { "x": 200, "y": 5 },
-                  "size": { "x": 80, "y": -20 },
+                  "position": { "x": 315, "y": 35 },
+                  "size": { "x": 20, "y": 90 },
                   "name": "teleport",
-                  "args": [ "s_math", "up", "40", "230" ]
+                  "args": [ "s_bros", "right", "20", "260" ]
                }
             ],
             "barriers": [
-               { "position": { "x": 10, "y": 0 }, "size": { "x": -20, "y": 145 } },
-               { "position": { "x": 10, "y": 145 }, "size": { "x": 260, "y": 20 } },
-               { "position": { "x": 70, "y": 0 }, "size": { "x": 140, "y": 35 } },
-               { "position": { "x": 270, "y": 0 }, "size": { "x": 20, "y": 145 } }
+               { "position": { "x": 0, "y": 35 }, "size": { "x": 50, "y": -20 } },
+               { "position": { "x": 50, "y": 145 }, "size": { "x": 220, "y": 20 } },
+               { "position": { "x": 50, "y": 15 }, "size": { "x": 220, "y": -20 } },
+               { "position": { "x": 270, "y": 15 }, "size": { "x": 50, "y": 20 } },
+               { "position": { "x": 0, "y": 125 }, "size": { "x": 50, "y": 20 } },
+               { "position": { "x": 270, "y": 125 }, "size": { "x": 50, "y": 20 } }
             ]
          }
       ],
@@ -40,7 +42,7 @@
                }
             ],
             "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
-            "position": { "x": 25, "y": 135 }
+            "position": { "x": 65, "y": 25 }
          },
          {
             "tags": [ "s_lamp" ],
@@ -54,7 +56,7 @@
                }
             ],
             "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -10, "y": 6 } } ],
-            "position": { "x": 255, "y": 135 }
+            "position": { "x": 255, "y": 25 }
          },
          {
             "attachments": [
@@ -68,11 +70,11 @@
             ],
             "interacts": [ { "name": "save", "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
             "barriers": [ { "position": { "x": -10 }, "size": { "x": 20, "y": -10 } } ],
-            "position": { "x": 140, "y": 170 }
+            "position": { "x": 160, "y": 160 }
          },
          {
             "attachments": [ { "type": "sprite", "frames": [ "iooSSpaghettitable" ], "anchor": { "x": 0, "y": 1 } } ],
-            "position": { "x": 140, "y": 53 },
+            "position": { "x": 160, "y": 45 },
             "barriers": [ { "anchor": { "x": 0, "y": 1 }, "size": { "x": -36, "y": 18 } } ],
             "interacts": [
                {
@@ -92,12 +94,12 @@
                   "position": { "x": 0, "y": -22 }
                }
             ],
-            "position": { "x": 137, "y": 54 },
+            "position": { "x": 157, "y": 46 },
             "tags": [ "spagheddy" ]
          },
          {
             "attachments": [ { "type": "sprite", "frames": [ "iooSMicrowave" ], "anchor": { "x": 0, "y": 1 } } ],
-            "position": { "x": 190, "y": 59 },
+            "position": { "x": 210, "y": 50 },
             "barriers": [
                { "position": { "x": 0, "y": 0 }, "anchor": { "x": 0, "y": -1 }, "size": { "x": -34, "y": -14 } }
             ],
@@ -112,7 +114,7 @@
          },
          {
             "attachments": [ { "type": "sprite", "frames": [ "iooSCrossword" ], "position": { "x": 79, "y": 76 } } ],
-            "position": { "x": 0, "y": -40 },
+            "position": { "x": 25, "y": -45 },
             "interacts": [
                {
                   "position": { "x": 79, "y": 76 },
@@ -125,8 +127,8 @@
          }
       ]
    },
-   "spawn": { "x": 140, "y": 113 },
-   "neighbors": [ "s_bros", "s_math" ],
-   "region": [ { "x": 140, "y": 120 }, { "x": 140, "y": 120 } ],
+   "spawn": { "x": 160, "y": 80 },
+   "neighbors": [ "s_bros", "s_lesser" ],
+   "region": [ { "x": 160, "y": 80 }, { "x": 160, "y": 80 } ],
    "score": { "music": "starton", "gain": 0.8 }
 }

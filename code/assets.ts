@@ -1,8 +1,8 @@
 import { AdvancedBloomFilter } from 'pixi-filters';
-import { audio, image } from './core';
-import { CosmosAudio, CosmosDaemon, CosmosDaemonRouter, CosmosEffect, CosmosUtils } from './engine';
-
 import content from './content';
+import { audio, image } from './core';
+import { CosmosAudio, CosmosDaemon, CosmosDaemonRouter, CosmosEffect } from './engine/audio';
+import { CosmosUtils } from './engine/utils';
 
 const conv1100 = CosmosAudio.utils.convolver(audio.context, 1, 1, 0, 0);
 
@@ -111,7 +111,7 @@ const music = {
       router: audio.musicRouter,
       gain: 0.35
    }),
-   gameshow: new CosmosDaemon(content.amGameshow, standardMusic()),
+   gameshow: new CosmosDaemon(content.amGameshow, standardMusic(0.3)),
    generator: new CosmosDaemon(content.amGenerator, {
       context: audio.context,
       loop: true,
@@ -130,12 +130,21 @@ const music = {
       gain: 0,
       router: audio.musicRouter
    }),
-   hope: new CosmosDaemon(content.amHope, { context: audio.context, router: audio.musicRouter }),
+   knightknightSting: new CosmosDaemon(content.amKnightknightSting, {
+      context: audio.context,
+      router: audio.musicRouter,
+      gain: 0.5
+   }),
    lab: new CosmosDaemon(content.amLab, standardMusic(0.4)),
    legs: new CosmosDaemon(content.amLegs, standardMusic()),
    legsIntro: new CosmosDaemon(content.amLegsIntro, { context: audio.context, router: audio.musicRouter, gain: 0.5 }),
    letsflyajetpackwhydontwe: new CosmosDaemon(content.amLetsflyajetpackwhydontwe, standardMusic()),
    letsmakeabombwhydontwe: new CosmosDaemon(content.amLetsmakeabombwhydontwe, standardMusic()),
+   madjickSting: new CosmosDaemon(content.amMadjickSting, {
+      context: audio.context,
+      router: audio.musicRouter,
+      gain: 0.5
+   }),
    mall: new CosmosDaemon(content.amMall, standardMusic(0.2)),
    memory: new CosmosDaemon(content.amMemory, { context: audio.context, loop: true, router: audio.musicRouter }),
    menu0: new CosmosDaemon(content.amMenu0, {
@@ -228,7 +237,6 @@ const music = {
    }),
    story: new CosmosDaemon(content.amStory, {
       context: audio.context,
-      loop: true,
       rate: 0.875,
       router: audio.musicRouter
    }),
@@ -259,7 +267,7 @@ const music = {
       loop: true,
       router: audio.musicRouter
    }),
-   undynefast: new CosmosDaemon(content.amUndynefast, standardMusic()),
+   undynefast: new CosmosDaemon(content.amUndynefast, standardMusic(4)),
    undynegeno: new CosmosDaemon(content.amUndynegeno, standardMusic()),
    undynegenoFinal: new CosmosDaemon(content.amUndynegenoFinal, { context: audio.context, router: audio.musicRouter }),
    undynegenoStart: new CosmosDaemon(content.amUndynegenoStart, { context: audio.context, router: audio.musicRouter }),
@@ -375,6 +383,7 @@ const sounds = {
    kick: new CosmosDaemon(content.asKick, standardSound()),
    knock: new CosmosDaemon(content.asKnock, standardSound()),
    landing: new CosmosDaemon(content.asLanding, standardSound()),
+   long_elevator: new CosmosDaemon(content.asLongElevator, standardSound()),
    love: new CosmosDaemon(content.asLove, { context: audio.context, gain: 0.2, router: audio.soundRouter }),
    menu: new CosmosDaemon(content.asMenu, standardSound()),
    menuMusic: new CosmosDaemon(content.asMenu, { context: audio.context, gain: 0.5, router: audio.musicRouter }),
@@ -510,7 +519,6 @@ for (const [ key, value ] of Object.entries({
    ghostbattle: 0.75,
    home: 0.5,
    homeAlt: 0,
-   hope: 0.55,
    memory: 0.8,
    menu0: 0.8,
    menu1: 0.8,
@@ -531,7 +539,7 @@ for (const [ key, value ] of Object.entries({
    rise: 0.55,
    secretsong: 0.95,
    shock: 0.75,
-   shop: 0.55,
+   shop: 0.35,
    specatk: 0.65,
    spiderboss: 0.8,
    spiderrelax: 0.35,

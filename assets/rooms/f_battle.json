@@ -90,9 +90,7 @@
                   "args": [ "undynefight", "truetp" ]
                }
             ],
-            "position": { "x": 0, "y": 0 },
-            "interacts": [],
-            "attachments": []
+            "position": { "x": 0, "y": 0 }
          }
       ],
       "main": [
@@ -102,7 +100,7 @@
                   "auto": true,
                   "type": "animation",
                   "anchor": { "x": 0, "y": 0 },
-                  "resources": "iooSavePointDark",
+                  "resources": "iooSavePointSemiDark",
                   "position": { "x": 0, "y": -10 }
                }
             ],
@@ -114,7 +112,6 @@
          {
             "attachments": [ { "type": "sprite", "anchor": { "x": 0, "y": 1 }, "frames": [ "iooSSentry" ] } ],
             "position": { "x": 1260, "y": 180 },
-            "barriers": [],
             "interacts": [
                {
                   "anchor": { "x": 0, "y": -1 },

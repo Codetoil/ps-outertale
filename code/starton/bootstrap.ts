@@ -1,25 +1,6 @@
-import { standardSound } from '../assets';
-import { OutertaleMap, OutertaleSpeechPreset } from '../classes';
-import { quickCall } from '../common';
-import commonText from '../common/text';
-import content from '../content';
-import { atlas, audio, game, items, maps, renderer, speech } from '../core';
-import {
-   CosmosAnimation,
-   CosmosBasic,
-   CosmosDaemon,
-   CosmosDirection,
-   CosmosNavigator,
-   CosmosObject,
-   CosmosSprite,
-   CosmosUtils
-} from '../engine';
-import { easyRoom, keepActive, phone, portraits, saver } from '../mantle';
-import save from '../save';
-import text from './text';
+
 
 import imStarton$info from '../../assets/images/maps/starton.json?url';
-import s_alphys from '../../assets/rooms/s_alphys.json';
 import s_backrooms from '../../assets/rooms/s_backrooms.json';
 import s_battle from '../../assets/rooms/s_battle.json';
 import s_beddinng from '../../assets/rooms/s_beddinng.json';
@@ -38,7 +19,6 @@ import s_innterior from '../../assets/rooms/s_innterior.json';
 import s_jenga from '../../assets/rooms/s_jenga.json';
 import s_lesser from '../../assets/rooms/s_lesser.json';
 import s_librarby from '../../assets/rooms/s_librarby.json';
-import s_lookout from '../../assets/rooms/s_lookout.json';
 import s_math from '../../assets/rooms/s_math.json';
 import s_maze from '../../assets/rooms/s_maze.json';
 import s_pacing from '../../assets/rooms/s_pacing.json';
@@ -48,12 +28,27 @@ import s_puzzle1 from '../../assets/rooms/s_puzzle1.json';
 import s_puzzle2 from '../../assets/rooms/s_puzzle2.json';
 import s_puzzle3 from '../../assets/rooms/s_puzzle3.json';
 import s_sans from '../../assets/rooms/s_sans.json';
+import s_secret from '../../assets/rooms/s_secret.json';
 import s_spaghetti from '../../assets/rooms/s_spaghetti.json';
-import s_stand from '../../assets/rooms/s_stand.json';
 import s_start from '../../assets/rooms/s_start.json';
 import s_taxi from '../../assets/rooms/s_taxi.json';
 import s_town1 from '../../assets/rooms/s_town1.json';
 import s_town2 from '../../assets/rooms/s_town2.json';
+
+import { standardSound } from '../assets';
+import { OutertaleMap, OutertaleSpeechPreset } from '../classes';
+import { quickCall } from '../common';
+import commonText from '../common/text';
+import content from '../content';
+import { atlas, audio, game, items, maps, renderer, speech } from '../core';
+import { CosmosNavigator } from '../engine/atlas';
+import { CosmosDaemon } from '../engine/audio';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosObject } from '../engine/renderer';
+import { CosmosBasic, CosmosDirection, CosmosUtils } from '../engine/utils';
+import { easyRoom, keepActive, phone, portraits, saver } from '../mantle';
+import save from '../save';
+import text from './text';
 
 export const faces = {
    alphysCutscene1: new CosmosSprite({ anchor: 0, frames: [ content.idcAlphysCutscene1 ] }),
@@ -117,6 +112,7 @@ export const faces = {
    kiddShockedSlave: new CosmosAnimation({ anchor: 0, resources: content.idcKiddShockedSlave }),
    kiddKiller: new CosmosAnimation({ anchor: 0, resources: content.idcKiddKiller }),
    kiddKillerSlave: new CosmosAnimation({ anchor: 0, resources: content.idcKiddKillerSlave }),
+   kiddDetermined: new CosmosAnimation({ anchor: 0, resources: content.idcKiddDetermined }),
    kiddSide: new CosmosAnimation({ anchor: 0, resources: content.idcKiddSide }),
    mettatonNeo: new CosmosSprite({ anchor: 0, frames: [ content.idcMettatonNeo ] }),
    papyrusAYAYA: new CosmosAnimation({ anchor: 0, resources: content.idcPapyrusAYAYA }),
@@ -190,24 +186,22 @@ export const sources = {
    s_start,
    s_sans,
    s_crossroads,
-   s_alphys,
    s_human,
    s_papyrus,
    s_doggo,
-   s_lookout,
    s_maze,
-   s_stand,
    s_dogs,
    s_lesser,
-   s_bros,
    s_spaghetti,
-   s_math,
+   s_bros,
    s_puzzle1,
    s_puzzle2,
    s_jenga,
    s_pacing,
    s_puzzle3,
    s_greater,
+   s_math,
+   s_secret,
    s_bridge,
    s_town1,
    s_taxi,
@@ -224,7 +218,7 @@ export const sources = {
    s_librarby
 };
 
-const startonMap = new OutertaleMap(imStarton$info, content.imStarton);
+export const startonMap = new OutertaleMap(imStarton$info, content.imStarton);
 
 atlas.navigators.register({
    navscript: new CosmosNavigator({
@@ -298,7 +292,8 @@ speech.presets.register({
          faces.kiddHuhSlave, // 9
          faces.kiddNeutralSlave, // 10
          faces.kiddShockedSlave, // 11
-         faces.kiddKillerSlave // 12
+         faces.kiddKillerSlave, // 12
+         faces.kiddDetermined // 13
       ],
       interval: 35,
       voices: [ [ new CosmosDaemon(content.avKidd, standardSound()) ] ]
@@ -317,7 +312,8 @@ speech.presets.register({
          faces.kiddHuhSlave, // 9
          faces.kiddNeutralSlave, // 10
          faces.kiddShockedSlave, // 11
-         faces.kiddKillerSlave // 12
+         faces.kiddKillerSlave, // 12
+         faces.kiddDetermined // 13
       ],
       interval: 35,
       voices: [ [ new CosmosDaemon(content.avKidd, standardSound()) ] ]

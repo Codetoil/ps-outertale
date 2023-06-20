@@ -101,7 +101,6 @@
          },
          {
             "position": { "x": 160, "y": 150 },
-            "tags": [],
             "attachments": [ { "type": "animation", "anchor": { "x": 0, "y": 1 }, "resources": "iooAPterm" } ]
          },
          {

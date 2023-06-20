@@ -15,19 +15,13 @@ import {
 import commonPatterns from '../common/patterns';
 import content from '../content';
 import { atlas, events, game, random, renderer, speech, timer, typer } from '../core';
-import {
-   CosmosAnimation,
-   CosmosInstance,
-   CosmosInventory,
-   CosmosMath,
-   CosmosObject,
-   CosmosPoint,
-   CosmosPointSimple,
-   CosmosRectangle,
-   CosmosSprite,
-   CosmosUtils,
-   CosmosValue
-} from '../engine';
+import { CosmosInstance } from '../engine/audio';
+import { CosmosInventory } from '../engine/core';
+import { CosmosAnimation, CosmosSprite } from '../engine/image';
+import { CosmosMath, CosmosPoint, CosmosPointSimple, CosmosValue } from '../engine/numerics';
+import { CosmosObject } from '../engine/renderer';
+import { CosmosRectangle } from '../engine/shapes';
+import { CosmosUtils } from '../engine/utils';
 import { battler, shake, world } from '../mantle';
 import save from '../save';
 import opponents from './opponents';
@@ -111,7 +105,7 @@ const groups = {
             });
             volatile.vars.fancygrid = fancygrid;
             battler.overlay.objects = [ fancygrid, ...battler.overlay.objects ];
-            battler.box.position.y = 120;
+            battler.box.y = 120;
             battler.box.size.x = 36;
             battler.box.size.y = 36;
          }
@@ -148,6 +142,9 @@ const groups = {
             bubble: CosmosSprite,
             ...lines: string[]
          ) => {
+            if (lines.length === 0) {
+               return;
+            }
             const container = new CosmosObject({
                position: new CosmosPoint(position).subtract(volatile.container.position),
                objects: [ bubble ]
@@ -665,18 +662,20 @@ const groups = {
          }
          if (battler.alive.length > 0) {
             await battler.resume(async () => {
-               //renderer.attach('menu', battler.fakebox);
                await Promise.all([
                   standardSize({ x: 100, y: 100 }),
                   battler.box.position.modulate(timer, CosmosMath.linear, 300, { y: 192.5 - 100 / 2 })
                ]);
                standardPos();
-               await patterns.radtile();
+               if (await turnSkip()) {
+                  await timer.pause(400);
+               } else {
+                  await patterns.radtile();
+               }
                await Promise.all([
                   resetBox(),
                   battler.box.position.modulate(timer, CosmosMath.linear, 300, { y: 160 })
                ]);
-               //renderer.detach('menu', battler.fakebox);
             });
          } else {
             endMusic();
@@ -699,7 +698,6 @@ const groups = {
          }
          if (battler.alive.length > 0) {
             await battler.resume(async () => {
-               //renderer.attach('menu', battler.fakebox);
                await Promise.all([
                   standardSize({ x: 100, y: 100 }),
                   battler.box.position.modulate(timer, CosmosMath.linear, 300, { y: 192.5 - 100 / 2 })
@@ -714,7 +712,6 @@ const groups = {
                   resetBox(),
                   battler.box.position.modulate(timer, CosmosMath.linear, 300, { y: 160 })
                ]);
-               //renderer.detach('menu', battler.fakebox);
             });
          } else {
             endMusic();
@@ -723,45 +720,13 @@ const groups = {
       opponents: [ [ opponents.woshua, { x: 70, y: 120 } ] ]
    }),
 
-   moldbygg: new OutertaleGroup({
-      assets: new CosmosInventory(
-         content.amBattle1,
-         content.ibbOctagon,
-         content.ibcMoldbyggHead,
-         content.ibcMoldbyggPart,
-         content.ibbWorm,
-         content.ibbLooxCircle3,
-         content.ibcMoldsmal
-      ),
-      init () {
-         battler.grid = content.ibuGrid1;
-         battler.status = text.b_opponent_fakemoldsmal.status1;
-         standardMusic();
-         return true;
-      },
-      handler: defaultSetup(
-         async (c, t, v) => {
-            if (await turnSkip()) {
-               await timer.pause(400);
-            } else {
-               if (battler.opponents.includes(opponents.fakemoldsmal)) {
-                  await commonPatterns.moldsmal(void 0, true);
-               } else {
-                  await patterns.moldbygg();
-               }
-            }
-         },
-         { x: 120, y: 65 }
-      ),
-      opponents: [ [ opponents.fakemoldsmal, { x: 140, y: 120 } ] ]
-   }),
-
    moldsmalMoldbygg: new OutertaleGroup({
       assets: new CosmosInventory(
          content.amBattle1,
          content.ibbOctagon,
          content.ibcMoldbyggHead,
          content.ibcMoldbyggPart,
+         content.ibcMoldbyggDefeated,
          content.ibbWorm,
          content.ibbLooxCircle3,
          content.ibcMoldsmal
@@ -819,6 +784,7 @@ const groups = {
          content.ibbOctagon,
          content.ibcMoldbyggHead,
          content.ibcMoldbyggPart,
+         content.ibcMoldbyggDefeated,
          content.ibbWorm,
          content.ibbLooxCircle3,
          content.ibcMoldsmal

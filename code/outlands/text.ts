@@ -1,5 +1,6 @@
-import { CosmosKeyed, CosmosProvider, CosmosUtils } from '../engine';
-import { battler, choicer, pager, world } from '../mantle';
+import { game } from '../core';
+import { CosmosKeyed, CosmosProvider, CosmosUtils } from '../engine/utils';
+import { battler, choicer, pager, player, world } from '../mantle';
 import save from '../save';
 
 export function areaKills () {
@@ -36,7 +37,7 @@ const text = {
       fireplace2b: () => [
          '<32>{#p/human}* (You crawled into the fireplace and let its warmth engulf you.)',
          '<32>{#p/human}* (You are very comfortable.)',
-         ...(world.goatbro && save.flag.n.ga_asrielFireplace++ < 1
+         ...(world.azzie && save.flag.n.ga_asrielFireplace++ < 1
             ? [ "<25>{#p/asriel2}{#f/15}* I'll just, uh, wait for you to get out..." ]
             : [])
       ],
@@ -48,8 +49,8 @@ const text = {
          "<25>{#f/4}* Well, I trust you know what you're doing, $(name)."
       ],
       noticestart: [
-         '<25>{#p/asriel2}{#f/1}* Ah, the place where it all began.',
-         "<25>{#p/asriel2}{#f/5}* We've certainly come far since then, haven't we, $(name)?"
+         '<25>{#p/asriel2}{#f/3}* Ah, the place where it all began.',
+         "<25>{#p/asriel2}{#f/4}* We've certainly come far since then, haven't we, $(name)?"
       ],
       noticedummy: [ '<25>{#p/asriel2}{#f/3}* ...', "<25>{#p/asriel2}{#f/10}* Wasn't there a dummy here before...?" ],
       afrog: {
@@ -76,13 +77,13 @@ const text = {
          '<25>{#f/3}* Starton, the Foundry, Aerialis... and the Citadel...',
          '<25>{#f/4}* All free for the taking.',
          '<25>{#f/2}* Hee hee hee...',
-         '<25>{#f/1}* Are you ready for this?',
+         '<25>{#f/1}* Are you ready, $(name)?',
          "<25>{#f/2}* 'Cause once we move forward, there's no turning back.",
          choicer.create('* (Follow Him?)', 8, 7, 'No', 'Yes')
       ],
       asriel2b: [ '<25>{#p/asriel2}{#f/1}* Ready?', choicer.create('* (Follow Him?)', 8, 7, 'No', 'Yes') ],
-      asriel3: [ '<25>{#p/asriel2}{#f/1}* Alright then...', "<25>{#f/1}* Let's do this." ],
-      asriel4: [ '<25>{#p/asriel2}{#f/1}* Alright then...', "<25>{#f/1}* I'll be waiting." ],
+      asriel3: [ '<25>{#p/asriel2}{#f/1}* Okay...', "<25>{#f/2}* Let's do this." ],
+      asriel4: [ "<25>{#f/4}* I'll be waiting, then." ],
       asrielDiary: [
          [
             '<32>{#p/human}* (You turn to the first page... you can barely make out the words.)',
@@ -112,7 +113,7 @@ const text = {
          [
             '<32>{#p/human}* (You turn to the fourth page...)',
             '<32>{#p/asriel1}{#v/1}* "Azzys Diary, March 251X"',
-            '<32>* "i talked with the monster, they say theyre not upset any more, so thats good"',
+            '<32>* "i talked with the monster, they say theyre not upset anymore, so thats good"',
             '<32>* "We were watching the sky out side And we saw a shooting star."',
             '<32>* "She said to make a wish... I wished that one day a human wood come down."',
             '<32>* "Mommy and Daddy tell so many storys about them..."',
@@ -184,9 +185,9 @@ const text = {
             '<32>{#p/asriel1}* "Azzy\'s Diary, December 251X."',
             '<32>* "$(name) said its time for the plan."',
             '<32>* "I was scared But they said I could do it."',
-            '<32>* "After this entry Im gonna wait for them to eat the poison pie we made-"',
+            '<32>* "After this entry Im gonna wait for them to eat the poison pie we made..."',
             '<32>* "And then we can save everyone together."',
-            '<32>* "If something goes bad and your reading this later-"',
+            '<32>* "If something goes bad and your reading this later..."',
             '<32>* "I want you to know that your the best, $(name)."',
             '<32>{#p/narrator}* ...',
             '<32>* ...',
@@ -479,12 +480,11 @@ const text = {
       },
       goner: {
          a1: [
-            '<32>{#p/human}* This world is unlike any other.',
-            '<32>* Its very existence, incepted from a dream...',
-            '<32>* Derived from a design...',
-            "<32>* There's something nostalgic about that."
+            '<32>{#p/human}* A world not bound by association...',
+            '<32>* Existing purely for the sake of its own beauty...',
+            "<32>* There's something special about that."
          ],
-         a2: [ '<32>* Tell me, Frisk...', '<32>* Does that not pique your... curiosity?' ]
+         a2: [ '<32>* Tell me...', '<32>* Does that not pique your... curiosity?' ]
       },
       cryme: {
          a: pager.create(
@@ -609,14 +609,8 @@ const text = {
             '<32>{#p/human}* (You ring the buzzer...)',
             '<32>{#p/narrator}* The sound of cries and confusion can be heard from within.',
             '<32>* The door is locked and barricaded from the inside.',
-            ...(world.goatbro && save.flag.n.ga_asrielOutlands3++ < 1
-               ? [
-                    '<25>{#p/asriel2}{#f/3}* Sounds like some of the Outlands residents are hiding here.',
-                    "<25>{#f/4}* Eh, we'll spare them.",
-                    '<25>{#f/1}* For now.',
-                    '<25>{#f/13}* ...',
-                    '<25>* I wonder if that old photo of us is still in there...'
-                 ]
+            ...(world.azzie && save.flag.n.ga_asrielOutlands3++ < 1
+               ? [ '<25>{#p/asriel2}{#f/13}* ...', '<25>* I wonder if that old photo of us is still in there...' ]
                : [])
          ],
          b: [ '<32>{#p/narrator}* ...', '<32>* Nothing of value in there.' ],
@@ -654,7 +648,7 @@ const text = {
          '<25>{#p/toriel}{#f/1}* Do you need any conversation topics?',
          '<25>{#f/5}* Hmm...',
          '<25>{#f/0}* Oh, I know!\n* Why not talk about how you arrived here?',
-         '<25>{#f/0}* I am sure you have a very intriguing story.'
+         '<25>{#f/0}* I am sure your story is quite intriguing.'
       ],
       dummy4: [
          '<25>{#p/toriel}* There is nothing to be afraid of.',
@@ -706,7 +700,7 @@ const text = {
          '<32>{#p/narrator}* Aaron shot you with a wink.',
          '<32>{#p/monster}{#n1}* You like the product, lassy? ;)'
       ],
-      endtwinkly1: [ '<32>{#p/narrator}* Not again- {%}' ],
+      endtwinkly1: [ '<32>{#p/narrator}* Not again...' ],
       endtwinkly2: [
          '<32>{#p/narrator}* Who does he think he is?',
          "<32>* You've been nothing but kind to everyone we've met.",
@@ -736,7 +730,7 @@ const text = {
          "<25>{#f/5}* I'll be back before you know it."
       ],
       endtwinklyAreaction: [
-         '<32>{#p/narrator}* Sorry, but did I miss something somewhere?',
+         '<32>{#p/narrator}* Sorry, did I miss something somewhere?',
          "<32>* I've never talked to him in my life, let alone go on some mission with him.",
          "<32>* Oh well.\n* It wouldn't be the first time he's made up stories about me."
       ],
@@ -752,7 +746,7 @@ const text = {
          '<25>{#f/7}{#v/0}* You know, $(name)...',
          "<25>{#f/0}{#v/1}* It's only a matter of time before we're together again.",
          '<25>{#f/6}{#v/0}* Try a little harder next time, and maybe...',
-         "<25>{#f/5}{#v/0}* You'll get to see me in my REAL form.",
+         "<25>{#f/5}{#v/0}* You'll get to see something new.",
          '<25>{#f/11}{#v/0}* Until we meet again...'
       ],
       endtwinklyB3: [
@@ -761,11 +755,13 @@ const text = {
          '<25>{#f/7}{#v/0}* You know, $(name)...',
          "<25>{#f/0}{#v/1}* It's only a matter of time before we're together again.",
          '<25>{#f/6}{#v/0}* Try a little harder next time, and maybe...',
-         "<25>{#f/5}{#v/0}* You'll get to see me in my REAL form.",
+         "<25>{#f/5}{#v/0}* You'll get to see something new.",
          '<25>{#f/11}{#v/0}* Until we meet again...'
       ],
-      endtwinklyBA: [
-         '<25>{#p/twinkly}{#f/6}{#v/0}* So you spared the life of everyone you came across.',
+      endtwinklyBA: () => [
+         save.data.n.state_wastelands_napstablook === 5
+            ? '<25>{#p/twinkly}{#f/6}{#v/0}* So you made it through without killing anyone.'
+            : '<25>{#p/twinkly}{#f/6}{#v/0}* So you spared the life of everyone you came across.',
          '<25>{#f/5}{#v/0}* I bet you feel really great.',
          '<25>{#f/2}{#v/1}* But what will you do if you meet a serial murderer?',
          "<25>{#f/9}{#v/0}* You'll die, and you'll die, and you'll die...",
@@ -813,7 +809,7 @@ const text = {
          '<25>{#f/2}{#v/1}* What if she KILLS herself out of loneliness, huh?',
          "<25>{#f/11}{#v/0}* If you think you're saving her just by SPARING her...",
          "<25>{#f/7}{#v/0}* Then you're even dumber than I thought.",
-         '<25>{#f/9}* Well, cya!'
+         '<25>{#f/9}* Well, see ya!'
       ],
       endtwinklyC: [
          '<25>{#f/7}{#v/0}* After all, this used to be MY power.',
@@ -1017,7 +1013,8 @@ const text = {
                  '<25>{#f/13}* My child...',
                  ...(save.data.b.oops ? [] : [ '<25>{#f/14}* My sweet, innocent child...' ]),
                  '<25>{#f/13}* If you leave the OUTLANDS...',
-                 '<25>{#f/9}* They...\n* {@fill:#f00}ASGORE{@fill:#fff}...\n* Will take your SOUL.'
+                 '<25>{#f/9}* They...\n* {@fill:#f00}ASGORE{@fill:#fff}...\n* Will take your SOUL.',
+                 ...(save.data.b.oops ? [] : [ '<32>{#p/narrator}* ...' ])
               ],
       exit3: [
          '<25>{#p/toriel}{#f/9}* ...',
@@ -1071,7 +1068,7 @@ const text = {
                  '<32>* Is this what they really deserve?'
               ],
       food: () => [
-         ...(save.data.n.state_wastelands_mash
+         ...(save.data.n.state_wastelands_mash === 2
             ? [
                  '<25>{#p/toriel}{#f/1}* Sorry about the delay, my child...',
                  '<25>{#f/3}* It appears that little white dog has raided my kitchen again.',
@@ -1154,8 +1151,8 @@ const text = {
               ]),
          '<25>{#f/0}* Anywho, I will be in the living room if you need me.'
       ],
-      goodbye1: [ '<25>{#p/toriel}{#f/10}* ...', '<25>{#f/20}* Come here- {%}' ],
-      goodbye1a: [ '<25>{#p/toriel}{#f/9}* ...', '<25>{#f/19}* Come here- {%}' ],
+      goodbye1: [ '<25>{#p/toriel}{#f/10}* ...', '<25>{#f/20}{*}* Come here- {%}' ],
+      goodbye1a: [ '<25>{#p/toriel}{#f/9}* ...', '<25>{#f/19}{*}* Come here- {%}' ],
       goodbye2: [
          '<25>{#p/toriel}{#f/5}* I am sorry for what I have put you through.',
          '<25>{#f/9}* In the end, I cannot keep you here against your will.',
@@ -1193,10 +1190,17 @@ const text = {
       ],
       guard: {
          a: pager.create(
-            'limit',
-            [ "<32>{#p/monster}{#n1}* Eyy, this place ain't for newcomers, kid..." ],
-            [ '<32>{#p/monster}{#n1}* Eyy, this place is off limits...' ],
-            [ '<32>{#p/monster}{#n1}* Not gonna letcha thru, pal...' ]
+            'random',
+            () =>
+               world.bullied
+                  ? [ "<32>{#p/monster}{#n1}* We don't take kindly to bullies 'round here, kid..." ]
+                  : [ "<32>{#p/monster}{#n1}* Eyy, this place ain't for newcomers, kid..." ],
+            world.bullied
+               ? [ "<32>{#p/monster}{#n1}* We don't like your aggressive type 'round here..." ]
+               : [ '<32>{#p/monster}{#n1}* Eyy, this place is off limits...' ],
+            world.bullied
+               ? [ "<32>{#p/monster}{#n1}* Not gonna letcha thru after what you've done, pal..." ]
+               : [ '<32>{#p/monster}{#n1}* Not gonna letcha thru, pal...' ]
          )
       },
       halo: {
@@ -1217,7 +1221,7 @@ const text = {
          choicer.create('* (Change your mind?)', 8, 7, 'Yes', 'No')
       ],
       indie1b: [
-         '<25>{#p/toriel}{#f/1}* Uhm...',
+         '<25>{#p/toriel}{#f/1}* Um...',
          '<25>{#f/1}* It IS important to do things on your own, correct?',
          choicer.create('* (Change your mind?)', 8, 7, 'Yes', 'No')
       ],
@@ -1776,21 +1780,21 @@ const text = {
             '<32>* well, here we go...'
          ],
          c: [
-            [ '<32>{*}{#p/monster}* Ooh, bells ;){^31}{#x1}{%}' ],
+            [ '<32>{*}{#p/monster}{#x1}* Ooh, bells ;){^31}{%}' ],
             [
                '<32>{*}{#p/monster}* Eh, not my style.{^31}{%}',
-               '<32>{*}{#p/monster}* Fair enough, b{#x2}ut I like it!{^31}{%}'
+               '<32>{*}{#p/monster}{#x2}* Fair enough, but I like it!{^31}{%}'
             ],
             [
-               "<32>{*}{#p/monster}* Hold up-\n* This doesn't sound that b{#x3}ad- {%}",
-               '<32>{*}* Shush, here comes the drop!!{^31}{#x5}{%}'
+               "<32>{*}{#p/monster}{#x3}* Hold up-\n* This doesn't sound that bad- {%}",
+               '<32>{*}{#p/monster}{#x5}* Shush, here comes the drop!!{^31}{%}'
             ],
             [ '<25>{*}{#p/toriel}{#f/7}* Why has Napstablook never mentioned this??\n* This is good!{^31}{%}' ],
             [ "<32>{*}{#p/monster}* I mean, it's okay...{^31}{%}" ],
-            [ '<32>{*}{#p/monster}* M{#x4}mmh!{^31}{%}' ],
+            [ '<32>{*}{#p/monster}{#x4}* Mmmh!{^31}{%}' ],
             [ '<32>{*}{#p/monster}* Whew, that was... something.{^31}{%}', '<32>{*}{#p/monster}* Yup.{^31}{%}' ],
-            [ '<32>{*}{#p/monster}* Wait, I{#x6} thought it was over-{^31}{%}' ],
-            [ "<32>{*}{#p/monster}* A{#x7}h, there's the ending.{^31}{%}" ]
+            [ '<32>{*}{#p/monster}{#x6}* Wait, I thought it was over-{^31}{%}' ],
+            [ "<32>{*}{#p/monster}{#x7}* Ah, there's the ending.{^31}{%}" ]
          ],
          d: [
             '<32>{#p/napstablook}* well, that was it',
@@ -1799,52 +1803,25 @@ const text = {
             '<32>{#p/napstablook}* cya...'
          ],
          e: [
-            '<25>{#p/toriel}{#f/1}* No wait, that was actually- {%}',
+            '<25>{#p/toriel}{#f/1}* No wait, that was actually...',
             "<32>{#p/monster}* I don't think they can hear you, Toriel.",
             '<25>{#p/toriel}{#f/5}* No...',
             '<25>{#p/toriel}{#f/9}* Oh, who am I kidding.',
             '<25>{#p/toriel}{#f/5}* And to think this time would be different...'
-         ],
-         f: [
-            '<32>{#p/narrator}* Come on, Blooky...',
-            '<32>* You really think that\'s "bad?"',
-            '<32>{#p/napstablook}* oh...\n* $(name)...',
-            "<32>* it's nice to hear your voice again...",
-            "<32>{#p/narrator}* Well gee, it's not like I have anyone else to talk to.",
-            '<32>* Just you.\n* And the human.',
-            '<32>{#p/napstablook}* oh...\n* yeah...',
-            "<32>* they're nice, i guess...",
-            "<32>{#p/narrator}* But no, that wasn't bad at all.",
-            '<32>* Heck, Toriel even tried to stop you from leaving to congratulate you.',
-            '<32>{#p/napstablook}* um, why are you suddenly being so nice to me...?',
-            "<32>{#p/napstablook}* you've never been like this...",
-            '<32>{#p/narrator}* ...',
-            "<32>* Call it a hunch.\n* You might say I've been... learning, from someone.",
-            '<32>{#p/napstablook}* but...\n* learning from who...?',
-            "<32>{#p/narrator}* Oh, Blooky...\n* If I told you that, you wouldn't believe me.",
-            '<32>{#p/napstablook}* no, you can tell me...\n* who is it, $(name)?',
-            "<32>{#p/narrator}* ...\n* It's the human.",
-            "<32>* They've ACTed positively in every battle, and have never attacked anyone.",
-            "<32>* I didn't think it was possible, but- {%}",
-            "<32>{#p/napstablook}* so that's what this is about...",
-            "<32>* uhm...\n* i'm sorry, i gotta go...",
-            '<32>{#p/narrator}* Blooky, wait!',
-            '<32>* ...',
-            '<32>* Why does this always happen?'
          ]
       },
       terminal: {
          a: [
             '<32>{#p/human}* (You activate the terminal and read the message.)',
             '<32>{#p/narrator}* "Outpost Bulletin: The Foundry\'s fluid network is in disrepair again."',
-            '<32>* "The royal guard has promised a short turnaround, but things are looking bleak."',
+            '<32>* "The workers have promised a short turnaround, but things are looking bleak."',
             '<32>* "Please, if anyone out there can help... we need you."'
          ],
          b: [
             '<32>{#p/human}* (You activate the terminal and read the message.)',
             "<32>{#p/narrator}* \"Come see DJ Red perform her hit single 'Kamikaze' live at tonight's club meet!\"",
             '<32>* "P.S. the fuel injector broke again, so we threw it in storage."',
-            ...(world.goatbro && save.flag.n.ga_asrielOutlands4++ < 1
+            ...(world.azzie && save.flag.n.ga_asrielOutlands4++ < 1
                ? [ '<25>{#p/asriel2}{#f/8}* Those things were never reliable anyway...' ]
                : [])
          ],
@@ -1867,10 +1844,10 @@ const text = {
             '<32>* "Expect to see DJ Red make her stunning return!"',
             '<32>* "In other news, one of Glyde\'s dealers has arrived from Aerialis."',
             '<32>* "We\'ve already started getting complaints about him..."',
-            ...(world.goatbro && save.flag.n.ga_asrielOutlands1++ < 1
+            ...(world.azzie && save.flag.n.ga_asrielOutlands1++ < 1
                ? [
-                    "<25>{#p/asriel2}{#f/2}* I don't know about you, but I don't see anyone here.",
-                    '<25>{#p/asriel2}{#f/1}* Looks like you did a good job.'
+                    "<25>{#p/asriel2}{#f/3}* I don't know about you, but I don't see anyone here.",
+                    '<25>{#p/asriel2}{#f/4}* Not bad, $(name).'
                  ]
                : [])
          ]
@@ -1897,7 +1874,7 @@ const text = {
             '<32>{#p/human}* (You look inside the cabinet...)',
             "<32>{#p/narrator}* It's overflowing with papers, all written in an odd font.",
             "<32>{#p/narrator}* You won't be able to make any of this out.",
-            ...(world.goatbro && save.flag.n.ga_asrielOutlands2++ < 1
+            ...(world.azzie && save.flag.n.ga_asrielOutlands2++ < 1
                ? [ "<25>{#p/asriel2}{#f/10}* Dr. Roman's paperwork...", "<25>* What's it doing here?" ]
                : [])
          ],
@@ -2079,14 +2056,8 @@ const text = {
             '<32>{#p/narrator}* "The vending machine is free for public use."',
             '<32>* "However, that doesn\'t mean you should loot it!"'
          ],
-         w_kitchenwall: [ '<25>{#p/toriel}{#f/1}* Have patience, my child!', '<25>{#f/0}* I am still making breakfast.' ],
-         w_lobby1: pager.create(
-            'limit',
-            [ '<32>{#p/narrator}* "Even when you stumble, the will to push onward shows through."' ],
-            [ '<32>{#p/narrator}* "Even when you stumble, the will to push onward shows through."' ],
-            [ '<32>{#p/story}* THE DATA: ANDROMEDA' ],
-            [ '<32>{#p/narrator}* "Even when you stumble, the will to push onward shows through."' ]
-         ),
+         w_kitchenwall: [ '<25>{#p/toriel}{#f/1}* Have patience, my child!' ],
+         w_lobby1: [ '<32>{#p/narrator}* "Even when you stumble, the will to push onward shows through."' ],
          w_pacing_view: [
             '<32>{#p/narrator}* To think the only thing between you and the endless expanse is a sheet of glass...',
             "<32>* Despite all common sense, this doesn't seem to bother you."
@@ -2107,8 +2078,8 @@ const text = {
          ],
          w_pacing3: [
             '<32>{#p/monster}* Ribbit, ribbit.\n* (Where did you come from, human?)',
-            '<32>* (We saw no craft, and heard no noise...)',
-            '<32>* (It is almost like you appeared out of thin air.)',
+            '<32>* (We saw no craft, and heard no crash...)',
+            '<32>* (Intriguing... it is almost like you appeared out of thin air.)',
             '<32>* (What could this mean?)',
             '<32>* (The answer must be somewhere...)\n* Ribbit.'
          ],
@@ -2120,33 +2091,17 @@ const text = {
             '<32>* "And a little foreknowledge."'
          ],
          w_puzzle3_view: [ "<32>{#p/narrator}* As nice as this view is, it sadly won't help in solving any puzzles." ],
-         w_puzzle4: pager.create(
-            'limit',
-            [
-               '<32>{#p/narrator}* "Attention: There\'s steak for sale in the lower level!"',
-               '<32>* "If you\'re a BOSS like me, you\'ll pay my dealer a visit!"\nµ - Glyde'
-            ],
-            [
-               '<32>{#p/narrator}* "Attention: There\'s steak for sale in the lower level!"',
-               '<32>* "If you\'re a BOSS like me, you\'ll pay my dealer a visit!"\nµ - Glyde'
-            ],
-            [ '<32>{#p/story}* THE RULE: 2 FOR 3, 5 FOR 6' ],
-            [
-               '<32>{#p/narrator}* "Attention: There\'s steak for sale in the lower level!"',
-               '<32>* "If you\'re a BOSS like me, you\'ll pay my dealer a visit!"\nµ - Glyde'
-            ]
-         ),
+         w_puzzle4: [
+            '<32>{#p/narrator}* "Attention: There\'s steak for sale in the lower level!"',
+            '<32>* "If you\'re a BOSS like me, you\'ll pay my dealer a visit!"\nµ - Glyde'
+         ],
          w_restricted1: [ '<32>{#p/narrator}* There is a door here.\n* It is locked.' ],
-         w_start: [ '<32>{#p/narrator}* What a view...', '<32>* If only there was somebody here to watch over it.' ],
          w_ta_box: [
             '<32>{#p/narrator}* A box of model starships!\n* And... shattered glass?',
             '<32>* Looks like someone broke their little ships.',
             "<32>* ...these toys don't interest you at all."
          ],
-         w_ta_cabinet: [
-            '<32>{#p/narrator}* A cabinet full of green and yellow striped shirts.',
-            '<32>* People sure dressed different in the old days.'
-         ],
+         w_ta_cabinet: [ '<32>{#p/narrator}* A cabinet full of blue and yellow striped shirts.' ],
          w_ta_chest: () =>
             save.data.b.oops
                ? [ '<32>{#p/narrator}* A locked chest, jammed shut.', "<32>* You're definitely not getting this open." ]
@@ -2154,21 +2109,20 @@ const text = {
          w_ta_frame: [ '<32>{#p/narrator}* An empty photo frame.', "<32>* There's not much else to say." ],
          w_ta_paper: [
             "<32>{#p/narrator}* A children's drawing, depicting a giant monster with rainbow wings.",
-            "<32>* It's just like the one at the citadel..."
+            "<32>* It's just like the one at home..."
          ],
          w_tf_bookshelf: pager.create(
             'sequence',
             ...CosmosUtils.populate(
                3,
                index => () =>
-                  save.data.b.genocide
+                  world.genocide
                      ? [
                           "<32>{#p/narrator}* It's a bookshelf.",
                           '<32>{#p/human}* (You pick out a book...)',
                           '<32>{#p/narrator}* "When a Boss Monster dies, their SOUL persists after death."',
-                          '<33>* "However, before the SOUL can be absorbed, legends speak of a great loss..."',
-                          '<32>* "...the very identity of the SOUL\'s owner disappearing without a trace."',
-                          '<32>* "Without that, would it really be a monster SOUL anymore?"\n* "Or something else?"',
+                          '<33>* "However, legends speak of a peculiar phenomenon..."',
+                          '<32>* "...where the very identity of the SOUL\'s owner disappears without a trace."',
                           '<32>{#p/human}* (You put the book back on the shelf.)'
                        ]
                      : [
@@ -2185,7 +2139,7 @@ const text = {
                              "<32>{#p/narrator}* It's a bookshelf.",
                              '<32>{#p/human}* (You pick out a book...)',
                              '<32>{#p/narrator}* "Howdy, fellow gardeners."',
-                             '<32>* "When it comes to starlings, the difference between success and failure..."',
+                             '<32>* "When it comes to starlings, the difference between growth and stagnation..."',
                              '<32>* "Is giving the plant access to open space."',
                              '<32>* "That is why starlings are commonly grown in Aerialis..."',
                              '<32>* "It is the most open area of the outpost."',
@@ -2194,7 +2148,7 @@ const text = {
                           [
                              "<32>{#p/narrator}* It's a bookshelf.",
                              '<32>{#p/human}* (You pick out a book...)',
-                             '<32>* "Today we honor the memory of sir T. N. Roman."',
+                             '<32>{#p/narrator}* "Today we honor the memory of sir T. N. Roman."',
                              '<32>* "An example to all skeletons, he was dilligent, attentive, and above all, KIND."',
                              '<32>* "He may have acted a little LAZY at times, but then again..."',
                              '<32>* "His cousin is likely to blame for THAT."',
@@ -2262,22 +2216,20 @@ const text = {
             ...CosmosUtils.populate(
                3,
                index => () =>
-                  save.data.b.genocide
+                  world.genocide
                      ? [
                           "<32>{#p/narrator}* It's a bookshelf.",
                           '<32>{#p/human}* (You pick out a book...)',
-                          '<32>{#p/narrator}* "We often worry about what\'d happen if humanity wanted to harm us..."',
-                          '<33>* "But what if one of our own went rogue...?"',
+                          '<32>{#p/narrator}* "We often worry about what would happen if a human attacked us."',
+                          '<33>* "But what if one of our own attacked instead...?"',
                           '<32>* "Would we as a kingdom be able to handle such a betrayal?"',
-                          '<32>* "Well, that\'ll never happen, anyway."',
-                          '<32>* "Monsters are made of love, after all..."',
                           '<32>{#p/human}* (You put the book back on the shelf.)'
                        ]
                      : [
                           [
                              "<32>{#p/narrator}* It's a bookshelf.",
                              '<32>{#p/human}* (You pick out a book...)',
-                             '<32>* "Our homeworld gone... our people dead... but why?"',
+                             '<32>{#p/narrator}* "Our homeworld gone... our people dead... but why?"',
                              '<32>* "Surely, the humans must\'ve had a reason for their attacks."',
                              '<32>* "Nevertheless, we had been cornered, and there was nowhere else to go."',
                              '<32>* "Capitulation was our only shot at survival."',
@@ -2329,12 +2281,11 @@ const text = {
             ...CosmosUtils.populate(
                3,
                index => () =>
-                  save.data.b.genocide
+                  world.genocide
                      ? [
                           "<32>{#p/narrator}* It's Toriel's private bookshelf.",
                           '<32>{#p/human}* (You pick out a book...)',
-                          '<32>{#p/narrator}* "I recently had a chat with Twinkly, the talking star."',
-                          '<32>* "He seems to know quite a lot about my past."',
+                          '<32>{#p/narrator}* "This talking starling seems to know quite a lot about my past."',
                           '<32>* "One thing struck me as odd, though...."',
                           '<32>* "Why would someone I\'ve never met before be so interested in $(name)?"',
                           '<32>{#p/human}* (You put the book back on the shelf.)'
@@ -2358,7 +2309,7 @@ const text = {
                           [
                              "<32>{#p/narrator}* It's Toriel's private bookshelf.",
                              '<32>{#p/human}* (You pick out a book...)',
-                             '<32>* "Did you know that snails have a chainsaw-like tounge called a radula?"',
+                             '<32>{#p/narrator}* "Did you know that snails have a chainsaw-like tounge called a radula?"',
                              '<32>* "Not many folks know about that one."',
                              '<32>* "Another neat thing about \'em is how their digestive systems flip as they mature."',
                              '<32>* "Oh, and did I mention..."',
@@ -2370,7 +2321,7 @@ const text = {
                           [
                              "<32>{#p/narrator}* It's Toriel's private bookshelf.",
                              '<32>{#p/human}* (You pick out a book...)',
-                             '<32>* "Regardless of your view on humanity, you can\'t argue with their resolve."',
+                             '<32>{#p/narrator}* "Regardless of your view on humanity, you can\'t argue with their resolve."',
                              '<32>* "Their will to keep fighting, even in the face of insurmountable odds..."',
                              '<32>* "Perhaps us monsters need learn a thing or two from those folk."',
                              '<32>* "It could be the key to our freedom one day."',
@@ -2398,7 +2349,7 @@ const text = {
             [
                '<32>{#p/human}* (You look to another paragraph.)',
                '<32>{#p/narrator}* "Question: How does a skeleton say goodbye?"',
-               '<32>* "Answer: Cya to-MARROW..."',
+               '<32>* "Answer: See you to-MARROW..."',
                "<32>* That one wasn't even REMOTELY funny."
             ],
             [
@@ -2428,7 +2379,7 @@ const text = {
                '<32>{#p/human}* (You look to the final paragraph.)',
                "<32>{#p/narrator}* Huh?\n* This one's not a joke...",
                '<32>{#p/toriel}{#f/21}* "A human has arrived in the OUTLANDS today."',
-               '<32>* "I do not know what SANS intends to do if they leave here, but-"',
+               '<32>* "I do not know what SANS intends to do if they leave here, but..."',
                '<32>* "I would rather not force him to make that decision."',
                '<32>* "Besides, can one royal sentry really protect them from the rest of the outpost?"',
                '<32>* "Hopefully those kinds of questions will soon be pointless."',
@@ -2439,35 +2390,39 @@ const text = {
          w_tt_plant: [ "<32>{#p/narrator}* It's a houseplant.", '<32>* What more is there to say?' ],
          w_tt_trash: pager.create(
             'limit',
-            [
-               "<32>{#p/narrator}* It's Toriel's private trash can, containing...",
-               '<32>* Snails.',
-               '<32>* Oodles and oodles of snails.'
-            ],
-            [ '<32>{#p/narrator}* Nothing but snails.' ],
-            [ '<32>{#p/narrator}* Did I mention the snails?' ],
-            [ '<32>{#p/narrator}* Snails.' ]
+            () =>
+               world.genocide
+                  ? [ '<32>* Snails.' ]
+                  : [
+                       "<32>{#p/narrator}* It's Toriel's private trash can, containing...",
+                       '<32>* Snails.',
+                       '<32>* Oodles and oodles of snails.'
+                    ],
+            () => (world.genocide ? [ '<32>* Snails.' ] : [ '<32>{#p/narrator}* Nothing but snails.' ]),
+            () => (world.genocide ? [ '<32>* Snails.' ] : [ '<32>{#p/narrator}* Did I mention the snails?' ]),
+            () => (world.genocide ? [ '<32>* Snails.' ] : [ '<32>{#p/narrator}* Snails.' ])
          ),
          w_tutorial_view: [ '<32>{#p/narrator}* The first of many windows in this part of the Outlands.' ],
-         w_tutorial1: pager.create(
-            'limit',
-            () => [
-               '<32>{#p/narrator}* "A good relationship requires trust and kindness to move forward."',
-               ...(world.goatbro && save.flag.n.ga_asrielOutlands7++ < 1
-                  ? [
-                       '<25>{#p/asriel2}{#f/1}* Trust?\n* Certainly.',
-                       '<25>{#f/2}* Kindness, on the other hand...',
-                       '<25>{#f/1}* Hee hee hee.'
-                    ]
-                  : [])
-            ],
-            [ '<32>{#p/narrator}* "A good relationship requires trust and kindness to move forward."' ],
-            [ '<32>{#p/story}* THE INDEX: 194825' ],
-            [ '<32>{#p/narrator}* "A good relationship requires trust and kindness to move forward."' ]
-         ),
-         w_wreckage: [
+         w_tutorial1: () => [
+            '<32>{#p/narrator}* "A good relationship requires trust and kindness to move forward."',
+            ...(world.azzie && save.flag.n.ga_asrielOutlands7++ < 1
+               ? [
+                    '<25>{#p/asriel2}{#f/6}* Trust?\n* Certainly.',
+                    '<25>{#f/8}* As for kindness?\n* ...',
+                    "<25>{#f/7}* I'm not so sure."
+                 ]
+               : [])
+         ],
+         w_wreckage: () => [
             '<32>{#p/narrator}* An old CITADEL-issued shuttlecraft, circa 251X.',
-            '<32>* Ten decades worth of use has clearly taken its toll.'
+            ...(world.genocide
+               ? world.azzie && save.flag.n.ga_asrielWreckage++ < 1
+                  ? [
+                       "<25>{#p/asriel2}{#f/3}* Look at that.\n* It's the shuttle you arrived on...",
+                       "<25>{#p/asriel2}{#f/4}* Too bad it's a century out of date."
+                    ]
+                  : []
+               : [ '<32>* Ten decades worth of use has clearly taken its toll.' ])
          ]
       },
       piecheck: () =>
@@ -2618,10 +2573,10 @@ const text = {
          'limit',
          () => [
             '<32>{#p/narrator}* This coffin is very old.\n* There is nothing remarkable about it.',
-            ...(world.goatbro && save.flag.n.ga_asrielCoffin++ < 1
+            ...(world.azzie && save.flag.n.ga_asrielCoffin++ < 1
                ? [
                     '<25>{#p/asriel2}{#f/3}* Oh, look at that.\n* They made a cute little coffin for you.',
-                    '<25>{#p/asriel2}{#f/1}* How touching.'
+                    '<25>{#p/asriel2}{#f/4}* How touching.'
                  ]
                : [])
          ],
@@ -2636,7 +2591,7 @@ const text = {
          ],
          [
             '<32>{#p/human}* (You once again pick up the manifest.)',
-            choicer.create('* (Buy this item?)', 8, 7, 'Yes', 'No')
+            choicer.create('* (Access the manifest?)', 8, 7, 'Yes', 'No')
          ]
       ),
       w_coffin3: [ choicer.create('* (Read the next page?)', 8, 7, 'Yes', 'No') ],
@@ -2646,45 +2601,44 @@ const text = {
       wonder1: [
          '<32>{#p/narrator}* Can you hear it?\n* The song of the stars?',
          "<32>* At certain places on the outpost, like this one... it's there.",
-         "<32>* You've just gotta be listening for it."
+         '<32>* You just have to be listening for it.'
       ],
       wonder2: [
-         '<32>{#p/narrator}* Some say this tune has been ringing out for millenia...',
-         '<32>* Refusing to let go, unable to move on...',
+         '<32>{#p/narrator}* Some say this tune has been ringing out for millenia.',
+         '<32>* Refusing to let go.\n* Unable to move on.',
          '<32>* ...',
-         '<32>* Heh...\n* Kinda reminds me of myself.'
+         '<32>* Heh.\n* Kind of reminds me of myself...'
       ],
       wonder3: [
-         "<32>{#p/narrator}* I mean, it's not that I can't move on from things, it's just- well...",
-         '<32>{#p/human}* (You hear a deep sigh.)',
-         '<32>{#p/narrator}* Look, my life is complicated, alright?',
-         '<32>* Besides... would you even understand?'
+         "<32>{#p/narrator}* Not that I can't move on from things.\n* It's just...",
+         '<32>{#p/human}* (You hear a sigh.)',
+         '<32>{#p/narrator}* Look, my life is complicated.',
+         "<32>* ...I doubt you'd understand."
       ],
       wonder4: [
          "<32>{#p/narrator}* I guess I'm just tired.",
-         '<32>* You know?',
-         "<32>* I'm tired of waiting for things to change.",
-         '<32>* Tired of... waiting for things to improve.',
+         '<32>* Tired of waiting for something good to happen.',
          "<32>* It's been so long since I had someone who really...",
          '<32>* ...',
-         '<32>* Sorry, I...',
-         "<32>* I shouldn't have even brought it up."
+         "<32>* But maybe now's not the right time for that."
       ],
       wonder5: [
-         "<32>{#p/narrator}* It's funny, though...",
-         "<32>* The way you've managed to get this far without a single misstep, I mean.",
-         "<32>* Not once have you made a snide remark, a rude gesture... it's impressive, for a human.",
-         "<32>* Part of me wants to believe you're different than the others, but...",
-         '<32>* ...',
-         '<32>* My faith in humanity has only diminished with time.'
+         "<32>{#p/narrator}* It's funny, though.",
+         "<32>* I don't think I've seen a human quite like you before.",
+         '<32>* That choice to show kindness at every turn...',
+         '<32>* ...no matter the cost.',
+         "<32>* Part of me wants to believe you're different than the others.",
+         "<32>* Then again, that's what part of me always wants to believe."
       ],
       wonder6: [
-         '<32>{#p/narrator}* Well, I should probably get back to narrating now.',
+         '<32>{#p/narrator}* I should probably get back to narrating now.',
          "<32>* It's not like I have anything better to do."
       ]
    },
 
    b_group_froggitWhimsun: [ '<32>{#p/story}* Space frogs and Starflies!\n* Or something of the like.' ],
+   b_group_froggitWhimsun2a: [ '<32>{#p/story}* Space frogs...?' ],
+   b_group_froggitWhimsun2b: [ '<32>{#p/story}* Starflies...?' ],
    b_group_looxMigospMushy: [ "<32>{#p/story}* It's the troublesome trio!" ],
    b_group_looxMigospMushy2: [ '<32>{#p/story}* The trio has become a duo.' ],
    b_group_looxMigospMushy3: [ '<32>{#p/story}* Only one remains.' ],
@@ -2947,79 +2901,72 @@ const text = {
       ],
       criminal2: [
          '<20>{*}{#p/asriel2}{#f/3}Howdy, $(name).',
-         "<20>{*}{#f/5}We're finally back on track.",
+         "<20>{*}{#f/3}Looks like we're finally back on track.",
          '<20>{*}{#f/4}...',
-         '<20>{*}{#f/3}Try not to screw it all up this time, will you...',
-         "<20>{*}{#f/1}We've got a plan to follow."
+         '<20>{*}{#f/4}Try not to screw it all up this time, will you?'
       ],
       criminal3: [
          '<20>{*}{#p/asriel2}{#f/3}Howdy, $(name).',
-         '<20>{*}{#f/3}...',
+         '<20>{*}{#f/4}...',
          "<20>{*}{#f/4}Let's just get moving."
       ],
       cutscene1: [
          "<32>{#p/narrator}* Maybe because I'm the only one you'll listen to.",
          '<25>{#p/toriel}{#f/16}* ...!?',
-         "<32>{#p/narrator}* But what do I know, eh?\n* I'm just a sweet, innocent little child.",
+         "<32>{#p/narrator}* But what do I know?\n* I'm just a sweet, innocent little child.",
          "<32>* Isn't that right, 'Mom?'",
          '<25>{#p/toriel}{#f/3}* ...'
       ],
       cutscene2: [
          '<25>{#f/4}* No...\n* This is impossible...',
-         '<25>{#f/0}* I must be dreaming.\n* Or hallucinating.\n* Or perhaps I- {%}',
-         '<32>{#p/narrator}* No.\n* This is real.\n* This is now.',
-         '<25>{#p/toriel}{#f/5}* But $(name)...',
-         '<25>{#f/5}* You died, $(name)...',
+         '<25>{#f/0}* I must be dreaming.\n* Or hallucinating.\n* Or perhaps...',
+         '<32>{#p/narrator}* No, this is real.\n* This is now.',
+         '<25>{#f/5}* You died, $(name).',
          '<25>{#f/9}* You cannot possibly be here now.',
-         '<32>{#p/narrator}* Heh... tough.',
+         '<32>{#p/narrator}* ...tough.',
          '<25>{#p/toriel}{#f/18}* ...',
-         '<32>{#p/narrator}* Yeah, yeah...\n* I get it, okay?',
-         '<32>* "Oh no, $(name)\'s back, whatever will we do," right?',
+         '<32>{#p/narrator}* Yeah, yeah.\n* I get it, okay?',
+         '<32>* "Oh no, $(name)\'s back, whatever will we do?"',
          "<32>* But I didn't just pop in to say hello.",
          '<32>* ...',
-         "<32>* Look, you've got to have faith in this one.",
-         "<32>* There's something about them that's different.",
-         '<32>* I know I said I hated humanity...',
-         '<32>* But watching this one ACT the way they do...',
-         "<32>* It's just... refreshing.",
-         "<32>* And, I know you've said it time and time again...",
+         '<32>* You know how I feel about humanity, right?',
+         '<32>* But this kid...',
+         '<32>* You have to believe me when I say that something about them is different.',
+         "<32>* I know you've said it time and time again...",
          '<32>* "My child, the force field cannot be passed through..."',
          "<32>* But you and I both know that's not entirely true, is it?",
-         '<32>* And, given the number of SOULs gathered thus far- {%}',
+         '<32>* And, given the number of SOULs gathered thus far...',
          '<25>{#p/toriel}{#f/11}* OK already!',
-         '<25>{#f/12}* Perhaps it really is you.',
+         '<25>{#f/12}* Perhaps it really is you, $(name).',
          '<25>{#f/13}* Perhaps it is not.',
-         '<25>{#f/9}* Regardless...\n* You have made your point, $(name).',
-         '<32>{#p/narrator}* But I was just trying to- {%}',
+         '<25>{#f/9}* Regardless, you have made your point loud and clear.',
+         '<32>{*}{#p/narrator}* So you understand why I- {%}',
          '<25>{#p/toriel}{#f/13}* No, listen...\n* You are right about what you said.',
          '<25>{#f/13}* Or at least, what you were trying to say...',
-         '<25>{#f/9}* I just... wish I could have spent a little more time with them.',
-         '<25>{#f/18}* All I want is just...',
-         "<32>{#p/narrator}* You want your family back, don't you?",
-         "<32>* I mean, I get it...\n* It's not like I don't want you guys back too.",
-         '<25>{#p/toriel}{#f/18}* ...',
-         "<25>{#p/toriel}{#f/19}* It's true, $(name).",
-         '<25>{#f/20}* You always were the observant one...',
-         '<32>{#p/narrator}* You know it.',
-         '<25>{#p/toriel}{#f/14}* Oh, $(name)...',
-         '<25>{#f/10}* The things I would do to have you and Asriel back again.',
-         '<25>{#f/9}* But... you know why that can never happen.',
-         '<32>{#p/narrator}* ...\n* Yeah.',
-         '<25>{#p/toriel}{#f/18}* So what happens now?',
-         '<32>{#p/narrator}* Well, I can only talk to you like this through them.',
-         '<32>* And... I can only do it for so long.',
-         '<32>* I guess... now would be a good time to make your goodbyes.',
-         '<25>{#p/toriel}{#f/18}* No, $(name)...\n* That will not be necessary.',
-         '<25>{#f/13}* I do not deserve a proper goodbye with you...',
-         '<25>{#f/9}* Not after everything that happened.',
+         '<25>{#f/9}* I only wish they could have stayed here a little longer.',
          '<32>{#p/narrator}* ...',
-         '<32>* Well, have it your way...',
-         "<32>* But you've got do something for me.",
-         "<32>* When they leave the Outlands... don't just cut contact with them, okay?",
+         "<32>{#p/narrator}* ...you want your family back, don't you?",
+         "<32>* No, I get it.\n* It's not like I haven't thought about the same thing.",
+         '<25>{#p/toriel}{#f/18}* ...',
+         '<25>{#p/toriel}{#f/19}* Oh, $(name)...',
+         '<25>{#f/20}* You always were the observant one, were you not?',
+         '<32>{#p/narrator}* Yeah, I guess I was a bit of a snoop back in those days.',
+         '<25>{#p/toriel}{#f/14}* $(name)...',
+         '<25>{#f/10}* You do not know the things I would do to have you back.',
+         '<25>{#f/9}* ...but you know why that can never happen.',
+         '<32>{#p/narrator}* ...\n* Yeah, I guess.',
+         '<25>{#p/toriel}{#f/18}* ...so what happens now?',
+         '<32>{#p/narrator}* Well, I can only talk to you like this for a short time.',
+         '<32>* I think it has something to do with the battle...',
+         '<32>* I guess now would be a good time to make your goodbyes.',
+         '<25>{#p/toriel}{#f/18}* No...\n* That will not be necessary.',
+         '<25>{#f/13}* After everything that has happened between us...',
+         '<25>{#f/9}* I do not believe I deserve such niceties.',
+         '<32>{#p/narrator}* ...\n* Have it your way.',
+         "<32>* But when they leave, don't just cut contact with them, yeah?",
          "<32>* They've got a phone, you know.",
          '<25>{#p/toriel}{#f/13}* ...',
-         '<32>{#p/narrator}* Heh...',
-         '<32>* Goodbye, Toriel.'
+         '<32>{#p/narrator}* Goodbye, Toriel.'
       ],
       death1: [
          '<11>{*}{#p/toriel}{#f/21}{#v/1}{#i/80}{#x1}{@random:1.1,1.1}Urgh...',
@@ -3132,7 +3079,7 @@ const text = {
          '<32>* ...',
          "<32>* Perhaps talking won't do anymore good."
       ],
-      talk6a: [ '<32>{#p/narrator}* Although, if I were to reach out to her, then maybe...' ],
+      assistStatus: [ '<32>{#p/narrator}* ...\n* There must be another way...' ],
       talk7: [ '<32>{#p/narrator}* You tried to think of something else to say, but...' ],
       talk8: [ '<32>{#p/narrator}* No sense in doing that now.' ],
       theft: [ '<20>{*}{#p/twinkly}Mine.{^15}{%}' ]
@@ -3349,7 +3296,7 @@ const text = {
       name: 'Rusty Spanner',
       use: () => [
          '<32>{#p/human}* (You threw the spanner.)',
-         ...(battler.active && battler.target.opponent.metadata.reactSpanner
+         ...(battler.active && battler.target?.opponent.metadata.reactSpanner
             ? []
             : [ '<32>{#p/human}* (Nothing happened.)' ])
       ]
@@ -3431,16 +3378,22 @@ const text = {
          '<25>{#f/5}* Sometimes, I worry that too many have given up on their dreams...',
          '<25>{#f/0}* But not him!\n* That skeleton knows what is best for him.'
       ];
-      const s_doggo = pager.create(
-         'limit',
-         [
-            '<25>{#p/toriel}{#f/1}* Is the royal guard giving you too much trouble?',
-            '<25>{#f/0}* I did tell SANS to discourage them from FIGHTing you.',
-            '<25>{#f/1}* I know that I should be more worried...',
-            '<25>{#f/0}* But something tells me you will be alright.',
-            '<25>{#f/1}* It is like... instinct?'
-         ],
-         [ '<25>{#p/toriel}* Remember to trust your heart, my child.' ]
+      const s_doggo = pager.create('limit', () =>
+         game.room === 's_doggo' && player.y > 60
+            ? [
+                 '<25>{#p/toriel}{#f/1}* That sound...',
+                 '<25>{#f/2}* Is that a builder bot!?',
+                 '<25>{#f/1}* My, those old robots... what a past they have.',
+                 '<25>{#f/5}* That poor thing must be the last of its kind.',
+                 '<25>{#f/0}* Still, it is nice to know that it has survived for this long.'
+              ]
+            : [
+                 '<25>{#p/toriel}{#f/1}* Is the royal guard giving you too much trouble?',
+                 '<25>{#f/0}* I did tell SANS to discourage them from FIGHTing you.',
+                 '<25>{#f/1}* I know that I should be more worried...',
+                 '<25>{#f/0}* But something tells me you will be alright.',
+                 '<25>{#f/1}* It is like... instinct?'
+              ]
       );
       const s_battle = [
          '<25>{#p/toriel}{#f/1}* If you ever decide to leave Starton, well...',
@@ -3453,7 +3406,7 @@ const text = {
          '<25>{#f/5}* They are surely altered now, but I never liked their original design.',
          '<25>{#f/2}* There were no written instructions anywhere!'
       ];
-      const f_bridge = pager.create(
+      const f_exit = pager.create(
          'limit',
          [
             '<25>{#p/toriel}{#f/1}* You are near the end of the factory, my child...',
@@ -3562,7 +3515,7 @@ const text = {
             '<25>{#f/0}* Perhaps they are content with the status quo.'
          ],
          w_blooky: () =>
-            !save.data.b.a_state_hapstablook || save.data.n.plot < 65
+            !save.data.b.a_state_hapstablook || save.data.n.plot < 68
                ? [
                     '<25>{#p/toriel}* Oh, that is where Napstablook often stays!',
                     '<25>{#f/0}* Their company is always nice, even if they do not see it that way.',
@@ -3807,7 +3760,7 @@ const text = {
                     '<25>{#p/toriel}* Ah, that must be your room!',
                     '<25>{#f/5}* Well, I say YOUR room...',
                     '<25>{#f/0}* Perhaps it is no longer as such.',
-                    '<25>{#f/1}* Still, I am glad that you got some rest.'
+                    '<25>{#f/1}* Still, I am glad that you could get some rest.'
                  ],
          w_toriel_front: [
             '<25>{#p/toriel}{#f/1}* Did you know that my home used to have a basement?',
@@ -3916,12 +3869,7 @@ const text = {
                     "<25>{#f/6}* But he's got a real PENSION for humor!"
                  ],
          s_crossroads: [
-            '<25>{#p/toriel}{#f/1}* Sadly, there are no dimensional boxes in the OUTLANDS.',
-            '<25>{#f/5}* The technology was invented long after I retreated here...',
-            '<25>{#f/0}* Hmm.\n* I wonder what else we may be missing out on.'
-         ],
-         s_alphys: [
-            '<25>{#p/toriel}{#f/3}* An old landing pad!?',
+            '<25>{#p/toriel}{#f/3}* An old landing pad?',
             '<25>{#f/1}* From your description, it sounds like...',
             '<25>{#f/0}* Like the pad I helped set up for the early Starton engineers!',
             '<25>{#f/6}* At the time, Starton was our biggest project to date.',
@@ -3933,17 +3881,6 @@ const text = {
          s_human,
          s_papyrus: s_human,
          s_doggo,
-         s_lookout: pager.create(
-            'limit',
-            [
-               '<25>{#p/toriel}{#f/1}* That sound...',
-               '<25>{#f/2}* Is that a builder bot!?',
-               '<25>{#f/1}* My, those old robots... what a past they have.',
-               '<25>{#f/5}* That poor thing must be the last of its kind.',
-               '<25>{#f/0}* Still, it is nice to know that it has survived for this long.'
-            ],
-            [ '<25>{#p/toriel}* Those robots may be relics, but they are relics with charm.' ]
-         ),
          s_maze: pager.create(
             'limit',
             [
@@ -3953,15 +3890,6 @@ const text = {
                '<25>{#f/0}* I would love to try one sometime!'
             ],
             [ '<25>{#p/toriel}{#f/1}* Alas, I must oversee these OUTLANDS...' ]
-         ),
-         s_stand: pager.create(
-            'limit',
-            [
-               '<25>{#p/toriel}* I wonder what kind of food is sold in Starton these days.',
-               '<25>{#f/1}* Cakes?\n* Pies?',
-               '<25>{#f/0}* Well.\n* I sure hope it is nice.'
-            ],
-            [ '<25>{#p/toriel}{#f/15}* It better not be rationed ice cream.' ]
          ),
          s_dogs: pager.create(
             'limit',
@@ -3974,7 +3902,15 @@ const text = {
             ],
             [ '<25>{#p/toriel}{#f/1}* Hmm...' ]
          ),
-         s_lesser: s_doggo,
+         s_lesser: pager.create(
+            'limit',
+            [
+               '<25>{#p/toriel}* I wonder what kind of food is sold in Starton these days.',
+               '<25>{#f/1}* Cakes?\n* Pies?',
+               '<25>{#f/0}* Well.\n* I sure hope it is nice.'
+            ],
+            [ '<25>{#p/toriel}{#f/15}* It better not be rationed ice cream.' ]
+         ),
          s_bros: pager.create(
             'limit',
             [
@@ -4096,8 +4032,7 @@ const text = {
             '<25>{#f/0}* There are pockets of beauty to be found.',
             '<25>{#f/1}* Carpe diem, little one.\n* Do not pass up the chance to see them...'
          ],
-         f_bridge,
-         f_exit: f_bridge,
+         f_exit,
          a_start: pager.create(
             'limit',
             () =>
@@ -4123,7 +4058,7 @@ const text = {
             '<25>{#p/toriel}{#f/0}* The royal lab is such a great place to learn.',
             '<25>{#f/0}* Being the home of so many breakthroughs, it is quite storied.',
             '<25>{#f/0}* If I ever become a teacher, I would host a field trip here!',
-            "<25>{#f/1}* With ALPHYS' permission of course."
+            "<25>{#f/1}* With ALPHYS's permission of course."
          ],
          a_path2,
          a_path3: a_path2,
@@ -4177,7 +4112,7 @@ const text = {
             '<25>{#f/5}* Past the rec center is the CORE... and the CITADEL.',
             '<25>{#f/9}* This could very well be the last time I hear from you...',
             "<25>{#f/10}* Please, young one... be good, won't you?",
-            '<25>{#f/5}* I...',
+            '<25>{#f/5}* ...',
             '<25>{#f/9}* I am so sorry I cannot be with you on the rest of your journey.'
          ]
       };
@@ -4186,34 +4121,71 @@ const text = {
    s_save: {
       w_courtyard: {
          name: 'Outlands - Courtyard',
-         text: [ '<32>{#p/human}* (This cute little home fills you with determination.)' ]
+         text: () =>
+            save.data.n.plot > 16
+               ? [
+                    areaKills() < 4
+                       ? '<32>{#p/human}* (Even when visiting, this little home still fills you with determination.)'
+                       : '<32>{#p/human}* (Even when visiting, houses like these still fill you with determination.)'
+                 ]
+               : areaKills() < 4
+               ? [ '<32>{#p/human}* (This cute little home fills you with determination.)' ]
+               : [ '<32>{#p/human}* (A house amidst the power station fills you with determination.)' ]
       },
       w_entrance: {
          name: 'Outlands - Entrance',
-         text: [
-            '<32>{#p/human}* (The industrious Outlands lies ahead, filling you with determination.)',
-            '<32>{#p/human}* (HP fully restored.)'
-         ]
+         text: () =>
+            save.data.n.plot < 48
+               ? [
+                    '<32>{#p/human}* (The industrious Outlands lies ahead, filling you with determination.)',
+                    '<32>{#p/human}* (HP fully restored.)'
+                 ]
+               : [
+                    '<32>{#p/human}* (Returning to where it all began, after so long...)',
+                    '<32>{#p/human}* (This fills you with determination.)',
+                    '<32>{#p/human}* (HP fully restored.)'
+                 ]
       },
       w_froggit: {
          name: 'Outlands - Checkpoint',
          text: () =>
-            save.data.n.kills > 2
+            areaKills() < 3
                ? [
-                    '<32>{#p/human}* (The air grows stale.)\n* (Somehow, this fills you with determination...)',
+                    '<32>{#p/human}* (The sight of weird and wonderful creatures fills you with determination.)',
+                    '<32>{#p/human}* (HP fully restored.)'
+                 ]
+               : save.data.n.plot < 8.1
+               ? [
+                    '<32>{#p/human}* (The air grows stale.)\n* (Somehow, this fills you with determination.)',
+                    '<32>{#p/human}* (HP fully restored.)'
+                 ]
+               : save.data.n.state_wastelands_toriel === 2
+               ? [
+                    '<32>{#p/human}* (The air has fully dried up.)\n* (Indeed, this fills you with determination.)',
+                    '<32>{#p/human}* (HP fully restored.)'
+                 ]
+               : areaKills() < 5
+               ? [
+                    '<32>{#p/human}* (The air comes alive again.)\n* (This fills you with determination.)',
                     '<32>{#p/human}* (HP fully restored.)'
                  ]
                : [
-                    '<32>{#p/human}* (The sight of weird and wonderful creatures fills you with determination.)',
+                    '<32>{#p/human}* (The air remains stale.)\n* (Somehow, this fills you with determination.)',
                     '<32>{#p/human}* (HP fully restored.)'
                  ]
       },
       w_mouse: {
          name: 'Outlands - Stærmite Hole',
-         text: [
-            '<32>{#p/human}* (Knowing that the stærmite will one day emerge...)',
-            '<32>{#p/human}* (It fills you with determinætion.)'
-         ]
+         text: () =>
+            areaKills() < 2
+               ? [
+                    '<32>{#p/human}* (Knowing that the stærmite will one day emerge...)',
+                    '<32>{#p/human}* (The thought fills you with determinætion.)'
+                 ]
+               : [
+                    '<32>{#p/human}* (Even if the stærmite may never emerge again...)',
+                    '<32>{#p/human}* (The situation fills you with determinætion.)'
+                 ]
       },
       w_start: {
          name: 'Unknown Location',

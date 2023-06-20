@@ -2,7 +2,7 @@ import { BitmapFont, Container, Sprite, TextMetrics, TextStyle, Texture } from '
 import { CosmosDaemon } from './audio';
 import { CosmosEventHost, CosmosTimer } from './core';
 import { CosmosBitmap, CosmosColor, CosmosImage } from './image';
-import { CosmosArea, CosmosPoint, CosmosPointSimple } from './numerics';
+import { CosmosArea, CosmosMath, CosmosPoint, CosmosPointSimple } from './numerics';
 import {
    CosmosAnchoredObject,
    CosmosAnchoredObjectProperties,
@@ -164,9 +164,10 @@ export class CosmosText<
          }
          if (update) {
             let index = 0;
+            let mystify = '';
             const blend = style.blend;
             const offset = { x: 0, y: 0 };
-            const phase = this.phase / (100 / 3);
+            const phase = this.phase / CosmosMath.FRAME;
             const random = { x: 0, y: 0 };
             const state = Object.assign({}, style);
             const swirl = { p: 0, r: 0, s: 0 };
@@ -181,7 +182,7 @@ export class CosmosText<
                );
                this.$text.subcontainer.removeChildren();
                while (index < this.content.length) {
-                  const char = this.content[index++];
+                  let char = this.content[index++];
                   if (char === '\n') {
                      offset.x = 0;
                      offset.y += metrics.y + this.spacing.y;
@@ -214,6 +215,10 @@ export class CosmosText<
                            swirl.s = swirlS || 0;
                            swirl.p = swirlP || 0;
                            break;
+                        case 'mystify':
+                           mystify = value;
+                           mystify === '' || (this.$text.dirty = true);
+                           break;
                      }
                      if (random.x > 0 || random.y > 0 || (swirl.s > 0 && swirl.r > 0)) {
                         this.$text.dirty = true;
@@ -236,6 +241,7 @@ export class CosmosText<
                         y = endpoint.y;
                      }
                      if (font) {
+                        mystify === '' || (char = (x => x[Math.floor(Math.random() * x.length)])(mystify.split('')));
                         const info = font.glyphs[char.charCodeAt(0)];
                         if (info) {
                            const fill = CosmosImage.utils.color.of(state.fill);

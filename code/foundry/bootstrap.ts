@@ -1,22 +1,11 @@
-import { standardSound } from '../assets';
-import { OutertaleMap, OutertaleSpeechPreset } from '../classes';
-import content from '../content';
-import { audio, items, maps, speech } from '../core';
-import { CosmosDaemon, CosmosImage, CosmosSprite, CosmosUtils } from '../engine';
-import { easyRoom, saver } from '../mantle';
-import save from '../save';
-import text from './text';
-
 import imFoundryOverlay$info from '../../assets/images/maps/foundry-overlay.json?url';
 import imFoundry$info from '../../assets/images/maps/foundry.json?url';
 import f_abyss from '../../assets/rooms/f_abyss.json';
-import f_armor from '../../assets/rooms/f_armor.json';
 import f_artifact from '../../assets/rooms/f_artifact.json';
 import f_asriel from '../../assets/rooms/f_asriel.json';
 import f_battle from '../../assets/rooms/f_battle.json';
 import f_bird from '../../assets/rooms/f_bird.json';
 import f_blooky from '../../assets/rooms/f_blooky.json';
-import f_bridge from '../../assets/rooms/f_bridge.json';
 import f_chase from '../../assets/rooms/f_chase.json';
 import f_corner from '../../assets/rooms/f_corner.json';
 import f_corridor from '../../assets/rooms/f_corridor.json';
@@ -58,14 +47,24 @@ import f_undyne from '../../assets/rooms/f_undyne.json';
 import f_view from '../../assets/rooms/f_view.json';
 import f_village from '../../assets/rooms/f_village.json';
 
-const foundryMap = new OutertaleMap(imFoundry$info, content.imFoundry);
-const foundryOverlayMap = new OutertaleMap(imFoundryOverlay$info, content.imFoundryOverlay);
+import { standardSound } from '../assets';
+import { OutertaleMap, OutertaleSpeechPreset } from '../classes';
+import content from '../content';
+import { audio, items, maps, speech } from '../core';
+import { CosmosDaemon } from '../engine/audio';
+import { CosmosImage, CosmosSprite } from '../engine/image';
+import { CosmosUtils } from '../engine/utils';
+import { easyRoom, saver } from '../mantle';
+import save from '../save';
+import text from './text';
+
+export const foundryMap = new OutertaleMap(imFoundry$info, content.imFoundry);
+export const foundryOverlayMap = new OutertaleMap(imFoundryOverlay$info, content.imFoundryOverlay);
 
 export const sources = {
    f_start,
    f_sans,
    f_corridor,
-   f_armor,
    f_doge,
    f_puzzle1,
    f_quiche,
@@ -103,7 +102,6 @@ export const sources = {
    f_taxi,
    f_corner,
    f_story2,
-   f_bridge,
    f_pacing,
    f_battle,
    f_exit,
@@ -112,7 +110,7 @@ export const sources = {
    f_hapstablook
 };
 
-function undyneDialogue (image: CosmosImage) {
+export function undyneDialogue (image: CosmosImage) {
    return new CosmosSprite({
       anchor: 0,
       objects: [
@@ -232,7 +230,10 @@ speech.presets.register({
       interval: 40,
       voices: [
          [ new CosmosDaemon(content.avUndyne, standardSound()) ],
-         [ new CosmosDaemon(content.avUndyneex, standardSound()) ]
+         [ new CosmosDaemon(content.avUndyneex, standardSound()) ],
+         [ new CosmosDaemon(content.avUndyneex, standardSound(void 0, 0.95)) ],
+         [ new CosmosDaemon(content.avUndyneex, standardSound(void 0, 0.9)) ],
+         [ new CosmosDaemon(content.avUndyneex, standardSound(void 0, 0.8)) ]
       ]
    })
 });
